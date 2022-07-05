@@ -51,41 +51,9 @@ class _MyHomePageState extends State<MyHomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      /*bottomNavigationBar: BottomNavigationBar(
-        onTap: (int idx) => {
-          setState(() {
-            _page = idx;
-          })
-        },
-        currentIndex: _page,
-        elevation: 8,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.shifting,
-        selectedItemColor: Colors.blue.shade400,
-        unselectedItemColor: Colors.grey.shade500,
-        enableFeedback: true,
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            label: "Timetable",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            label: "Dashboard",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_month_outlined),
-            label: "Events",
-          ),
-        ],
-      ),
-      body: const <Widget>[
-        Text("Timetable"),
-        Text("Dashboard"),
-        Text("Events"),
-      ][_page],*/
       body: TabBarView(
         controller: _tabController,
+        physics: const BouncingScrollPhysics(),
         children: const [
           Text("Timetable"),
           Text("Dashboard"),
@@ -93,27 +61,39 @@ class _MyHomePageState extends State<MyHomePage>
         ],
       ),
       bottomNavigationBar: BottomAppBar(
+        elevation: 8,
         child: Container(
-          color: Colors.grey.shade500,
+          color: Colors.grey.shade400,
           child: TabBar(
             controller: _tabController,
-            unselectedLabelColor: const Color(0x50FFFFFF),
+            unselectedLabelColor: const Color.fromARGB(75, 0, 0, 0),
             unselectedLabelStyle: const TextStyle(
               fontSize: 0,
             ),
+            labelColor: const Color.fromARGB(255, 0, 0, 0),
             indicatorColor: Colors.purple.shade300,
+            indicatorSize: TabBarIndicatorSize.label,
             tabs: const <Widget>[
-              Tab(
-                icon: Icon(Icons.calendar_today_outlined),
-                child: Text("Timetable"),
+              Tooltip(
+                message: "Timetable",
+                child: Tab(
+                  icon: Icon(Icons.calendar_today_outlined),
+                  child: Text("Timetable"),
+                ),
               ),
-              Tab(
-                icon: Icon(Icons.home_outlined),
-                child: Text("Dashboard"),
+              Tooltip(
+                message: "Dashboard",
+                child: Tab(
+                  icon: Icon(Icons.home_outlined),
+                  child: Text("Dashboard"),
+                ),
               ),
-              Tab(
-                icon: Icon(Icons.calendar_month_outlined),
-                child: Text("Events"),
+              Tooltip(
+                message: "Events",
+                child: Tab(
+                  icon: Icon(Icons.calendar_month_outlined),
+                  child: Text("Events"),
+                ),
               ),
             ],
           ),
