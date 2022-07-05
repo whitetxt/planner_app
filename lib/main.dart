@@ -31,13 +31,27 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
+  TabController? _tabController;
   int _page = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(vsync: this, length: 3);
+  }
+
+  @override
+  void dispose() {
+    _tabController!.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
+      /*bottomNavigationBar: BottomNavigationBar(
         onTap: (int idx) => {
           setState(() {
             _page = idx;
@@ -69,7 +83,42 @@ class _MyHomePageState extends State<MyHomePage> {
         Text("Timetable"),
         Text("Dashboard"),
         Text("Events"),
-      ][_page],
+      ][_page],*/
+      body: TabBarView(
+        controller: _tabController,
+        children: const [
+          Text("Timetable"),
+          Text("Dashboard"),
+          Text("Events"),
+        ],
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: Container(
+          color: Colors.grey.shade500,
+          child: TabBar(
+            controller: _tabController,
+            unselectedLabelColor: const Color(0x50FFFFFF),
+            unselectedLabelStyle: const TextStyle(
+              fontSize: 0,
+            ),
+            indicatorColor: Colors.purple.shade300,
+            tabs: const <Widget>[
+              Tab(
+                icon: Icon(Icons.calendar_today_outlined),
+                child: Text("Timetable"),
+              ),
+              Tab(
+                icon: Icon(Icons.home_outlined),
+                child: Text("Dashboard"),
+              ),
+              Tab(
+                icon: Icon(Icons.calendar_month_outlined),
+                child: Text("Events"),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
