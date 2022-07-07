@@ -10,7 +10,8 @@ void main() {
 class PlannerApp extends StatelessWidget {
   const PlannerApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
+  // This overrides the build function, and returns a MaterialApp.
+  // The MaterialApp is responsible for all rendering and event handling.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
