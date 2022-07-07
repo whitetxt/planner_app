@@ -88,7 +88,7 @@ class _MyHomePageState extends State<MyHomePage>
                 ),
               ),
               Tooltip(
-                message: "Events",
+                message: "Events ",
                 child: Tab(
                   icon: Icon(Icons.calendar_month_outlined),
                   child: Text("Events"),
