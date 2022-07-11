@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import "timetable.dart";
 
 void main() {
+  // This tells flutter to start the app and render stuff.
   runApp(const PlannerApp());
 }
 
@@ -28,6 +29,9 @@ class PlannerApp extends StatelessWidget {
 class Home extends StatefulWidget {
   const Home({Key? key}) : super(key: key);
 
+  // As this widget is stateful (it has a state),
+  // The createState function is needed so that it can be called
+  // Every time the widget (app) needs to be re-rendered.
   @override
   State<Home> createState() => _HomeState();
 }
@@ -35,12 +39,14 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
+  // This simply creates the TabController on startup.
   @override
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: 3);
   }
 
+  // And this disposes of the TabController on close.
   @override
   void dispose() {
     _tabController!.dispose();

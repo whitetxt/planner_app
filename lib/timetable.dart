@@ -1,14 +1,36 @@
+import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
 
-class TimetableSlot extends StatelessWidget {
+class TimetableSlot extends StatefulWidget {
   const TimetableSlot(this.text, {Key? key}) : super(key: key);
 
   final String text;
 
   @override
+  State<TimetableSlot> createState() => _TimetableSlotState();
+}
+
+class _TimetableSlotState extends State<TimetableSlot> {
+  ExpandableController? _expController;
+
+  @override
+  void initState() {
+    super.initState();
+    _expController = ExpandableController(initialExpanded: false);
+  }
+
+  @override
+  void dispose() {
+    _expController!.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      height: 64,
+      constraints: const BoxConstraints(
+        minHeight: 32,
+      ),
       margin: const EdgeInsets.only(
         bottom: 1,
       ),
@@ -18,9 +40,14 @@ class TimetableSlot extends StatelessWidget {
           left: BorderSide(color: Colors.black),
         ),
       ),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
+      child: ExpandablePanel(
+        header: const Text("Hello there"),
+        collapsed: Container(),
+        expanded: const Text(
+          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          softWrap: true,
+        ),
+        controller: _expController,
       ),
     );
   }
@@ -33,22 +60,9 @@ class Timetable extends StatefulWidget {
   State<Timetable> createState() => _TimetableState();
 }
 
-class _TimetableState extends State<Timetable>
-    with SingleTickerProviderStateMixin {
-  TabController? _tabController;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(vsync: this, length: 3);
-  }
-
-  @override
-  void dispose() {
-    _tabController!.dispose();
-    super.dispose();
-  }
-
+class _TimetableState extends State<Timetable> {
+  // This is a 2D array of subjects in the timetable.
+  // This is the format which the API will return once implemented.
   List<List<String>> subjects = [
     [
       "Applied Maths",
@@ -122,7 +136,7 @@ class _TimetableState extends State<Timetable>
       body: Column(
         children: [
           Table(
-            defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+            defaultVerticalAlignment: TableCellVerticalAlignment.bottom,
             children: [
               ...[
                 const TableRow(
