@@ -1,7 +1,9 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import "timetable.dart";
+import "settings.dart";
 
 void main() {
   // This tells flutter to start the app and render stuff.
@@ -19,31 +21,51 @@ class PlannerApp extends StatelessWidget {
       title: 'Planner',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        primaryColor: Colors.grey.shade600,
+        highlightColor: Colors.blue.shade100,
+        appBarTheme: AppBarTheme(
+          color: Colors.blueGrey.shade700,
+          iconTheme: const IconThemeData(
+            size: 16,
+            color: Color(0xFFFFFFFF),
+          ),
+        ),
+        bottomAppBarTheme: BottomAppBarTheme(
+          color: Colors.blueGrey.shade700,
+          elevation: 8,
+        ),
+        backgroundColor: const Color.fromRGBO(200, 200, 200, 1),
         textTheme: GoogleFonts.poppinsTextTheme(),
       ),
-      home: const Home(),
+      routes: {
+        "/": (context) => const MainPage(),
+        "/settings": (context) => const SettingsPage(),
+      },
+      initialRoute: "/",
+      //home: const Home(),
     );
   }
 }
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
+class MainPage extends StatefulWidget {
+  const MainPage({Key? key}) : super(key: key);
 
   // As this widget is stateful (it has a state),
   // The createState function is needed so that it can be called
   // Every time the widget (app) needs to be re-rendered.
   @override
-  State<Home> createState() => _HomeState();
+  State<MainPage> createState() => _MainPageState();
 }
 
-class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
+class _MainPageState extends State<MainPage>
+    with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
   // This simply creates the TabController on startup.
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(vsync: this, length: 3);
+    _tabController = TabController(vsync: this, length: 5, initialIndex: 2);
   }
 
   // And this disposes of the TabController on close.
@@ -61,47 +83,131 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
         physics: const BouncingScrollPhysics(),
         children: const [
           Timetable(),
+          Text("Homework"),
           Text("Dashboard"),
-          Text("Events"),
+          Text("Calendar"),
+          Text("Exams"),
         ],
       ),
       bottomNavigationBar: BottomAppBar(
-        elevation: 8,
-        child: Container(
-          color: Colors.grey.shade400,
-          child: TabBar(
-            controller: _tabController,
-            unselectedLabelColor: const Color.fromARGB(75, 0, 0, 0),
-            unselectedLabelStyle: const TextStyle(
-              fontSize: 0,
-            ),
-            labelColor: const Color.fromARGB(255, 0, 0, 0),
-            indicatorColor: Colors.purple.shade300,
-            indicatorSize: TabBarIndicatorSize.label,
-            tabs: const <Widget>[
-              Tooltip(
-                message: "Timetable",
-                child: Tab(
-                  icon: Icon(Icons.calendar_today_outlined),
-                  child: Text("Timetable"),
-                ),
-              ),
-              Tooltip(
-                message: "Dashboard",
-                child: Tab(
-                  icon: Icon(Icons.home_outlined),
-                  child: Text("Dashboard"),
-                ),
-              ),
-              Tooltip(
-                message: "Events ",
-                child: Tab(
-                  icon: Icon(Icons.calendar_month_outlined),
-                  child: Text("Events"),
-                ),
-              ),
-            ],
+        child: TabBar(
+          controller: _tabController,
+          unselectedLabelColor: const Color(0xFFBBBBBB),
+          unselectedLabelStyle: const TextStyle(
+            fontSize: 0.01,
           ),
+          labelColor: const Color(0xFFFFFFFF),
+          indicatorColor: Colors.purple.shade300,
+          indicatorSize: TabBarIndicatorSize.label,
+          tabs: const <Widget>[
+            Tooltip(
+              message: "Timetable",
+              child: Tab(
+                icon: Icon(
+                  Icons.calendar_today_outlined,
+                  semanticLabel: "Timetable",
+                ),
+                child: AutoSizeText(
+                  "Timetable",
+                  maxLines: 1,
+                  minFontSize: 0,
+                  maxFontSize: 16,
+                ),
+              ),
+            ),
+            Tooltip(
+              message: "Homework",
+              child: Tab(
+                icon: Icon(
+                  Icons.book_outlined,
+                  semanticLabel: "Homework",
+                ),
+                child: AutoSizeText(
+                  "Homework",
+                  maxLines: 1,
+                  minFontSize: 0,
+                  maxFontSize: 16,
+                ),
+              ),
+            ),
+            Tooltip(
+              message: "Dashboard",
+              child: Tab(
+                icon: Icon(
+                  Icons.home_outlined,
+                  semanticLabel: "Dashboard",
+                ),
+                child: AutoSizeText(
+                  "Dashboard",
+                  maxLines: 1,
+                  minFontSize: 0,
+                  maxFontSize: 16,
+                ),
+              ),
+            ),
+            Tooltip(
+              message: "Calendar",
+              child: Tab(
+                icon: Icon(
+                  Icons.calendar_month_outlined,
+                  semanticLabel: "Calendar",
+                ),
+                child: AutoSizeText(
+                  "Calendar",
+                  maxLines: 1,
+                  minFontSize: 0,
+                  maxFontSize: 16,
+                ),
+              ),
+            ),
+            Tooltip(
+              message: "Exams",
+              child: Tab(
+                icon: Icon(
+                  Icons.check_circle_outline_outlined,
+                  semanticLabel: "Exams",
+                ),
+                child: AutoSizeText(
+                  "Exams",
+                  maxLines: 1,
+                  minFontSize: 0,
+                  maxFontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+          context,
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const SettingsPage(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return SlideTransition(
+                position: animation.drive(
+                  Tween<Offset>(
+                    begin: const Offset(0, 1),
+                    end: Offset.zero,
+                  ).chain(
+                    CurveTween(curve: Curves.easeOutSine),
+                  ),
+                ),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 500),
+          ),
+        ),
+        enableFeedback: true,
+        mini: true,
+        child: const Icon(
+          Icons.settings_outlined,
+          semanticLabel: "Settings",
+          size: 20,
         ),
       ),
     );

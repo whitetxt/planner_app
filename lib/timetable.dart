@@ -1,53 +1,85 @@
-import 'package:expandable/expandable.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 class TimetableSlot extends StatefulWidget {
-  const TimetableSlot(this.text, {Key? key}) : super(key: key);
+  const TimetableSlot(
+    this.text, {
+    Key? key,
+    this.width = 128,
+    this.height = 32,
+    this.borderWidth = 1,
+    this.clickable = true,
+  }) : super(key: key);
 
   final String text;
+  final double width;
+  final double height;
+  final double borderWidth;
+  final bool clickable;
 
   @override
   State<TimetableSlot> createState() => _TimetableSlotState();
 }
 
 class _TimetableSlotState extends State<TimetableSlot> {
-  ExpandableController? _expController;
-
-  @override
-  void initState() {
-    super.initState();
-    _expController = ExpandableController(initialExpanded: false);
-  }
-
-  @override
-  void dispose() {
-    _expController!.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(
-        minHeight: 32,
-      ),
-      margin: const EdgeInsets.only(
-        bottom: 1,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.amber.shade100,
-        border: const Border(
-          left: BorderSide(color: Colors.black),
+    return GestureDetector(
+      onTap: () {
+        if (!widget.clickable) return;
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Container(
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Theme.of(context).highlightColor,
+                      width: 2,
+                    ),
+                  ),
+                ),
+                child: Text(
+                  widget.text,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              content: const Text("Room: <TEST>\nTeacher: <TEST>"),
+            );
+          },
+        );
+      },
+      child: Material(
+        elevation: 2,
+        child: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).highlightColor,
+            border: Border.all(
+              color: Theme.of(context).bottomAppBarTheme.color!,
+              width: widget.borderWidth,
+            ),
+            borderRadius: BorderRadius.circular(widget.borderWidth / 2),
+          ),
+          child: SizedBox(
+            width: widget.width,
+            height: widget.height,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                AutoSizeText(
+                  widget.text,
+                  textAlign: TextAlign.center,
+                  minFontSize: 6,
+                  maxFontSize: 16,
+                  maxLines: 2,
+                  semanticsLabel: widget.text,
+                  wrapWords: false,
+                ),
+              ],
+            ),
+          ),
         ),
-      ),
-      child: ExpandablePanel(
-        header: const Text("Hello there"),
-        collapsed: Container(),
-        expanded: const Text(
-          "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-          softWrap: true,
-        ),
-        controller: _expController,
       ),
     );
   }
@@ -132,45 +164,103 @@ class _TimetableState extends State<Timetable> {
           ),
         ),
       ),
-      backgroundColor: Colors.grey.shade700,
-      body: Column(
-        children: [
-          Table(
-            defaultVerticalAlignment: TableCellVerticalAlignment.bottom,
-            children: [
-              ...[
-                const TableRow(
-                  decoration: BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Colors.black),
-                      top: BorderSide(color: Colors.black),
-                    ),
+      backgroundColor: Theme.of(context).backgroundColor,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Material(
+              elevation: 4,
+              borderRadius: const BorderRadius.all(
+                Radius.circular(8),
+              ),
+              child: Container(
+                width: 15 * MediaQuery.of(context).size.width / 16,
+                height: 3 * MediaQuery.of(context).size.height / 4,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).highlightColor,
+                  border: Border.all(
+                    color: Theme.of(context).highlightColor,
+                    width: 8,
                   ),
-                  children: <Widget>[
-                    TimetableSlot("Monday"),
-                    TimetableSlot("Tuesday"),
-                    TimetableSlot("Wednesday"),
-                    TimetableSlot("Thursday"),
-                    TimetableSlot("Friday"),
-                  ],
-                ),
-              ],
-              for (int i = 0; i < subjects[0].length; i++)
-                TableRow(
-                  decoration: const BoxDecoration(
-                    border: Border(
-                      bottom: BorderSide(color: Colors.black),
-                      top: BorderSide(color: Colors.black),
-                    ),
+                  borderRadius: const BorderRadius.all(
+                    Radius.circular(8),
                   ),
-                  children: <Widget>[
-                    for (int j = 0; j < subjects.length; j++)
-                      TimetableSlot(subjects[j][i])
-                  ],
                 ),
-            ],
-          ),
-        ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    double borderWidth = 1;
+                    double width = constraints.maxWidth / 6 -
+                        (borderWidth * 2 + borderWidth);
+                    double height =
+                        constraints.maxHeight / (subjects[0].length + 2) -
+                            (borderWidth * 2 + borderWidth);
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        ...[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              TimetableSlot(
+                                "Monday",
+                                width: width,
+                                height: height,
+                                borderWidth: borderWidth * 2,
+                                clickable: false,
+                              ),
+                              TimetableSlot(
+                                "Tuesday",
+                                width: width,
+                                height: height,
+                                borderWidth: borderWidth * 2,
+                                clickable: false,
+                              ),
+                              TimetableSlot(
+                                "Wednesday",
+                                width: width,
+                                height: height,
+                                borderWidth: borderWidth * 2,
+                                clickable: false,
+                              ),
+                              TimetableSlot(
+                                "Thursday",
+                                width: width,
+                                height: height,
+                                borderWidth: borderWidth * 2,
+                                clickable: false,
+                              ),
+                              TimetableSlot(
+                                "Friday",
+                                width: width,
+                                height: height,
+                                borderWidth: borderWidth * 2,
+                                clickable: false,
+                              ),
+                            ],
+                          ),
+                        ],
+                        for (int i = 0; i < subjects[0].length; i++)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              for (int j = 0; j < subjects.length; j++)
+                                TimetableSlot(
+                                  subjects[j][i],
+                                  width: width,
+                                  height: height,
+                                  borderWidth: borderWidth,
+                                )
+                            ],
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
