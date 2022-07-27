@@ -1,8 +1,10 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import "timetable.dart";
+import "homework.dart";
 import "settings.dart";
 
 void main() {
@@ -42,7 +44,6 @@ class PlannerApp extends StatelessWidget {
         "/settings": (context) => const SettingsPage(),
       },
       initialRoute: "/",
-      //home: const Home(),
     );
   }
 }
@@ -61,11 +62,27 @@ class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
+  int _tabIndex = 1;
+  final List<String> _tabNames = [
+    "Timetable",
+    "Homework",
+    "Dashboard",
+    "Calendar",
+    "Exams"
+  ];
+
+  void _tabChanged() {
+    setState(() {
+      _tabIndex = _tabController!.index;
+    });
+  }
+
   // This simply creates the TabController on startup.
   @override
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: 5, initialIndex: 2);
+    _tabController!.addListener(_tabChanged);
   }
 
   // And this disposes of the TabController on close.
@@ -81,9 +98,10 @@ class _MainPageState extends State<MainPage>
       body: TabBarView(
         controller: _tabController,
         physics: const BouncingScrollPhysics(),
+        dragStartBehavior: DragStartBehavior.down,
         children: const [
           Timetable(),
-          Text("Homework"),
+          Homework(),
           Text("Dashboard"),
           Text("Calendar"),
           Text("Exams"),
@@ -99,6 +117,7 @@ class _MainPageState extends State<MainPage>
           labelColor: const Color(0xFFFFFFFF),
           indicatorColor: Colors.purple.shade300,
           indicatorSize: TabBarIndicatorSize.label,
+          enableFeedback: true,
           tabs: const <Widget>[
             Tooltip(
               message: "Timetable",
@@ -176,38 +195,6 @@ class _MainPageState extends State<MainPage>
               ),
             ),
           ],
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniEndDocked,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.push(
-          context,
-          PageRouteBuilder(
-            pageBuilder: (context, animation, secondaryAnimation) =>
-                const SettingsPage(),
-            transitionsBuilder:
-                (context, animation, secondaryAnimation, child) {
-              return SlideTransition(
-                position: animation.drive(
-                  Tween<Offset>(
-                    begin: const Offset(0, 1),
-                    end: Offset.zero,
-                  ).chain(
-                    CurveTween(curve: Curves.easeOutSine),
-                  ),
-                ),
-                child: child,
-              );
-            },
-            transitionDuration: const Duration(milliseconds: 500),
-          ),
-        ),
-        enableFeedback: true,
-        mini: true,
-        child: const Icon(
-          Icons.settings_outlined,
-          semanticLabel: "Settings",
-          size: 20,
         ),
       ),
     );

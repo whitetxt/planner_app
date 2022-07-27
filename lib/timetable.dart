@@ -1,6 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
+import "pl_appbar.dart";
+
 class TimetableSlot extends StatefulWidget {
   const TimetableSlot(
     this.text, {
@@ -156,14 +158,7 @@ class _TimetableState extends State<Timetable> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(32),
-        child: AppBar(
-          title: const Center(
-            child: Text("Your Timetable"),
-          ),
-        ),
-      ),
+      appBar: PLAppBar("Timetable", context),
       backgroundColor: Theme.of(context).backgroundColor,
       body: Center(
         child: Column(
