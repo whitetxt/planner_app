@@ -3,14 +3,32 @@ import "package:flutter/material.dart";
 
 import "pl_appbar.dart";
 
-class Homework extends StatefulWidget {
-  const Homework({Key? key}) : super(key: key);
+class HomeworkData {
+  HomeworkData(this.timeDue, this.name, this.teacher, this.subject);
 
-  @override
-  State<Homework> createState() => _HomeworkState();
+  final DateTime timeDue;
+  final String name;
+  final String teacher;
+  final String subject;
+
+  factory HomeworkData.fromJson(dynamic jsonData) {
+    return HomeworkData(
+      DateTime.fromMillisecondsSinceEpoch(jsonData["timeDue"]),
+      jsonData["name"],
+      jsonData["teacher"],
+      jsonData["subject"],
+    );
+  }
 }
 
-class _HomeworkState extends State<Homework> {
+class HomeworkPage extends StatefulWidget {
+  const HomeworkPage({Key? key}) : super(key: key);
+
+  @override
+  State<HomeworkPage> createState() => _HomeworkPageState();
+}
+
+class _HomeworkPageState extends State<HomeworkPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(

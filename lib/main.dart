@@ -101,7 +101,7 @@ class _MainPageState extends State<MainPage>
         dragStartBehavior: DragStartBehavior.down,
         children: const [
           Timetable(),
-          Homework(),
+          HomeworkPage(),
           Text("Dashboard"),
           Text("Calendar"),
           Text("Exams"),
