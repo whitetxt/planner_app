@@ -97,7 +97,7 @@ class Timetable extends StatefulWidget {
 class _TimetableState extends State<Timetable> {
   // This is a 2D array of subjects in the timetable.
   // This is the format which the API will return once implemented.
-  List<List<String>> subjects = [
+  List<List<String>> sampleTimetableData = [
     [
       "Applied Maths",
       "Applied Maths",
@@ -187,9 +187,9 @@ class _TimetableState extends State<Timetable> {
                     double borderWidth = 1;
                     double width = constraints.maxWidth / 6 -
                         (borderWidth * 2 + borderWidth);
-                    double height =
-                        constraints.maxHeight / (subjects[0].length + 2) -
-                            (borderWidth * 2 + borderWidth);
+                    double height = constraints.maxHeight /
+                            (sampleTimetableData[0].length + 2) -
+                        (borderWidth * 2 + borderWidth);
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -235,13 +235,15 @@ class _TimetableState extends State<Timetable> {
                             ],
                           ),
                         ],
-                        for (int i = 0; i < subjects[0].length; i++)
+                        for (int i = 0; i < sampleTimetableData[0].length; i++)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
-                              for (int j = 0; j < subjects.length; j++)
+                              for (int j = 0;
+                                  j < sampleTimetableData.length;
+                                  j++)
                                 TimetableSlot(
-                                  subjects[j][i],
+                                  sampleTimetableData[j][i],
                                   width: width,
                                   height: height,
                                   borderWidth: borderWidth,
