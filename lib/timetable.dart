@@ -87,14 +87,14 @@ class _TimetableSlotState extends State<TimetableSlot> {
   }
 }
 
-class Timetable extends StatefulWidget {
-  const Timetable({Key? key}) : super(key: key);
+class TimetablePage extends StatefulWidget {
+  const TimetablePage({Key? key}) : super(key: key);
 
   @override
-  State<Timetable> createState() => _TimetableState();
+  State<TimetablePage> createState() => _TimetablePageState();
 }
 
-class _TimetableState extends State<Timetable> {
+class _TimetablePageState extends State<TimetablePage> {
   // This is a 2D array of subjects in the timetable.
   // This is the format which the API will return once implemented.
   List<List<String>> sampleTimetableData = [
@@ -173,9 +173,9 @@ class _TimetableState extends State<Timetable> {
                 width: 15 * MediaQuery.of(context).size.width / 16,
                 height: 3 * MediaQuery.of(context).size.height / 4,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).highlightColor,
+                  color: Colors.white,
                   border: Border.all(
-                    color: Theme.of(context).highlightColor,
+                    color: Colors.white,
                     width: 8,
                   ),
                   borderRadius: const BorderRadius.all(
@@ -247,7 +247,7 @@ class _TimetableState extends State<Timetable> {
                                   width: width,
                                   height: height,
                                   borderWidth: borderWidth,
-                                )
+                                ),
                             ],
                           ),
                       ],

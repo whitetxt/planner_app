@@ -5,6 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import "timetable.dart";
 import "homework.dart";
+import "dashboard.dart";
+import "calendar.dart";
+import "exams.dart";
 import "settings.dart";
 
 void main() {
@@ -100,11 +103,11 @@ class _MainPageState extends State<MainPage>
         physics: const BouncingScrollPhysics(),
         dragStartBehavior: DragStartBehavior.down,
         children: const [
-          Timetable(),
+          TimetablePage(),
           HomeworkPage(),
-          Text("Dashboard"),
-          Text("Calendar"),
-          Text("Exams"),
+          Dashboard(),
+          CalendarPage(),
+          ExamPage(),
         ],
       ),
       bottomNavigationBar: BottomAppBar(

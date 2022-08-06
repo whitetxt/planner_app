@@ -1,4 +1,3 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import "package:flutter/material.dart";
 
 import "pl_appbar.dart";
@@ -47,25 +46,41 @@ class HomeworkWidget extends StatelessWidget {
                 Text(data.name),
               ],
             ),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.more_horiz, color: Colors.black),
-              label: const Text(
-                "Actions",
-                style: TextStyle(
-                  color: Colors.black,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                primary: Theme.of(context).highlightColor,
-                shape: RoundedRectangleBorder(
-                  side: const BorderSide(
-                    color: Colors.black,
-                    width: 2,
+            PopupMenuButton(
+              child: Material(
+                elevation: 4,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(color: Colors.black),
+                    color: Theme.of(context).highlightColor,
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  padding: const EdgeInsets.all(4),
+                  child: Row(
+                    children: const [
+                      Icon(Icons.more_horiz, color: Colors.black),
+                      Text(
+                        "Actions",
+                        style: TextStyle(
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              onPressed: () {},
+              itemBuilder: (context) => [
+                PopupMenuItem(
+                  value: 1,
+                  onTap: () {},
+                  child: const Text("More Info"),
+                ),
+                PopupMenuItem(
+                  value: 1,
+                  onTap: () {},
+                  child: const Text("Complete"),
+                ),
+              ],
             ),
           ],
         ),
@@ -92,6 +107,22 @@ class _HomeworkPageState extends State<HomeworkPage> {
         "Test Name", "Test Teacher", "Test Subject"),
     HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
         "Test Name", "Test Teacher", "Test Subject"),
+    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
+        "Test Name", "Test Teacher", "Test Subject"),
+    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
+        "Test Name", "Test Teacher", "Test Subject"),
+    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
+        "Test Name", "Test Teacher", "Test Subject"),
+    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
+        "Test Name", "Test Teacher", "Test Subject"),
+    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
+        "Test Name", "Test Teacher", "Test Subject"),
+    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
+        "Test Name", "Test Teacher", "Test Subject"),
+    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
+        "Test Name", "Test Teacher", "Test Subject"),
+    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
+        "Test Name", "Test Teacher", "Test Subject"),
   ];
 
   @override
@@ -100,8 +131,10 @@ class _HomeworkPageState extends State<HomeworkPage> {
       appBar: PLAppBar("Homework", context),
       backgroundColor: Theme.of(context).backgroundColor,
       body: Center(
-        child: Column(
-          children: <Widget>[HomeworkWidget(sampleHomeworkData[0])],
+        child: ListView(
+          children: [
+            for (var hw in sampleHomeworkData) HomeworkWidget(hw),
+          ],
         ),
       ),
     );
