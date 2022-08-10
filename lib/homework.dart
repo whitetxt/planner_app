@@ -31,58 +31,62 @@ class HomeworkWidget extends StatelessWidget {
       elevation: 4,
       child: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: <Widget>[
-            Column(
-              children: <Widget>[
-                Text("${data.timeDue.day}/${data.timeDue.month}"),
-                Text("${data.timeDue.hour}:${data.timeDue.minute}")
-              ],
-            ),
-            Column(
-              children: <Widget>[
-                Text("Homework for ${data.subject} (${data.teacher}):"),
-                Text(data.name),
-              ],
-            ),
-            PopupMenuButton(
-              child: Material(
-                elevation: 4,
-                child: Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: Colors.black),
-                    color: Theme.of(context).highlightColor,
-                  ),
-                  padding: const EdgeInsets.all(4),
-                  child: Row(
-                    children: const [
-                      Icon(Icons.more_horiz, color: Colors.black),
-                      Text(
-                        "Actions",
-                        style: TextStyle(
-                          color: Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+        child: IntrinsicHeight(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: <Widget>[
+              Column(
+                children: <Widget>[
+                  Text("${data.timeDue.day}/${data.timeDue.month}"),
+                  Text("${data.timeDue.hour}:${data.timeDue.minute}")
+                ],
               ),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 1,
-                  onTap: () {},
-                  child: const Text("More Info"),
+              const VerticalDivider(width: 2),
+              Column(
+                children: <Widget>[
+                  Text("${data.subject} (${data.teacher}):"),
+                  Text(data.name),
+                ],
+              ),
+              PopupMenuButton(
+                child: Material(
+                  elevation: 4,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.black),
+                      color: Theme.of(context).highlightColor,
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: Row(
+                      children: const [
+                        Icon(Icons.more_horiz, color: Colors.black),
+                        Text(
+                          "Actions",
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                PopupMenuItem(
-                  value: 1,
-                  onTap: () {},
-                  child: const Text("Complete"),
-                ),
-              ],
-            ),
-          ],
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 1,
+                    onTap: () {},
+                    child: const Text("More Info"),
+                  ),
+                  PopupMenuItem(
+                    value: 1,
+                    onTap: () {},
+                    child: const Text("Complete"),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

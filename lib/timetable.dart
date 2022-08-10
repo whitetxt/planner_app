@@ -37,7 +37,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
-                      color: Theme.of(context).highlightColor,
+                      color: Theme.of(context).dividerColor,
                       width: 2,
                     ),
                   ),

@@ -41,6 +41,7 @@ class PlannerApp extends StatelessWidget {
         ),
         backgroundColor: const Color.fromRGBO(200, 200, 200, 1),
         textTheme: GoogleFonts.poppinsTextTheme(),
+        dividerColor: Colors.black,
       ),
       routes: {
         "/": (context) => const MainPage(),
@@ -65,27 +66,11 @@ class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
-  int _tabIndex = 1;
-  final List<String> _tabNames = [
-    "Timetable",
-    "Homework",
-    "Dashboard",
-    "Calendar",
-    "Exams"
-  ];
-
-  void _tabChanged() {
-    setState(() {
-      _tabIndex = _tabController!.index;
-    });
-  }
-
   // This simply creates the TabController on startup.
   @override
   void initState() {
     super.initState();
     _tabController = TabController(vsync: this, length: 5, initialIndex: 2);
-    _tabController!.addListener(_tabChanged);
   }
 
   // And this disposes of the TabController on close.
