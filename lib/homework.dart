@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 
-import "pl_appbar.dart";
+import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
 
 class HomeworkData {
   HomeworkData(this.timeDue, this.name, this.teacher, this.subject);
@@ -32,64 +32,100 @@ class HomeworkWidget extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(8.0),
         child: IntrinsicHeight(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+          child: Flex(
+            direction: Axis.horizontal,
             children: <Widget>[
-              Column(
-                children: <Widget>[
-                  Text("${data.timeDue.day}/${data.timeDue.month}"),
-                  Text("${data.timeDue.hour}:${data.timeDue.minute}")
-                ],
+              Expanded(
+                flex: 1,
+                child: Column(
+                  children: <Widget>[
+                    Text("${data.timeDue.day}/${data.timeDue.month}"),
+                    Text("${data.timeDue.hour}:${data.timeDue.minute}")
+                  ],
+                ),
               ),
               const VerticalDivider(width: 2),
-              Column(
-                children: <Widget>[
-                  Text("${data.subject} (${data.teacher}):"),
-                  Text(data.name),
-                ],
-              ),
-              PopupMenuButton(
-                child: Material(
-                  elevation: 4,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(color: Colors.black),
-                      color: Theme.of(context).highlightColor,
-                    ),
-                    padding: const EdgeInsets.all(4),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.more_horiz, color: Colors.black),
-                        Text(
-                          "Actions",
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+              Expanded(
+                flex: 4,
+                child: Column(
+                  children: <Widget>[
+                    Text("${data.subject} (${data.teacher}):"),
+                    Text(data.name),
+                  ],
                 ),
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 1,
-                    onTap: () {},
-                    child: const Text("More Info"),
+              ),
+              Expanded(
+                flex: 1,
+                child: PopupMenuButton(
+                  child: Material(
+                    elevation: 4,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: Colors.black),
+                        color: Theme.of(context).highlightColor,
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Icon(
+                            Icons.more_horiz,
+                            color: Colors.black,
+                            size: 18,
+                          ),
+                          Text(
+                            "Actions",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                  PopupMenuItem(
-                    value: 1,
-                    onTap: () {},
-                    child: const Text("Complete"),
-                  ),
-                ],
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      onTap: () {},
+                      child: const Text(
+                        "More Info",
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    PopupMenuItem(
+                      onTap: () {},
+                      child: const Text(
+                        "Complete",
+                        style: TextStyle(
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
       ),
     );
+  }
+}
+
+class HomeworkMini extends StatefulWidget {
+  const HomeworkMini({Key? key}) : super(key: key);
+
+  @override
+  State<HomeworkMini> createState() => _HomeworkMiniState();
+}
+
+class _HomeworkMiniState extends State<HomeworkMini> {
+  @override
+  Widget build(BuildContext context) {
+    return Container(child: const Text("Hello mini homework"));
   }
 }
 
@@ -109,24 +145,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
         "Test Teacher", "Test Subject"),
     HomeworkData(DateTime.now().add(const Duration(days: 3, hours: 6)),
         "Test Name", "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
-        "Test Name", "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
-        "Test Name", "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
-        "Test Name", "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
-        "Test Name", "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
-        "Test Name", "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
-        "Test Name", "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
-        "Test Name", "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
-        "Test Name", "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 4, hours: 12)),
-        "Test Name", "Test Teacher", "Test Subject"),
+    ...[
+      for (int i = 1; i < 25; i++)
+        HomeworkData(DateTime.now().add(Duration(days: 4, hours: i)),
+            "Test Name", "Test Teacher", "Test Subject"),
+    ]
   ];
 
   @override

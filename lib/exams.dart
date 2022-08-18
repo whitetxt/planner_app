@@ -1,6 +1,6 @@
 import "package:flutter/material.dart";
 
-import "pl_appbar.dart";
+import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
 
 class ExamPage extends StatefulWidget {
   const ExamPage({Key? key}) : super(key: key);
@@ -15,7 +15,7 @@ class _ExamPageState extends State<ExamPage> {
     return Scaffold(
       appBar: PLAppBar("Exams", context),
       backgroundColor: Theme.of(context).backgroundColor,
-      body: Center(
+      body: const Center(
         child: Text("Hoi"),
       ),
     );

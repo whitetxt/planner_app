@@ -1,7 +1,65 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import "pl_appbar.dart";
+import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
+
+List<List<String>> sampleTimetableData = [
+  [
+    "Applied Maths",
+    "Applied Maths",
+    "Free",
+    "Free",
+    "Free",
+    "Free",
+    "Computer Science",
+    "Free",
+    "Free",
+  ],
+  [
+    "Computer Science",
+    "Computer Science",
+    "Free",
+    "Free",
+    "Physics",
+    "Physics",
+    "Games",
+    "Games",
+    "Games",
+  ],
+  [
+    "Pure Maths",
+    "Pure Maths",
+    "Free",
+    "Free",
+    "Physics",
+    "Physics",
+    "Applied Maths",
+    "Free",
+    "Free",
+  ],
+  [
+    "Physics",
+    "Physics",
+    "Free",
+    "Free",
+    "Pure Maths",
+    "Pure Maths",
+    "Computer Science",
+    "Computer Science",
+    "Computer Science",
+  ],
+  [
+    "Pure Maths",
+    "Pure Maths",
+    "Physics",
+    "Physics",
+    "Free",
+    "Free",
+    "Free",
+    "Computer Science",
+    "Computer Science",
+  ],
+];
 
 class TimetableSlot extends StatefulWidget {
   const TimetableSlot(
@@ -87,6 +145,65 @@ class _TimetableSlotState extends State<TimetableSlot> {
   }
 }
 
+class TodayTimetable extends StatefulWidget {
+  const TodayTimetable({Key? key}) : super(key: key);
+
+  @override
+  State<TodayTimetable> createState() => _TodayTimetableState();
+}
+
+class _TodayTimetableState extends State<TodayTimetable> {
+  @override
+  Widget build(BuildContext context) {
+    int today = DateTime.now().weekday;
+    if (today >= 6) {
+      // If Sat or Sun
+      return Card(
+        elevation: 4,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const <Widget>[
+            AutoSizeText(
+              "No lessons today.",
+              minFontSize: 8,
+              maxFontSize: 32,
+            ),
+          ],
+        ),
+      );
+    }
+    today--;
+    return SizedBox(
+      width: 15 * MediaQuery.of(context).size.width / 16,
+      child: Card(
+        elevation: 4,
+        child: Column(
+          children: <Widget>[
+            const Text("Today's Timetable"),
+            const Divider(
+              indent: 4,
+              endIndent: 4,
+            ),
+            ...[
+              for (int idx = 0; idx < sampleTimetableData[today].length; idx++)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text("Period ${idx + 1}"),
+                      Text(sampleTimetableData[today][idx]),
+                    ],
+                  ),
+                ),
+            ]
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class TimetablePage extends StatefulWidget {
   const TimetablePage({Key? key}) : super(key: key);
 
@@ -97,63 +214,6 @@ class TimetablePage extends StatefulWidget {
 class _TimetablePageState extends State<TimetablePage> {
   // This is a 2D array of subjects in the timetable.
   // This is the format which the API will return once implemented.
-  List<List<String>> sampleTimetableData = [
-    [
-      "Applied Maths",
-      "Applied Maths",
-      "Free",
-      "Free",
-      "Free",
-      "Free",
-      "Computer Science",
-      "Free",
-      "Free",
-    ],
-    [
-      "Computer Science",
-      "Computer Science",
-      "Free",
-      "Free",
-      "Physics",
-      "Physics",
-      "Games",
-      "Games",
-      "Games",
-    ],
-    [
-      "Pure Maths",
-      "Pure Maths",
-      "Free",
-      "Free",
-      "Physics",
-      "Physics",
-      "Applied Maths",
-      "Free",
-      "Free",
-    ],
-    [
-      "Physics",
-      "Physics",
-      "Free",
-      "Free",
-      "Pure Maths",
-      "Pure Maths",
-      "Computer Science",
-      "Computer Science",
-      "Computer Science",
-    ],
-    [
-      "Pure Maths",
-      "Pure Maths",
-      "Physics",
-      "Physics",
-      "Free",
-      "Free",
-      "Free",
-      "Computer Science",
-      "Computer Science",
-    ],
-  ];
 
   @override
   Widget build(BuildContext context) {
