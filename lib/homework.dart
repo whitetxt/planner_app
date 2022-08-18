@@ -30,7 +30,7 @@ class HomeworkWidget extends StatelessWidget {
     return Card(
       elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
         child: IntrinsicHeight(
           child: Flex(
             direction: Axis.horizontal,
@@ -44,7 +44,7 @@ class HomeworkWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              const VerticalDivider(width: 2),
+              const VerticalDivider(width: 1),
               Expanded(
                 flex: 4,
                 child: Column(
@@ -54,37 +54,11 @@ class HomeworkWidget extends StatelessWidget {
                   ],
                 ),
               ),
+              const VerticalDivider(width: 1),
               Expanded(
                 flex: 1,
                 child: PopupMenuButton(
-                  child: Material(
-                    elevation: 4,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: Colors.black),
-                        color: Theme.of(context).highlightColor,
-                      ),
-                      padding: const EdgeInsets.all(4),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(
-                            Icons.more_horiz,
-                            color: Colors.black,
-                            size: 18,
-                          ),
-                          Text(
-                            "Actions",
-                            style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                  icon: const Icon(Icons.more_horiz),
                   itemBuilder: (context) => [
                     PopupMenuItem(
                       onTap: () {},
