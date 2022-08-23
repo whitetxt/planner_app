@@ -184,7 +184,7 @@ class SubjectsDB(DB):
 			room=subject_data[3]
 		)
 	
-	def get_subjects_by_name(self, name: str) -> Subject:
+	def get_subjects_by_name(self, name: str) -> list:
 		subject_data = self._get("*", "subjects", where="name = ?", args=(name,))
 		if len(subject_data) == 0:
 			return None
@@ -195,7 +195,7 @@ class SubjectsDB(DB):
 			room=sd[3]
 		) for sd in subject_data]
 	
-	def get_subjects_by_teacher(self, name: str) -> Subject:
+	def get_subjects_by_teacher(self, name: str) -> list:
 		subject_data = self._get("*", "subjects", where="teacher = ?", args=(name,))
 		if len(subject_data) == 0:
 			return None
@@ -206,7 +206,7 @@ class SubjectsDB(DB):
 			room=sd[3]
 		) for sd in subject_data]
 
-	def get_subjects_by_room(self, room: str) -> Subject:
+	def get_subjects_by_room(self, room: str) -> list:
 		subject_data = self._get("*", "subjects", where="room = ?", args=(room,))
 		if len(subject_data) == 0:
 			return None
@@ -217,6 +217,17 @@ class SubjectsDB(DB):
 			room=sd[3]
 		) for sd in subject_data]
 	
+	def get_subjects(self) -> list:
+		subjects = self._get("*", "subjects")
+		if len(subjects) == 0:
+			return None
+		[Subject(
+			subject_id=subject[0],
+			name=subject[1],
+			teacher=subject[2],
+			room=subject[3]
+		) for subject in subjects]
+
 	def update_subject(self, subject: Subject) -> bool:
 		self._update(
 			"subjects",

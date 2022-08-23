@@ -155,4 +155,41 @@ async def api_get_user(user_id: int, user: User = Depends(get_current_user)):
 # ------------------
 @app.get("/api/v1/subjects")
 async def api_get_subjects(user: User = Depends(get_current_user)):
-	return
+	"""
+	Gets all subjects avaliable in the database.
+	"""
+	sjs = subjects.get_subjects()
+	if sjs is None:
+		return {"status": "error", "message": "No subjects found."}
+	return {"status": "success", "data": sjs}
+
+@app.get("/api/v1/subjects/name-{subject_name}")
+async def api_get_subject_name(subject_name: str, user: User = Depends(get_current_user)):
+	"""
+	Gets all subjects which match a certain name.
+	"""
+	sjs = subjects.get_subjects_by_name(subject_name)
+	if sjs is None:
+		return {"status": "error", "message": "No subjects found."}
+	return {"status": "success", "data": sjs}
+
+@app.get("/api/v1/subjects/id-{subject_id}")
+async def api_get_subject_id(id: int, user: User = Depends(get_current_user)):
+	"""
+	Gets the subject with a specific ID.
+	"""
+	sjs = subjects.get_subject_by_id(id)
+	if sjs is None:
+		return {"status": "error", "message": "No subjects found."}
+	return {"status": "success", "data": sjs}
+
+@app.post("/api/v1/subjects")
+async def api_create_subject(name: str = Form(), teacher: str = Form(), room: str = Form(), user: User = Depends(get_current_user)):
+	"""
+	This allows for a user to create a subject.
+
+	If the exact same subject already exists, it will not be recreated.
+	"""
+	subjects.add_subject(Subject(
+		
+	))
