@@ -9,9 +9,11 @@ class User(BaseModel):
 	uid: int
 	username: str
 	password: str
-	creation_time: float
-	enabled: bool
-	token: Optional[OAuthToken] = None
+	salt: str
+	email: str
+	creation_time: int
+	permissions: int
+	session: Optional[OAuthToken] = None
 
 	def remove(self, *args):
 		# Deletes an attribute from an instance of this class.

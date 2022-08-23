@@ -64,4 +64,102 @@ class UsersDB(DB):
 	Wrapper functions are provided to make manipulation of the data easier.
 	"""
 	def __init__(self, path):
-		super.__init__(path)
+		super().__init__(path)
+	
+	def get_user_from_username(self, username: str) -> User:
+		user_data = self._get("*", "users", where="username = ?", args=(username,))
+		if len(user_data) == 0:
+			return None
+		user_data = user_data[0]
+		return User(
+			uid=user_data[0],
+			username=user_data[1],
+			password=user_data[2],
+			salt=user_data[3],
+			email=user_data[4],
+			creation_time=user_data[5],
+			permissions=user_data[6],
+			session=OAuthToken(
+				uid=user_data[0],
+				access_token=user_data[7]) 
+				if user_data[7] is not None else None
+		)
+	
+	def get_user_from_uid(self, uid: int) -> User:
+		user_data = self._get("*", "users", where="uid = ?", args=(uid,))
+		if len(user_data) == 0:
+			return None
+		user_data = user_data[0]
+		return User(
+			uid=user_data[0],
+			username=user_data[1],
+			password=user_data[2],
+			salt=user_data[3],
+			email=user_data[4],
+			creation_time=user_data[5],
+			permissions=user_data[6],
+			session=OAuthToken(
+				uid=user_data[0],
+				access_token=user_data[7]) 
+				if user_data[7] is not None else None
+		)
+	
+	def get_user_from_token(self, token: str) -> User:
+		user_data = self._get("*", "users", where="token = ?", args=(token,))
+		if len(user_data) == 0:
+			return None
+		user_data = user_data[0]
+		return User(
+			uid=user_data[0],
+			username=user_data[1],
+			password=user_data[2],
+			salt=user_data[3],
+			email=user_data[4],
+			creation_time=user_data[5],
+			permissions=user_data[6],
+			session=OAuthToken(
+				uid=user_data[0],
+				access_token=user_data[7]) 
+				if user_data[7] is not None else None
+		)
+	
+	def get_users(self) -> list:
+		users = self._get("*", "users")
+		return [User(
+			uid=user[0],
+			username=user[1],
+			password=user[2],
+			salt=user[3],
+			email=user[4],
+			creation_time=user[5],
+			permissions=user[6],
+			token=OAuthToken(
+				uid=user[0],
+				access_token=user[7])
+				if user[7] is not None else None
+		) for user in users]
+	
+	def update_user(self, user: User) -> bool:
+		token = user.session.access_token if user.session is not None else None
+		self._update(
+			"users",
+			"username = ?, password = ?, salt = ?, email = ?, creation_time = ?, permissions = ?, session = ?",
+			"uid = ?",
+			(user.username, user.password, user.salt, user.email, user.creation_time, user.permissions, token, user.uid)
+		)
+		self._commit()
+		return True
+
+	def add_user(self, user: User) -> bool:
+		self._insert(
+			"users",
+			"uid, username, password, salt, email, creation_time, permissions, session",
+			(user.uid, user.username, user.tag, user.password, user.creation_time, user.last_login, str(user.enabled), user.session.access_token if user.session else None)
+		)
+		self._commit()
+
+	def get_next_uid(self) -> int:
+		latest_uid = self._get("uid", "users", order="uid DESC")
+		if len(latest_uid) == 0:
+			return 1
+		return latest_uid[0][0] + 1
