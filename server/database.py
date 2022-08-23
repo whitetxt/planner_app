@@ -157,6 +157,7 @@ class UsersDB(DB):
 			(user.uid, user.username, user.tag, user.password, user.creation_time, user.last_login, str(user.enabled), user.session.access_token if user.session else None)
 		)
 		self._commit()
+		return True
 
 	def get_next_uid(self) -> int:
 		latest_uid = self._get("uid", "users", order="uid DESC")
@@ -169,4 +170,65 @@ class SubjectsDB(DB):
 		super().__init__(path)
 	
 	def get_subject_by_id(self, id: int) -> Subject:
-		return
+		subject_data = self._get("*", "subjects", where="subject_id = ?", args=(id,))
+		if len(subject_data) == 0:
+			return None
+		subject_data = subject_data[0]
+		return Subject(
+			subject_id=subject_data[0],
+			name=subject_data[1],
+			teacher=subject_data[2],
+			room=subject_data[3]
+		)
+	
+	def get_subjects_by_name(self, name: str) -> Subject:
+		subject_data = self._get("*", "subjects", where="name = ?", args=(name,))
+		if len(subject_data) == 0:
+			return None
+		return [Subject(
+			subject_id=sd[0],
+			name=sd[1],
+			teacher=sd[2],
+			room=sd[3]
+		) for sd in subject_data]
+	
+	def get_subjects_by_teacher(self, name: str) -> Subject:
+		subject_data = self._get("*", "subjects", where="teacher = ?", args=(name,))
+		if len(subject_data) == 0:
+			return None
+		return [Subject(
+			subject_id=sd[0],
+			name=sd[1],
+			teacher=sd[2],
+			room=sd[3]
+		) for sd in subject_data]
+
+	def get_subjects_by_room(self, room: str) -> Subject:
+		subject_data = self._get("*", "subjects", where="room = ?", args=(room,))
+		if len(subject_data) == 0:
+			return None
+		return [Subject(
+			subject_id=sd[0],
+			name=sd[1],
+			teacher=sd[2],
+			room=sd[3]
+		) for sd in subject_data]
+	
+	def update_subject(self, subject: Subject) -> bool:
+		self._update(
+			"subjects",
+			"name = ?, teacher = ?, room = ?",
+			"subject_id = ?",
+			(subject.name, subject.teacher, subject.room, subject.subject_id)
+		)
+		self._commit()
+		return True
+
+	def add_subject(self, subject: Subject) -> bool:
+		self._insert(
+			"subjects",
+			"subject_id, name, teacher, room",
+			(subject.subject_id, subject.name, subject.teacher, subject.room)
+		)
+		self._commit()
+		return True
