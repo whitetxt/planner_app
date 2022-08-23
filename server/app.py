@@ -11,8 +11,11 @@ from classes import *
 
 db_path = "./databases"
 
-users = UsersDB(f"{db_path}/main.db")
-subjects = SubjectsDB(f"{db_path}/main.db")
+databases = {
+	"users": UsersDB(f"{db_path}/main.db"),
+	"subjects": SubjectsDB(f"{db_path}/main.db"),
+	"user-subjects": UserSubjectDB(f"{db_path}/main.db")
+}
 
 app = FastAPI(title="Planner App API", description="API used for the backend of the planner app.", version="0.2.0b")
 oauth2_scheme = OAuth2PasswordBearer(
@@ -33,7 +36,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 	
 	Raises a 401 if invalid, or returns the User.
 	"""
-	user = users.get_user_from_token(token)
+	user = databases["users"].get_user_from_token(token)
 	if user is None:
 		raise HTTPException(
 			status_code=status.HTTP_401_UNAUTHORIZED,
@@ -52,7 +55,7 @@ async def register(username: str = Form(...), password: str = Form(...), email: 
 
 	Also ensures a duplicate username is not chosen.
 	"""
-	user = users.get_user_from_username(username)
+	user = databases["users"].get_user_from_username(username)
 	if user is not None:
 		# If the username is taken, a user will be returned.
 		# Therefore we cannot let them have that username.
@@ -67,7 +70,7 @@ async def register(username: str = Form(...), password: str = Form(...), email: 
 		raise HTTPException(status_code=400, detail=str(e))
 
 	token = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=32))
-	uid = users.get_next_uid()
+	uid = databases["users"].get_next_uid()
 
 	salt = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=16))
 	for _ in range(100):
@@ -87,7 +90,7 @@ async def register(username: str = Form(...), password: str = Form(...), email: 
 		permissions=Permissions.Student, # TODO: Change this to check register code.
 		token=OAuthToken(access_token=token, uid=uid)
 	)
-	users.add_user(user)
+	databases["users"].add_user(user)
 
 	# Gives the user their token.
 	# This means they are now logged in as this user.
@@ -98,7 +101,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 	"""
 	Logs a user in with their username and password.
 	"""
-	user = users.get_user_from_username(form_data.username)
+	user = databases["users"].get_user_from_username(form_data.username)
 	password = form_data.password
 	for _ in range(100):
 		# This process is called salting.
@@ -121,7 +124,7 @@ async def logout(current_user: User = Depends(get_current_user)):
 	Invalidates the logged in user's token, effectively logging them out.
 	"""
 	current_user.token = None
-	users.update_user(current_user)
+	databases["users"].update_user(current_user)
 	return {"Status": "OK"}
 
 # ------------------
@@ -145,7 +148,7 @@ async def api_get_user(user_id: int, user: User = Depends(get_current_user)):
 
 	Raises 404 if the user specified is not found.
 	"""
-	user = users.get_user_from_uid(user_id)
+	user = databases["users"].get_user_from_uid(user_id)
 	if not user:
 		raise HTTPException(status_code=404, detail="User not found")
 	return user.remove("session", "password", "email", "salt")
@@ -158,7 +161,7 @@ async def api_get_subjects(user: User = Depends(get_current_user)):
 	"""
 	Gets all subjects avaliable in the database.
 	"""
-	sjs = subjects.get_subjects()
+	sjs = databases["subjects"].get_subjects()
 	if sjs is None:
 		return {"status": "error", "message": "No subjects found."}
 	return {"status": "success", "data": sjs}
@@ -168,7 +171,7 @@ async def api_get_subject_name(subject_name: str, user: User = Depends(get_curre
 	"""
 	Gets all subjects which match a certain name.
 	"""
-	sjs = subjects.get_subjects_by_name(subject_name)
+	sjs = databases["subjects"].get_subjects_by_name(subject_name)
 	if sjs is None:
 		return {"status": "error", "message": "No subjects found."}
 	return {"status": "success", "data": sjs}
@@ -178,28 +181,48 @@ async def api_get_subject_id(id: int, user: User = Depends(get_current_user)):
 	"""
 	Gets the subject with a specific ID.
 	"""
-	sjs = subjects.get_subject_by_id(id)
+	sjs = databases["subjects"].get_subject_by_id(id)
 	if sjs is None:
 		return {"status": "error", "message": "No subjects found."}
 	return {"status": "success", "data": sjs}
 
 @app.post("/api/v1/subjects")
-async def api_create_subject(name: str = Form(), teacher: str = Form(), room: str = Form(), user: User = Depends(get_current_user)):
+async def api_create_subject(name: str = Form(...), teacher: str = Form(...), room: str = Form(...), user: User = Depends(get_current_user)):
 	"""
 	This allows for a user to create a subject.
 
 	If the exact same subject already exists, it will not be recreated.
+
+	Returns the ID of the created subject.
 	"""
-	exists = subjects.get_subjects_by_name(name)
+	exists = databases["subjects"].get_subjects_by_name(name)
 	if exists is not None:
 		for subject in exists:
 			if subject.teacher == teacher and subject.room == room:
 				# If we find that this specific subject already exists,
 				# We lie and say that we created it, but return the old id instead of a new one.
 				return {"status": "success", "id": subject.id}
-	subjects.add_subject(Subject(
+	databases["subjects"].add_subject(Subject(
 		name=name,
 		teacher=teacher,
 		room=room
 	))
-	return {"status": "success", "id": subjects.get_next_id() - 1}
+	return {"status": "success", "id": databases["subjects"].get_next_id() - 1}
+
+# ------------------
+# TIMETABLE ENDPOINTS
+# ------------------
+
+@app.post("/api/v1/timetable")
+async def api_add_timetable_subject(subject_id: int = Form(...), day: int = Form(...), period: int = Form(...), user: User = Depends(get_current_user)):
+	result = databases["user-subjects"].create_connection(user.uid, subject_id, day, period)
+	if result:
+		return {"status": "success"}
+	return {"status": "error"}
+
+@app.delete("/api/v1/timetable")
+async def api_remove_timetable_subject(subject_id: int = Form(...), day: int = Form(...), period: int = Form(...), user: User = Depends(get_current_user)):
+	result = databases["user-subjects"].remove_connection(user.uid, subject_id, day, period)
+	if result:
+		return {"status": "success"}
+	return {"status": "error"}

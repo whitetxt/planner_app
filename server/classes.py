@@ -64,3 +64,9 @@ class Class(BaseModel):
 	teacher_id: int
 	class_name: int
 	students: str
+
+class UserSubjectJoin(BaseModel):
+	user_id: int
+	subject_id: int
+	day: int
+	period: int

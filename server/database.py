@@ -53,10 +53,6 @@ class DB:
 		cursor.execute(f"CREATE TABLE IF NOT EXISTS {table} ({ddl})")
 		db.commit()
 
-	def _commit(self) -> None:
-		db = sqlite3.connect(self.path)
-		db.commit()
-
 class UsersDB(DB):
 	"""
 	This class handles user data inside of a database file.
@@ -147,7 +143,6 @@ class UsersDB(DB):
 			"uid = ?",
 			(user.username, user.password, user.salt, user.email, user.creation_time, user.permissions, token, user.uid)
 		)
-		self._commit()
 		return True
 
 	def add_user(self, user: User) -> bool:
@@ -158,7 +153,6 @@ class UsersDB(DB):
 			"uid, username, password, salt, email, creation_time, permissions, session",
 			(user.uid, user.username, user.tag, user.password, user.creation_time, user.last_login, str(user.enabled), user.session.access_token if user.session else None)
 		)
-		self._commit()
 		return True
 
 	def get_next_uid(self) -> int:
@@ -237,7 +231,6 @@ class SubjectsDB(DB):
 			"subject_id = ?",
 			(subject.name, subject.teacher, subject.room, subject.subject_id)
 		)
-		self._commit()
 		return True
 
 	def add_subject(self, subject: Subject) -> bool:
@@ -248,7 +241,6 @@ class SubjectsDB(DB):
 			"subject_id, name, teacher, room",
 			(subject.subject_id, subject.name, subject.teacher, subject.room)
 		)
-		self._commit()
 		return True
 	
 	def get_next_id(self) -> int:
@@ -257,10 +249,27 @@ class SubjectsDB(DB):
 			return 1
 		return latest_id[0][0] + 1
 
-class ClassesDB(DB):
-	"""
-	This controls the classes table and anything to do with classes inside the database.
-	"""
+class UserSubjectDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 	
+	def get_subject_by_period(self, user_id: int, day: int, period: int) -> UserSubjectJoin:
+		result = self._get("subject_id", "users-subjects", where="user_id = ? AND day = ? AND period = ?", args=(user_id, day, period))
+		if not result:
+			return None
+		return UserSubjectJoin(user_id=user_id, subject_id=result[0][0], day=day, period=period)
+
+	def create_connection(self, user_id: int, subject_id: int, day: int, period: int) -> bool:
+		existing = self.get_subject_by_period(user_id, day, period)
+		if existing is not None and existing.subject_id == subject_id:
+			# If inserting will do nothing, just don't do it as it will just waste time.
+			return True
+		self._insert("users-subjects", "user_id, subject_id, day, period", (user_id, subject_id, day, period))
+		return True
+
+	def remove_connection(self, user_id: int, day: int, period: int) -> bool:
+		existing = self.get_subject_by_period(user_id, day, period)
+		if existing is None:
+			return False
+		self._delete("users-subjects", "user_id = ? AND day = ? AND period = ?", (user_id, day, period))
+		return True
