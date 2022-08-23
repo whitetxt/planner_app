@@ -15,7 +15,6 @@ class User(BaseModel):
 	username: str
 	password: str
 	salt: str
-	email: str
 	created_at: int
 	permissions: int
 	session: Optional[OAuthToken] = None

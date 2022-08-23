@@ -36,6 +36,9 @@ dependencies:
   cupertino_icons: ^1.0.2
   google_fonts: ^3.0.1
   auto_size_text: ^3.0.0
+  flutter_switch: ^0.3.2
+  crypto: ^3.0.2
+  http: ^0.13.5
 
 dev_dependencies:
   flutter_test:

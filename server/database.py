@@ -72,13 +72,12 @@ class UsersDB(DB):
 			username=user_data[1],
 			password=user_data[2],
 			salt=user_data[3],
-			email=user_data[4],
-			created_at=user_data[5],
-			permissions=user_data[6],
+			created_at=user_data[4],
+			permissions=user_data[5],
 			session=OAuthToken(
 				uid=user_data[0],
-				access_token=user_data[7]) 
-				if user_data[7] is not None else None
+				access_token=user_data[6]) 
+				if user_data[6] is not None else None
 		)
 	
 	def get_user_from_uid(self, uid: int) -> User:
@@ -91,13 +90,12 @@ class UsersDB(DB):
 			username=user_data[1],
 			password=user_data[2],
 			salt=user_data[3],
-			email=user_data[4],
-			created_at=user_data[5],
-			permissions=user_data[6],
+			created_at=user_data[4],
+			permissions=user_data[5],
 			session=OAuthToken(
 				uid=user_data[0],
-				access_token=user_data[7]) 
-				if user_data[7] is not None else None
+				access_token=user_data[6]) 
+				if user_data[6] is not None else None
 		)
 	
 	def get_user_from_session(self, session: str) -> User:
@@ -110,13 +108,12 @@ class UsersDB(DB):
 			username=user_data[1],
 			password=user_data[2],
 			salt=user_data[3],
-			email=user_data[4],
-			created_at=user_data[5],
-			permissions=user_data[6],
+			created_at=user_data[4],
+			permissions=user_data[5],
 			session=OAuthToken(
 				uid=user_data[0],
-				access_token=user_data[7]) 
-				if user_data[7] is not None else None
+				access_token=user_data[6]) 
+				if user_data[6] is not None else None
 		)
 	
 	def get_users(self) -> list:
@@ -126,22 +123,21 @@ class UsersDB(DB):
 			username=user[1],
 			password=user[2],
 			salt=user[3],
-			email=user[4],
-			created_at=user[5],
-			permissions=user[6],
+			created_at=user[4],
+			permissions=user[5],
 			token=OAuthToken(
 				uid=user[0],
-				access_token=user[7])
-				if user[7] is not None else None
+				access_token=user[6])
+				if user[6] is not None else None
 		) for user in users]
 	
 	def update_user(self, user: User) -> bool:
 		token = user.session.access_token if user.session is not None else None
 		self._update(
 			"users",
-			"username = ?, password = ?, salt = ?, email = ?, created_at = ?, permissions = ?, session = ?",
+			"username = ?, password = ?, salt = ?, created_at = ?, permissions = ?, session = ?",
 			"uid = ?",
-			(user.username, user.password, user.salt, user.email, user.created_at, user.permissions, token, user.uid)
+			(user.username, user.password, user.salt, user.created_at, user.permissions, token, user.uid)
 		)
 		return True
 
@@ -150,8 +146,8 @@ class UsersDB(DB):
 			user.uid = self.get_next_uid()
 		self._insert(
 			"users",
-			"uid, username, password, salt, email, created_at, permissions, session",
-			(user.uid, user.username, user.password, user.salt, user.email, user.created_at, user.permissions, user.session.access_token if user.session else None)
+			"uid, username, password, salt, created_at, permissions, session",
+			(user.uid, user.username, user.password, user.salt, user.created_at, user.permissions, user.session.access_token if user.session else None)
 		)
 		return True
 

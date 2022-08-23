@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import "login.dart";
 import "timetable.dart";
 import "homework.dart";
 import "dashboard.dart";
@@ -22,29 +23,32 @@ class PlannerApp extends StatelessWidget {
   // The MaterialApp is responsible for all rendering and event handling.
   @override
   Widget build(BuildContext context) {
+    ThemeData theme = ThemeData(
+      primarySwatch: Colors.blue,
+      primaryColor: Colors.grey.shade600,
+      highlightColor: Colors.blue.shade100,
+      appBarTheme: AppBarTheme(
+        color: Colors.blueGrey.shade700,
+        iconTheme: const IconThemeData(
+          size: 16,
+          color: Color(0xFFFFFFFF),
+        ),
+      ),
+      bottomAppBarTheme: BottomAppBarTheme(
+        color: Colors.blueGrey.shade700,
+        elevation: 8,
+      ),
+      backgroundColor: const Color.fromRGBO(200, 200, 200, 1),
+      textTheme: GoogleFonts.poppinsTextTheme(),
+      dividerColor: Colors.black,
+    );
+    GoogleFonts.montserratTextTheme(theme.textTheme);
     return MaterialApp(
       title: 'Planner',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-        primaryColor: Colors.grey.shade600,
-        highlightColor: Colors.blue.shade100,
-        appBarTheme: AppBarTheme(
-          color: Colors.blueGrey.shade700,
-          iconTheme: const IconThemeData(
-            size: 16,
-            color: Color(0xFFFFFFFF),
-          ),
-        ),
-        bottomAppBarTheme: BottomAppBarTheme(
-          color: Colors.blueGrey.shade700,
-          elevation: 8,
-        ),
-        backgroundColor: const Color.fromRGBO(200, 200, 200, 1),
-        textTheme: GoogleFonts.poppinsTextTheme(),
-        dividerColor: Colors.black,
-      ),
+      theme: theme,
       routes: {
-        "/": (context) => const MainPage(),
+        "/": (context) => const LoginPage(),
+        "/dash": (context) => const MainPage(),
         "/settings": (context) => const SettingsPage(),
       },
       initialRoute: "/",
