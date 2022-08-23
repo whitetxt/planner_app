@@ -1,5 +1,10 @@
+from enum import Enum
 from pydantic import BaseModel
 from typing import Optional
+
+class Permissions(Enum):
+	Student = 1
+	Teacher = 2
 
 class OAuthToken(BaseModel):
 	access_token: str
