@@ -25,3 +25,42 @@ class User(BaseModel):
 		for section in args:
 			self.__delattr__(section)
 		return self
+
+class Subject(BaseModel):
+	subject_id: int
+	name: str
+	teacher: str
+	room: str
+
+class TermDate(BaseModel):
+	name: str
+	start: int
+	end: int
+
+class Mark(BaseModel):
+	mark_id: int
+	user_id: int
+	test_name: str
+	class_name: str
+	mark: int
+	grade: str
+
+class Homework(BaseModel):
+	homework_id: int
+	name: str
+	class_id: int
+	user_id: int
+	due_date: int
+
+class Event(BaseModel):
+	event_id: int
+	user_id: int
+	name: str
+	time: int
+	description: str
+
+class Class(BaseModel):
+	class_id: int
+	teacher_id: int
+	class_name: int
+	students: str

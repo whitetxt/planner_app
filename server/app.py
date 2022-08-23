@@ -21,11 +21,19 @@ oauth2_scheme = OAuth2PasswordBearer(
 
 @app.get("/")
 async def api_root():
+	"""
+	Returns if the API is online. Can be used as a simple check I guess?
+	"""
 	return {"status": "online"}
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
+	"""
+	Gets the user that the web request is logged in as.
+	
+	Raises a 401 if invalid, or returns the User.
+	"""
 	user = users.get_user_from_token(token)
-	if not user:
+	if user is None:
 		raise HTTPException(
 			status_code=status.HTTP_401_UNAUTHORIZED,
 			detail="Invalid token",
@@ -38,6 +46,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 # ------------------
 @app.post("/api/v1/auth/register")
 async def register(username: str = Form(...), password: str = Form(...), email: str = Form(...)):
+	"""
+	Registers a user with a username, password and email.
+
+	Also ensures a duplicate username is not chosen.
+	"""
 	user = users.get_user_from_username(username)
 	if user is not None:
 		# If the username is taken, a user will be returned.
@@ -81,6 +94,9 @@ async def register(username: str = Form(...), password: str = Form(...), email: 
 
 @app.post("/api/v1/auth/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+	"""
+	Logs a user in with their username and password.
+	"""
 	user = users.get_user_from_username(form_data.username)
 	password = form_data.password
 	for _ in range(100):
@@ -100,6 +116,9 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 @app.get("/api/v1/auth/logout")
 async def logout(current_user: User = Depends(get_current_user)):
+	"""
+	Invalidates the logged in user's token, effectively logging them out.
+	"""
 	current_user.token = None
 	users.update_user(current_user)
 	return {"Status": "OK"}
@@ -110,12 +129,29 @@ async def logout(current_user: User = Depends(get_current_user)):
 @app.get("/api/v1/users/@me")
 async def api_get_me(current_user: User = Depends(get_current_user)):
 	"""
-	This gets information about the current user."""
+	Returns information about the current user.
+
+	This also removes sensitive pieces of information as to protect the user from attacks.
+	"""
 	return current_user.remove("session", "password", "salt")
 
 @app.get("/api/v1/users/{user_id}")
 async def api_get_user(user_id: int, user: User = Depends(get_current_user)):
+	"""
+	Returns information about another user.
+	
+	This removes many sensitive pieces of information from the result as to protect users.
+
+	Raises 404 if the user specified is not found.
+	"""
 	user = users.get_user_from_uid(user_id)
 	if not user:
 		raise HTTPException(status_code=404, detail="User not found")
 	return user.remove("session", "password", "email", "salt")
+
+# ------------------
+# SUBJECT ENDPOINTS
+# ------------------
+@app.get("/api/v1/subjects")
+async def api_get_subjects(user: User = Depends(get_current_user)):
+	return

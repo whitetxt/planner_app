@@ -163,3 +163,10 @@ class UsersDB(DB):
 		if len(latest_uid) == 0:
 			return 1
 		return latest_uid[0][0] + 1
+	
+class SubjectsDB(DB):
+	def __init__(self, path):
+		super().__init__(path)
+	
+	def get_subject_by_id(self, id: int) -> Subject:
+		return
