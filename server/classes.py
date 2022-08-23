@@ -1,8 +1,8 @@
-from enum import Enum
+from enum import IntEnum
 from pydantic import BaseModel
 from typing import Optional
 
-class Permissions(Enum):
+class Permissions(IntEnum):
 	Student = 1
 	Teacher = 2
 
@@ -16,7 +16,7 @@ class User(BaseModel):
 	password: str
 	salt: str
 	email: str
-	creation_time: int
+	created_at: int
 	permissions: int
 	session: Optional[OAuthToken] = None
 
@@ -70,3 +70,23 @@ class UserSubjectJoin(BaseModel):
 	subject_id: int
 	day: int
 	period: int
+
+class Timetable:
+	monday: list
+	tuesday: list
+	wednesday: list
+	thursday: list
+	friday: list
+
+	def __init__(self):
+		self.monday = [None] * 9
+		self.tuesday = [None] * 9
+		self.wednesday = [None] * 9
+		self.thursday = [None] * 9
+		self.friday = [None] * 9
+
+	def get_client_format(self):
+		"""
+		This returns the timetable in the format which the client expects.
+		"""
+		return [self.monday, self.tuesday, self.wednesday, self.thursday, self.friday]

@@ -73,7 +73,7 @@ class UsersDB(DB):
 			password=user_data[2],
 			salt=user_data[3],
 			email=user_data[4],
-			creation_time=user_data[5],
+			created_at=user_data[5],
 			permissions=user_data[6],
 			session=OAuthToken(
 				uid=user_data[0],
@@ -92,7 +92,7 @@ class UsersDB(DB):
 			password=user_data[2],
 			salt=user_data[3],
 			email=user_data[4],
-			creation_time=user_data[5],
+			created_at=user_data[5],
 			permissions=user_data[6],
 			session=OAuthToken(
 				uid=user_data[0],
@@ -100,8 +100,8 @@ class UsersDB(DB):
 				if user_data[7] is not None else None
 		)
 	
-	def get_user_from_token(self, token: str) -> User:
-		user_data = self._get("*", "users", where="token = ?", args=(token,))
+	def get_user_from_session(self, session: str) -> User:
+		user_data = self._get("*", "users", where="session = ?", args=(session,))
 		if len(user_data) == 0:
 			return None
 		user_data = user_data[0]
@@ -111,7 +111,7 @@ class UsersDB(DB):
 			password=user_data[2],
 			salt=user_data[3],
 			email=user_data[4],
-			creation_time=user_data[5],
+			created_at=user_data[5],
 			permissions=user_data[6],
 			session=OAuthToken(
 				uid=user_data[0],
@@ -127,7 +127,7 @@ class UsersDB(DB):
 			password=user[2],
 			salt=user[3],
 			email=user[4],
-			creation_time=user[5],
+			created_at=user[5],
 			permissions=user[6],
 			token=OAuthToken(
 				uid=user[0],
@@ -139,9 +139,9 @@ class UsersDB(DB):
 		token = user.session.access_token if user.session is not None else None
 		self._update(
 			"users",
-			"username = ?, password = ?, salt = ?, email = ?, creation_time = ?, permissions = ?, session = ?",
+			"username = ?, password = ?, salt = ?, email = ?, created_at = ?, permissions = ?, session = ?",
 			"uid = ?",
-			(user.username, user.password, user.salt, user.email, user.creation_time, user.permissions, token, user.uid)
+			(user.username, user.password, user.salt, user.email, user.created_at, user.permissions, token, user.uid)
 		)
 		return True
 
@@ -150,8 +150,8 @@ class UsersDB(DB):
 			user.uid = self.get_next_uid()
 		self._insert(
 			"users",
-			"uid, username, password, salt, email, creation_time, permissions, session",
-			(user.uid, user.username, user.tag, user.password, user.creation_time, user.last_login, str(user.enabled), user.session.access_token if user.session else None)
+			"uid, username, password, salt, email, created_at, permissions, session",
+			(user.uid, user.username, user.password, user.salt, user.email, user.created_at, user.permissions, user.session.access_token if user.session else None)
 		)
 		return True
 
@@ -244,7 +244,7 @@ class SubjectsDB(DB):
 		return True
 	
 	def get_next_id(self) -> int:
-		latest_id = self._get("uid", "users", order="uid DESC")
+		latest_id = self._get("subject_id", "subjects", order="uid DESC")
 		if len(latest_id) == 0:
 			return 1
 		return latest_id[0][0] + 1
@@ -254,22 +254,43 @@ class UserSubjectDB(DB):
 		super().__init__(path)
 	
 	def get_subject_by_period(self, user_id: int, day: int, period: int) -> UserSubjectJoin:
-		result = self._get("subject_id", "users-subjects", where="user_id = ? AND day = ? AND period = ?", args=(user_id, day, period))
+		result = self._get("subject_id", "`users-subjects`", where="user_id = ? AND day = ? AND period = ?", args=(user_id, day, period))
 		if not result:
 			return None
 		return UserSubjectJoin(user_id=user_id, subject_id=result[0][0], day=day, period=period)
+
+	def get_timetable(self, user_id: int) -> Timetable:
+		results = self._get("day, period, subject_id", "`users-subjects`", where="user_id = ?", order="day ASC", args=(user_id, ))
+		if not results:
+			return Timetable()
+		timetable = Timetable()
+		for result in results:
+			day = result[0]
+			period = result[1]
+			subject_id = result[2]
+			if day == 0:
+				timetable.monday[period] = subject_id
+			elif day == 1:
+				timetable.tuesday[period] = subject_id
+			elif day == 2:
+				timetable.wednesday[period] = subject_id
+			elif day == 3:
+				timetable.thursday[period] = subject_id
+			elif day == 4:
+				timetable.friday[period] = subject_id
+		return timetable
 
 	def create_connection(self, user_id: int, subject_id: int, day: int, period: int) -> bool:
 		existing = self.get_subject_by_period(user_id, day, period)
 		if existing is not None and existing.subject_id == subject_id:
 			# If inserting will do nothing, just don't do it as it will just waste time.
 			return True
-		self._insert("users-subjects", "user_id, subject_id, day, period", (user_id, subject_id, day, period))
+		self._insert("`users-subjects`", "user_id, subject_id, day, period", (user_id, subject_id, day, period))
 		return True
 
 	def remove_connection(self, user_id: int, day: int, period: int) -> bool:
 		existing = self.get_subject_by_period(user_id, day, period)
 		if existing is None:
 			return False
-		self._delete("users-subjects", "user_id = ? AND day = ? AND period = ?", (user_id, day, period))
+		self._delete("`users-subjects`", "user_id = ? AND day = ? AND period = ?", (user_id, day, period))
 		return True

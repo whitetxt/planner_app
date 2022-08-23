@@ -36,7 +36,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 	
 	Raises a 401 if invalid, or returns the User.
 	"""
-	user = databases["users"].get_user_from_token(token)
+	user = databases["users"].get_user_from_session(token)
 	if user is None:
 		raise HTTPException(
 			status_code=status.HTTP_401_UNAUTHORIZED,
@@ -79,14 +79,15 @@ async def register(username: str = Form(...), password: str = Form(...), email: 
 		# They have no way of retrieving the passwords stored since they go through this process of scrambling.
 		# We store the salt in plaintext as to make sure that we can do this same process to allow the user to login.
 		for method in [sha256, sha384, sha512]:
-			password = method(f"{salt}{password}").hexdigest()
+			password = method(f"{salt}{password}".encode()).hexdigest()
 
 	user = User(
 		uid=uid,
 		username=username,
 		password=password,
 		salt=salt,
-		creation_time=time(),
+		email=email,
+		created_at=time(),
 		permissions=Permissions.Student, # TODO: Change this to check register code.
 		token=OAuthToken(access_token=token, uid=uid)
 	)
@@ -109,12 +110,14 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 		# They have no way of retrieving the passwords stored since they go through this process of scrambling.
 		# We store the salt in plaintext as to make sure that we can do this same process to allow the user to login.
 		for method in [sha256, sha384, sha512]:
-			password = method(f"{user.salt}{password}").hexdigest()
+			password = method(f"{user.salt}{password}".encode()).hexdigest()
 	if not user or user.password != password:
 		raise HTTPException(status_code=400, detail="Incorrect username or password")
 	
 	token = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=32))
 	user.session = OAuthToken(access_token=token, uid=user.uid)
+
+	databases["users"].update_user(user)
 
 	return {"access_token": token, "token_type": "Bearer"}
 
@@ -226,3 +229,15 @@ async def api_remove_timetable_subject(subject_id: int = Form(...), day: int = F
 	if result:
 		return {"status": "success"}
 	return {"status": "error"}
+
+@app.get("/api/v1/timetable")
+async def api_get_timetable(user: User = Depends(get_current_user)):
+	result = databases["user-subjects"].get_timetable(user.uid)
+	timetable = result.get_client_format()
+
+	# Here, instead of directly using the variable, I am getting indexes as this will allow me to modify the
+	# Timetable in-place instead of having to create a copy and waste memory.
+	for day in range(len(timetable)):
+		for period in range(len(timetable[day])):
+			timetable[day][period] = databases["subjects"].get_subject_by_id(timetable[day][period])
+	return timetable
