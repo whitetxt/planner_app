@@ -166,6 +166,9 @@ class UsersDB(DB):
 		return latest_uid[0][0] + 1
 	
 class SubjectsDB(DB):
+	"""
+	This implements functions to deal with subjects inside the database.
+	"""
 	def __init__(self, path):
 		super().__init__(path)
 	
@@ -232,3 +235,11 @@ class SubjectsDB(DB):
 		)
 		self._commit()
 		return True
+
+class ClassesDB(DB):
+	"""
+	This controls the classes table and anything to do with classes inside the database.
+	"""
+	def __init__(self, path):
+		super().__init__(path)
+	

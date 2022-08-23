@@ -12,8 +12,9 @@ from classes import *
 db_path = "./databases"
 
 users = UsersDB(f"{db_path}/main.db")
+subjects = SubjectsDB(f"{db_path}/main.db")
 
-app = FastAPI()
+app = FastAPI(title="Planner App API", description="API used for the backend of the planner app.", version="0.2.0b")
 oauth2_scheme = OAuth2PasswordBearer(
 	tokenUrl="/api/v1/auth/login",
 	scopes={"me": "Read information about the current user"}
