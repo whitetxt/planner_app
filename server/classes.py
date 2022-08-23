@@ -11,7 +11,7 @@ class OAuthToken(BaseModel):
 	uid: int
 
 class User(BaseModel):
-	uid: int
+	uid: int = None
 	username: str
 	password: str
 	salt: str
@@ -27,7 +27,7 @@ class User(BaseModel):
 		return self
 
 class Subject(BaseModel):
-	subject_id: int
+	subject_id: int = None
 	name: str
 	teacher: str
 	room: str
@@ -38,7 +38,7 @@ class TermDate(BaseModel):
 	end: int
 
 class Mark(BaseModel):
-	mark_id: int
+	mark_id: int = None
 	user_id: int
 	test_name: str
 	class_name: str
@@ -46,21 +46,21 @@ class Mark(BaseModel):
 	grade: str
 
 class Homework(BaseModel):
-	homework_id: int
+	homework_id: int = None
 	name: str
 	class_id: int
 	user_id: int
 	due_date: int
 
 class Event(BaseModel):
-	event_id: int
+	event_id: int = None
 	user_id: int
 	name: str
 	time: int
 	description: str
 
 class Class(BaseModel):
-	class_id: int
+	class_id: int = None
 	teacher_id: int
 	class_name: int
 	students: str

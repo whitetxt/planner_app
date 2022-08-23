@@ -151,6 +151,8 @@ class UsersDB(DB):
 		return True
 
 	def add_user(self, user: User) -> bool:
+		if user.uid is None:
+			user.uid = self.get_next_uid()
 		self._insert(
 			"users",
 			"uid, username, password, salt, email, creation_time, permissions, session",
@@ -239,6 +241,8 @@ class SubjectsDB(DB):
 		return True
 
 	def add_subject(self, subject: Subject) -> bool:
+		if subject.subject_id is None:
+			subject.subject_id = self.get_next_id()
 		self._insert(
 			"subjects",
 			"subject_id, name, teacher, room",
@@ -246,6 +250,12 @@ class SubjectsDB(DB):
 		)
 		self._commit()
 		return True
+	
+	def get_next_id(self) -> int:
+		latest_id = self._get("uid", "users", order="uid DESC")
+		if len(latest_id) == 0:
+			return 1
+		return latest_id[0][0] + 1
 
 class ClassesDB(DB):
 	"""

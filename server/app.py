@@ -190,6 +190,16 @@ async def api_create_subject(name: str = Form(), teacher: str = Form(), room: st
 
 	If the exact same subject already exists, it will not be recreated.
 	"""
+	exists = subjects.get_subjects_by_name(name)
+	if exists is not None:
+		for subject in exists:
+			if subject.teacher == teacher and subject.room == room:
+				# If we find that this specific subject already exists,
+				# We lie and say that we created it, but return the old id instead of a new one.
+				return {"status": "success", "id": subject.id}
 	subjects.add_subject(Subject(
-		
+		name=name,
+		teacher=teacher,
+		room=room
 	))
+	return {"status": "success", "id": subjects.get_next_id() - 1}
