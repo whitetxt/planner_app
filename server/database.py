@@ -56,3 +56,12 @@ class DB:
 	def _commit(self) -> None:
 		db = sqlite3.connect(self.path)
 		db.commit()
+
+class UsersDB(DB):
+	"""
+	This class handles user data inside of a database file.
+	
+	Wrapper functions are provided to make manipulation of the data easier.
+	"""
+	def __init__(self, path):
+		super.__init__(path)

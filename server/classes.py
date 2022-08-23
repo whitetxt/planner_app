@@ -8,10 +8,8 @@ class OAuthToken(BaseModel):
 class User(BaseModel):
 	uid: int
 	username: str
-	email: str
 	password: str
 	creation_time: float
-	last_login: float
 	enabled: bool
 	token: Optional[OAuthToken] = None
 
