@@ -37,8 +37,16 @@ async def get_current_active_user(current_user: User = Depends(get_current_user)
 	return current_user
 
 # ------------------
-# AUTH ENDPOINTS
+# AUTHENTICATION ENDPOINTS
 # ------------------
-@app.get("/api/v1/auth/register")
-async def register_user():
+@app.post("/api/v1/auth/register")
+async def register():
+	return
+
+@app.post("/api/v1/auth/login")
+async def login():
+	return
+
+@app.get("/api/v1/auth/logout")
+async def logout(current_user: User = Depends(get_current_active_user)):
 	return
