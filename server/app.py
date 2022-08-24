@@ -230,4 +230,4 @@ async def api_get_timetable(user: User = Depends(get_current_user)):
 	for day in range(len(timetable)):
 		for period in range(len(timetable[day])):
 			timetable[day][period] = databases["subjects"].get_subject_by_id(timetable[day][period])
-	return timetable
+	return {"status": "success", "data": timetable}

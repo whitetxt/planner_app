@@ -71,6 +71,8 @@ class _PopupState extends State<Popup> with SingleTickerProviderStateMixin {
   }
 }
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 String token = "";
 List<Popup> popups = [];
 

@@ -3,6 +3,8 @@ import 'package:planner_app/network.dart';
 
 import "package:http/http.dart" as http;
 
+import "globals.dart";
+
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
 
@@ -11,7 +13,7 @@ class SettingsPage extends StatefulWidget {
 }
 
 void onLogoutResponse(http.Response dontCare) {
-  Navigator.of(context).pushReplacementNamed("/");
+  navigatorKey.currentState!.pushReplacementNamed("/");
 }
 
 class _SettingsPageState extends State<SettingsPage> {

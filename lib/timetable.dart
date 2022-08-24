@@ -172,22 +172,42 @@ class TimetablePage extends StatefulWidget {
   State<TimetablePage> createState() => _TimetablePageState();
 }
 
-void gotTimetable(http.Response response) {
-  print(response);
-  if (response.statusCode != 200) {
-    print(response.body);
-    return;
-  }
-  Map<String, dynamic> data = json.decode(response.body);
-  print(data);
-}
-
 class _TimetablePageState extends State<TimetablePage> {
   @override
   void initState() {
+    if (timetable[0].length != 9) {
+      for (var i = 0; i < 5; i++) {
+        for (var j = 0; j < 9; j++) {
+          timetable[i]
+              .add(const TimetableData("Loading", "Loading", "Loading"));
+        }
+      }
+    }
     addRequest(NetworkOperation("/api/v1/timetable", "GET", gotTimetable,
         priority: 2));
     super.initState();
+  }
+
+  void gotTimetable(http.Response response) {
+    if (response.statusCode != 200) {
+      print(response.body);
+      return;
+    }
+    Map<String, dynamic> data = json.decode(response.body);
+    for (var i = 0; i < data["data"].length; i++) {
+      var today = data["data"][i];
+      for (var j = 0; j < today.length; j++) {
+        var period = today[j];
+        if (period == null) {
+          timetable[i][j] =
+              const TimetableData("Invalid", "Invalid", "Invalid");
+        } else {
+          timetable[i][j] =
+              TimetableData(period["name"], period["teacher"], period["room"]);
+        }
+      }
+    }
+    setState(() {});
   }
 
   @override

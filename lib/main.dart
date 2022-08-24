@@ -51,6 +51,7 @@ class PlannerApp extends StatelessWidget {
     return MaterialApp(
       title: 'Planner',
       theme: theme,
+      navigatorKey: navigatorKey,
       routes: {
         "/": (context) => const LoginPage(),
         "/dash": (context) => const MainPage(),
@@ -75,24 +76,9 @@ class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
-  ReceivePort recNetworkPort = ReceivePort();
-
-  Isolate? networkThread;
-
   // This simply creates the TabController on startup.
   @override
   void initState() {
-    recNetworkPort.listen((data) {
-      PortData realData = data as PortData;
-      if (realData.send != null) {
-        networkSendPort = realData.send!;
-      }
-      if (realData.data != null) {
-        createPopup(realData.data!);
-      }
-    });
-    Isolate.spawn(processNetworkRequests, recNetworkPort.sendPort)
-        .then((value) => setState(() => networkThread = value));
     _tabController = TabController(vsync: this, length: 5, initialIndex: 2);
     super.initState();
   }
@@ -105,9 +91,6 @@ class _MainPageState extends State<MainPage>
   @override
   void dispose() {
     _tabController!.dispose();
-    networkSendPort!
-        .send(const PortData(data: "You should kill this thread NOW"));
-    networkThread!.kill(priority: Isolate.immediate);
     super.dispose();
   }
 
