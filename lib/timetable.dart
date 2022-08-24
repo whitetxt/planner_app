@@ -1,69 +1,27 @@
+import 'dart:convert';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
+import "package:http/http.dart" as http;
 
-List<List<String>> sampleTimetableData = [
-  [
-    "Applied Maths",
-    "Applied Maths",
-    "Free",
-    "Free",
-    "Free",
-    "Free",
-    "Computer Science",
-    "Free",
-    "Free",
-  ],
-  [
-    "Computer Science",
-    "Computer Science",
-    "Free",
-    "Free",
-    "Physics",
-    "Physics",
-    "Games",
-    "Games",
-    "Games",
-  ],
-  [
-    "Pure Maths",
-    "Pure Maths",
-    "Free",
-    "Free",
-    "Physics",
-    "Physics",
-    "Applied Maths",
-    "Free",
-    "Free",
-  ],
-  [
-    "Physics",
-    "Physics",
-    "Free",
-    "Free",
-    "Pure Maths",
-    "Pure Maths",
-    "Computer Science",
-    "Computer Science",
-    "Computer Science",
-  ],
-  [
-    "Pure Maths",
-    "Pure Maths",
-    "Physics",
-    "Physics",
-    "Free",
-    "Free",
-    "Free",
-    "Computer Science",
-    "Computer Science",
-  ],
-];
+import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
+import "network.dart"; // Allows network requests on this page.
+
+class TimetableData {
+  const TimetableData(this.name, this.teacher, this.room);
+
+  final String name;
+  final String teacher;
+  final String room;
+}
+
+List<List<TimetableData>> timetable = [[], [], [], [], []];
+DateTime lastFetchTime = DateTime.now();
 
 class TimetableSlot extends StatefulWidget {
   const TimetableSlot(
-    this.text, {
+    this.data, {
     Key? key,
     this.width = 128,
     this.height = 32,
@@ -71,7 +29,7 @@ class TimetableSlot extends StatefulWidget {
     this.clickable = true,
   }) : super(key: key);
 
-  final String text;
+  final TimetableData data;
   final double width;
   final double height;
   final double borderWidth;
@@ -101,11 +59,12 @@ class _TimetableSlotState extends State<TimetableSlot> {
                   ),
                 ),
                 child: Text(
-                  widget.text,
+                  widget.data.name,
                   textAlign: TextAlign.center,
                 ),
               ),
-              content: const Text("Room: <TEST>\nTeacher: <TEST>"),
+              content: Text(
+                  "Room: ${widget.data.room}\nTeacher: ${widget.data.teacher}"),
             );
           },
         );
@@ -128,12 +87,12 @@ class _TimetableSlotState extends State<TimetableSlot> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 AutoSizeText(
-                  widget.text,
+                  widget.data.name,
                   textAlign: TextAlign.center,
                   minFontSize: 6,
                   maxFontSize: 16,
                   maxLines: 2,
-                  semanticsLabel: widget.text,
+                  semanticsLabel: widget.data.name,
                   wrapWords: false,
                 ),
               ],
@@ -185,14 +144,14 @@ class _TodayTimetableState extends State<TodayTimetable> {
               endIndent: 4,
             ),
             ...[
-              for (int idx = 0; idx < sampleTimetableData[today].length; idx++)
+              for (int idx = 0; idx < timetable[today].length; idx++)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       Text("Period ${idx + 1}"),
-                      Text(sampleTimetableData[today][idx]),
+                      Text(timetable[today][idx].name),
                     ],
                   ),
                 ),
@@ -213,9 +172,23 @@ class TimetablePage extends StatefulWidget {
   State<TimetablePage> createState() => _TimetablePageState();
 }
 
+void gotTimetable(http.Response response) {
+  print(response);
+  if (response.statusCode != 200) {
+    print(response.body);
+    return;
+  }
+  Map<String, dynamic> data = json.decode(response.body);
+  print(data);
+}
+
 class _TimetablePageState extends State<TimetablePage> {
-  // This is a 2D array of subjects in the timetable.
-  // This is the format which the API will return once implemented.
+  @override
+  void initState() {
+    addRequest(NetworkOperation("/api/v1/timetable", "GET", gotTimetable,
+        priority: 2));
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -249,9 +222,9 @@ class _TimetablePageState extends State<TimetablePage> {
                     double borderWidth = 1;
                     double width = constraints.maxWidth / 6 -
                         (borderWidth * 2 + borderWidth);
-                    double height = constraints.maxHeight /
-                            (sampleTimetableData[0].length + 2) -
-                        (borderWidth * 2 + borderWidth);
+                    double height =
+                        constraints.maxHeight / (timetable[0].length + 2) -
+                            (borderWidth * 2 + borderWidth);
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
@@ -260,35 +233,35 @@ class _TimetablePageState extends State<TimetablePage> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
                               TimetableSlot(
-                                "Monday",
+                                const TimetableData("Monday", "", ""),
                                 width: width,
                                 height: height,
                                 borderWidth: borderWidth * 2,
                                 clickable: false,
                               ),
                               TimetableSlot(
-                                "Tuesday",
+                                const TimetableData("Tuesday", "", ""),
                                 width: width,
                                 height: height,
                                 borderWidth: borderWidth * 2,
                                 clickable: false,
                               ),
                               TimetableSlot(
-                                "Wednesday",
+                                const TimetableData("Wednesday", "", ""),
                                 width: width,
                                 height: height,
                                 borderWidth: borderWidth * 2,
                                 clickable: false,
                               ),
                               TimetableSlot(
-                                "Thursday",
+                                const TimetableData("Thursday", "", ""),
                                 width: width,
                                 height: height,
                                 borderWidth: borderWidth * 2,
                                 clickable: false,
                               ),
                               TimetableSlot(
-                                "Friday",
+                                const TimetableData("Friday", "", ""),
                                 width: width,
                                 height: height,
                                 borderWidth: borderWidth * 2,
@@ -297,15 +270,13 @@ class _TimetablePageState extends State<TimetablePage> {
                             ],
                           ),
                         ],
-                        for (int i = 0; i < sampleTimetableData[0].length; i++)
+                        for (int i = 0; i < timetable[0].length; i++)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
-                              for (int j = 0;
-                                  j < sampleTimetableData.length;
-                                  j++)
+                              for (int j = 0; j < timetable.length; j++)
                                 TimetableSlot(
-                                  sampleTimetableData[j][i],
+                                  timetable[j][i],
                                   width: width,
                                   height: height,
                                   borderWidth: borderWidth,

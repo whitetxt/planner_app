@@ -1,7 +1,12 @@
+import 'dart:isolate';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import "globals.dart";
+import "network.dart";
 
 import "login.dart";
 import "timetable.dart";
@@ -70,38 +75,60 @@ class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
-  String token = "";
+  ReceivePort recNetworkPort = ReceivePort();
+
+  Isolate? networkThread;
 
   // This simply creates the TabController on startup.
   @override
   void initState() {
-    super.initState();
+    recNetworkPort.listen((data) {
+      PortData realData = data as PortData;
+      if (realData.send != null) {
+        networkSendPort = realData.send!;
+      }
+      if (realData.data != null) {
+        createPopup(realData.data!);
+      }
+    });
+    Isolate.spawn(processNetworkRequests, recNetworkPort.sendPort)
+        .then((value) => setState(() => networkThread = value));
     _tabController = TabController(vsync: this, length: 5, initialIndex: 2);
+    super.initState();
+  }
+
+  void createPopup(String text) {
+    popups.add(Popup(text));
   }
 
   // And this disposes of the TabController on close.
   @override
   void dispose() {
     _tabController!.dispose();
+    networkSendPort!
+        .send(const PortData(data: "You should kill this thread NOW"));
+    networkThread!.kill(priority: Isolate.immediate);
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as MainPageArgs;
-    token = args.token;
-
     return Scaffold(
-      body: TabBarView(
-        controller: _tabController,
-        physics: const BouncingScrollPhysics(),
-        dragStartBehavior: DragStartBehavior.down,
-        children: [
-          TimetablePage(token),
-          HomeworkPage(token),
-          Dashboard(token),
-          CalendarPage(token),
-          ExamPage(token),
+      body: Stack(
+        children: <Widget>[
+          TabBarView(
+            controller: _tabController,
+            physics: const BouncingScrollPhysics(),
+            dragStartBehavior: DragStartBehavior.down,
+            children: [
+              TimetablePage(token),
+              HomeworkPage(token),
+              Dashboard(token),
+              CalendarPage(token),
+              ExamPage(token),
+            ],
+          ),
+          ...popups
         ],
       ),
       bottomNavigationBar: BottomAppBar(

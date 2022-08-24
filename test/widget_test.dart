@@ -1,30 +1,39 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nock/nock.dart';
 
 import 'package:planner_app/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
+  setUpAll(nock.init);
+  setUp(() {
+    nock.cleanAll();
+  });
+  testWidgets('Registration', (WidgetTester tester) async {
+    nock("http://127.0.0.1:8000").post("/api/v1/auth/register").reply(
+          200,
+          json.encode({"access_token": "fake_token", "token_type": "Bearer"}),
+        );
     // Build our app and trigger a frame.
     await tester.pumpWidget(const PlannerApp());
 
+    expect(find.text('Login or Register'), findsOneWidget);
+
     // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.enterText(
+        find.widgetWithText(TextFormField, "Username"), "test_account");
+    await tester.pump();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, "Password"), "test_password");
+    await tester.pump();
 
     // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.tap(find.widgetWithText(ElevatedButton, "Register"));
     await tester.pump();
 
     // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Login or Register'), findsNothing);
   });
 }

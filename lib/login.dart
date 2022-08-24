@@ -6,6 +6,8 @@ import "package:http/http.dart" as http;
 import 'package:crypto/crypto.dart';
 import "package:flutter/material.dart";
 
+import "globals.dart";
+
 class MainPageArgs {
   final String token;
 
@@ -24,8 +26,6 @@ class _LoginPageState extends State<LoginPage> {
 
   String user = "";
   String pass = "";
-  String token = "";
-
   String serverIp = "http://127.0.0.1:8000";
 
   String calculatePasswordHash(String password) {
@@ -102,10 +102,10 @@ class _LoginPageState extends State<LoginPage> {
       String reason = await register(user, pass);
       ScaffoldMessenger.of(context).clearSnackBars();
       if (reason.startsWith("Bearer")) {
+        token = reason;
         Navigator.pushReplacementNamed(
           context,
           "/dash",
-          arguments: MainPageArgs(token),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -144,7 +144,6 @@ class _LoginPageState extends State<LoginPage> {
         Navigator.pushReplacementNamed(
           context,
           "/dash",
-          arguments: MainPageArgs(token),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

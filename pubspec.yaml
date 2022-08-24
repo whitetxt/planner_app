@@ -39,6 +39,8 @@ dependencies:
   flutter_switch: ^0.3.2
   crypto: ^3.0.2
   http: ^0.13.5
+  collection: ^1.16.0
+  nock: ^1.2.1
 
 dev_dependencies:
   flutter_test:
