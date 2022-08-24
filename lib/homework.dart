@@ -104,7 +104,9 @@ class _HomeworkMiniState extends State<HomeworkMini> {
 }
 
 class HomeworkPage extends StatefulWidget {
-  const HomeworkPage({Key? key}) : super(key: key);
+  const HomeworkPage(this.token, {Key? key}) : super(key: key);
+
+  final String token;
 
   @override
   State<HomeworkPage> createState() => _HomeworkPageState();

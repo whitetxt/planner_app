@@ -70,6 +70,8 @@ class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
   TabController? _tabController;
 
+  String token = "";
+
   // This simply creates the TabController on startup.
   @override
   void initState() {
@@ -86,17 +88,20 @@ class _MainPageState extends State<MainPage>
 
   @override
   Widget build(BuildContext context) {
+    final args = ModalRoute.of(context)!.settings.arguments as MainPageArgs;
+    token = args.token;
+
     return Scaffold(
       body: TabBarView(
         controller: _tabController,
         physics: const BouncingScrollPhysics(),
         dragStartBehavior: DragStartBehavior.down,
-        children: const [
-          TimetablePage(),
-          HomeworkPage(),
-          Dashboard(),
-          CalendarPage(),
-          ExamPage(),
+        children: [
+          TimetablePage(token),
+          HomeworkPage(token),
+          Dashboard(token),
+          CalendarPage(token),
+          ExamPage(token),
         ],
       ),
       bottomNavigationBar: BottomAppBar(

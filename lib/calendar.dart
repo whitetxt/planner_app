@@ -17,7 +17,9 @@ class _EventsMiniState extends State<EventsMini> {
 }
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage({Key? key}) : super(key: key);
+  const CalendarPage(this.token, {Key? key}) : super(key: key);
+
+  final String token;
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();

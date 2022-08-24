@@ -205,7 +205,9 @@ class _TodayTimetableState extends State<TodayTimetable> {
 }
 
 class TimetablePage extends StatefulWidget {
-  const TimetablePage({Key? key}) : super(key: key);
+  const TimetablePage(this.token, {Key? key}) : super(key: key);
+
+  final String token;
 
   @override
   State<TimetablePage> createState() => _TimetablePageState();

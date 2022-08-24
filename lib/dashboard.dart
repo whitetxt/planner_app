@@ -6,7 +6,9 @@ import "homework.dart"; // Provides HomeworkMini
 import "calendar.dart"; // Provides EventsMini
 
 class Dashboard extends StatefulWidget {
-  const Dashboard({Key? key}) : super(key: key);
+  const Dashboard(this.token, {Key? key}) : super(key: key);
+
+  final String token;
 
   @override
   State<Dashboard> createState() => _DashboardState();
