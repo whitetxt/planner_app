@@ -43,6 +43,10 @@ tags_metadata = [
 	{
 		"name": "Homework",
 		"description": "Operations to manage a user's homework."
+	},
+	{
+		"name": "Marks",
+		"description": "Operations to manage a user's marks."
 	}
 ]
 
@@ -238,6 +242,9 @@ async def create_subject(name: str = Form(...), teacher: str = Form(...), room: 
 
 @app.post("/api/v1/timetable", tags=["Timetable"])
 async def add_timetable_subject(subject_id: int = Form(...), day: int = Form(...), period: int = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Adds a subject to the current user's timetable.
+	"""
 	result = databases["user-subjects"].create_connection(user.uid, subject_id, day, period)
 	if result:
 		return {"status": "success"}
@@ -245,6 +252,9 @@ async def add_timetable_subject(subject_id: int = Form(...), day: int = Form(...
 
 @app.delete("/api/v1/timetable", tags=["Timetable"])
 async def remove_timetable_subject(subject_id: int = Form(...), day: int = Form(...), period: int = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Removes a subject from the current user's timetable.
+	"""
 	result = databases["user-subjects"].remove_connection(user.uid, subject_id, day, period)
 	if result:
 		return {"status": "success"}
@@ -252,6 +262,9 @@ async def remove_timetable_subject(subject_id: int = Form(...), day: int = Form(
 
 @app.get("/api/v1/timetable", tags=["Timetable"])
 async def get_timetable(user: User = Depends(get_current_user)):
+	"""
+	Gets the current user's timetable.
+	"""
 	result = databases["user-subjects"].get_timetable(user.uid)
 	timetable = result.get_client_format()
 
@@ -268,16 +281,27 @@ async def get_timetable(user: User = Depends(get_current_user)):
 
 @app.get("/api/v1/homework", tags=["Homework"])
 async def get_homework(user: User = Depends(get_current_user)):
+	"""
+	Gets all of the current user's homework.
+	"""
 	result = databases["homework"].get_homework_for_user(user.uid)
 	return {"status": "success", "data": result}
 
 @app.post("/api/v1/homework", tags=["Homework"])
 async def create_homework(name: str = Form(...), due_date: int = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Creates a piece of homework for the current user.
+	"""
 	databases["homework"].create_homework(user.uid, name, due_date)
 	return {"status": "success"}
 
 @app.put("/api/v1/homework", tags=["Homework"])
 async def complete_homework(id: int = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Marks a piece of homework as complete for the current user.
+
+	Homework **must** belong to the current user.
+	"""
 	homework = databases["homework"].get_homework(id)
 	if homework is None:
 		return {"status": "error", "message": "Homework doesn't exist."}
@@ -289,9 +313,16 @@ async def complete_homework(id: int = Form(...), user: User = Depends(get_curren
 
 @app.delete("/api/v1/homework", tags=["Homework"])
 async def delete_homework(id: int = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Deletes a piece of homework.
+	
+	Homework **must** belong to the current user.
+	"""
 	homework = databases["homework"].get_homework(id)
 	if homework is None:
 		return {"status": "error", "message": "Homework doesn't exist."}
+	if homework.user_id != user.uid:
+		return {"status": "error", "message": "Not your homework."}
 	databases["homework"].delete_homework(id)
 	return {"status": "success"}
 
@@ -299,18 +330,29 @@ async def delete_homework(id: int = Form(...), user: User = Depends(get_current_
 # MARK ENDPOINTS
 # ------------------
 
-@app.get("/api/v1/marks")
+@app.get("/api/v1/marks", tags=["Marks"])
 async def get_marks(user: User = Depends(get_current_user)):
+	"""
+	Gets all marks for the current user.
+	"""
 	result = databases["marks"].get_marks_for_user(user.uid)
 	return {"status": "success", "data": result}
 
-@app.post("/api/v1/marks")
+@app.post("/api/v1/marks", tags=["Marks"])
 async def add_mark(name: str = Form(...), mark: int = Form(...), grade: int = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Adds a mark to the database for the current user.
+	"""
 	databases["marks"].add_mark(user.uid, name, mark, grade)
 	return {"status": "success"}
 
-@app.put("/api/v1/marks")
+@app.put("/api/v1/marks", tags=["Marks"])
 async def update_mark(mark_id: int = Form(...), name: str = Form(...), mark: int = Form(...), grade: int = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Updates the details of a mark.
+	
+	Mark **must** belong to the current user.
+	"""
 	mark = databases["marks"].get_mark(mark_id)
 	if mark is None:
 		return {"status": "error", "message": "Mark doesn't exist."}
@@ -322,8 +364,13 @@ async def update_mark(mark_id: int = Form(...), name: str = Form(...), mark: int
 	databases["marks"].update_mark(mark)
 	return {"status": "success"}
 
-@app.delete("/api/v1/marks")
+@app.delete("/api/v1/marks", tags=["Marks"])
 async def delete_mark(mark_id: int = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Deletes a mark.
+	
+	Mark **must** belong to the current user.
+	"""
 	mark = databases["marks"].get_mark(mark_id)
 	if mark is None:
 		return {"status": "error", "message": "Mark doesn't exist."}
