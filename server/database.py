@@ -1,4 +1,4 @@
-import sqlite3
+import sqlite3, json
 from typing import Optional
 from classes import *
 
@@ -276,17 +276,108 @@ class UserSubjectDB(DB):
 				timetable.friday[period] = subject_id
 		return timetable
 
-	def create_connection(self, user_id: int, subject_id: int, day: int, period: int) -> bool:
+	def create_connection(self, user_id: int, subject_id: int, day: int, period: int) -> None:
 		existing = self.get_subject_by_period(user_id, day, period)
 		if existing is not None and existing.subject_id == subject_id:
 			# If inserting will do nothing, just don't do it as it will just waste time.
-			return True
+			return
 		self._insert("`users-subjects`", "user_id, subject_id, day, period", (user_id, subject_id, day, period))
-		return True
 
 	def remove_connection(self, user_id: int, day: int, period: int) -> bool:
 		existing = self.get_subject_by_period(user_id, day, period)
 		if existing is None:
 			return False
 		self._delete("`users-subjects`", "user_id = ? AND day = ? AND period = ?", (user_id, day, period))
+		return True
+
+class ClassDB(DB):
+	def __init__(self, path):
+		super().__init__(path)
+
+	def get_class(self, class_id: int) -> Class:
+		result = self._get("*", "classes", where="class_id = ?", args=(class_id, ))
+		if not result:
+			return None
+		return Class(class_id=class_id, teacher_id=result[1], class_name=result[2])
+	
+	def get_classes(self, teacher_id: int) -> list:
+		results = self._get("*", "classes", where="teacher_id = ?", args=(teacher_id, ))
+		if not results:
+			return None
+		return [Class(class_id=result[0], teacher_id=teacher_id, class_name=result[2]) for result in results]
+
+	def create_class(self, teacher_id: int, name: str, students: list) -> None:
+		self._insert("classes", "teacher_id, class_name, students", (teacher_id, name, json.dumps(students)))
+
+	def delete_class(self, class_id: int) -> None:
+		self._delete("classes", "class_id = ?", (class_id, ))
+
+class ClassStudentDB(DB):
+	def __init__(self, path):
+		super().__init__(path)
+
+	def get_classes_for_student(self, student_id: int) -> list:
+		classes = self._get("class_id", "`class-student`", where="student_id = ?", args=(student_id, ))
+		return [cl[0] for cl in classes]
+	
+	def get_students_in_class(self, class_id: int) -> list:
+		students = self._get("student_id", "`class-student`", where="class_id = ?", args=(class_id,))
+		return [student[0] for student in students]
+	
+	def create_connection(self, class_id: int, student_id: int) -> None:
+		self._insert("`class-student`", "class_id, student_id", (class_id, student_id))
+	
+	def delete_connection(self, class_id: int, student_id: int) -> None:
+		self._delete("`class-student`", "class_id = ? AND student_id = ?", (class_id, student_id))
+
+class HomeworkDB(DB):
+	def __init__(self, path):
+		super().__init__(path)
+
+	def get_homework_for_user(self, user_id: int) -> list:
+		results = self._get("*", "homework", where="user_id = ?", args=(user_id, ))
+		if not results:
+			return None
+		return [Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] == None) for result in results]
+
+	def get_homework(self, homework_id: int) -> Homework:
+		result = self._get("*", "homework", where="homework_id = ?", args=(homework_id, ))
+		if not result:
+			return None
+		return Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] == None)
+
+	def create_homework(self, user_id: int, name: str, due_date: int) -> None:
+		self._insert("homework", "name, user_id, due_date, completed", (name, user_id, due_date, True))
+	
+	def update_homework(self, homework: Homework) -> None:
+		self._update("homework", "name, class_id, user_id, due_date, completed", "homework_id = ?", (homework.name, homework.class_id, homework.user_id, homework.due_date, \
+			None if homework.completed == False else 1, homework.homework_id))
+		
+	def delete_homework(self, homework_id: int) -> None:
+		self._delete("homework", "homework_id = ?", (homework_id, ))
+	
+class EventDB(DB):
+	def __init__(self, path):
+		super().__init__(path)
+	
+	def get_event(self, event_id: int) -> Event:
+		result = self._get("*", "events", where="event_id = ?", args=(event_id, ))
+		if not result:
+			return None
+		return Event(event_id = event_id, user_id=result[1], name=result[2], time=result[3], description=result[4])
+	
+	def get_events_by_user(self, user_id: int) -> list:
+		results = self._get("*", "events", where="user_id = ?", args=(user_id, ))
+		if not results:
+			return None
+		return [Event(event_id=result[0], user_id=user_id, name=result[2], time=result[3], description=result[4]) for result in results]
+	
+	def create_event(self, user_id: int, name: str, time: int, description: str) -> None:
+		self._insert("events", "user_id, name, time, description", (user_id, name, time, description))
+	
+	def delete_event(self, event_id: int) -> bool:
+		exists = self.get_event(event_id)
+		if exists is None:
+			return False
+		self._delete("events", "event_id = ?", (event_id, ))
 		return True

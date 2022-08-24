@@ -50,6 +50,7 @@ class Homework(BaseModel):
 	class_id: int
 	user_id: int
 	due_date: int
+	completed: bool
 
 class Event(BaseModel):
 	event_id: int = None
@@ -62,7 +63,10 @@ class Class(BaseModel):
 	class_id: int = None
 	teacher_id: int
 	class_name: int
-	students: str
+
+class ClassStudentJoin(BaseModel):
+	student_id: int
+	class_id: int
 
 class UserSubjectJoin(BaseModel):
 	user_id: int
