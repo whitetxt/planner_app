@@ -51,7 +51,7 @@ tags_metadata = [
 ]
 
 
-app = FastAPI(title="Planner App API", description="API used for the backend of the planner app.", version="0.2.0b")
+app = FastAPI(title="Planner App API", description="API used for the backend of the planner app.", version="0.3.0b")
 oauth2_scheme = OAuth2PasswordBearer(
 	tokenUrl="/api/v1/auth/login"
 )
@@ -150,7 +150,7 @@ async def logout(current_user: User = Depends(get_current_user)):
 	"""
 	Invalidates the logged in user's token, effectively logging them out.
 	"""
-	current_user.token = None
+	current_user.session = None
 	databases["users"].update_user(current_user)
 	return {"Status": "OK"}
 

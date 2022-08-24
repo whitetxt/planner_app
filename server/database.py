@@ -381,7 +381,56 @@ class EventDB(DB):
 			return False
 		self._delete("events", "event_id = ?", (event_id, ))
 		return True
+
+class TermDateDB(DB):
+	def __init__(self, path):
+		super().__init__(path)
 	
+	def get_terms(self) -> list:
+		results = self._get("*", "term_dates")
+		return [TermDate(name=term[0], start=term[1], end=term[2]) for term in results]
+
+	def get_term(self, name: str) -> TermDate:
+		term = self._get("*", "term_dates", where="term_name = ?", args=(name, ))
+		if not term:
+			return None
+		return TermDate(name=term[0], start=term[1], end=term[2])
+
+	def create_term_date(self, name: str, start_time: int, end_time: int) -> None:
+		self._insert("term_dates", "term_name, start_time, end_time")
+	
+	def delete_term_date(self, name: str) -> bool:
+		exists = self.get_term(name)
+		if exists is None:
+			return False
+		self._delete("term_dates", "term_name = ?", (name, ))
+		return True
+
+	def update_term(self, term: TermDate) -> None:
+		self._update("term_dates", "start_time, end_time", "term_name = ?", (term.start, term.end, term.name))
+
+class UserEventDB(DB):
+	def __init__(self, path):
+		super().__init__(path)
+	
+	def get_users_for_event(self, event_id: int) -> list:
+		results = self._get("user_id", "`user-events`", where="event_id = ?", args=(event_id, ))
+		return [user_id[0] for user_id in results]
+
+	def get_events_for_user(self, user_id: int) -> list:
+		results = self._get("event_id", "`user-events`", where="user_id = ?", args=(user_id, ))
+		return [event_id[0] for event_id in results]
+
+	def create_connection(self, user_id: int, event_id: int) -> None:
+		self._insert("`user-events`", "user_id, event_id", (user_id, event_id))
+	
+	def delete_connection(self, user_id: int, event_id: int) -> bool:
+		exists = self._get("*", "`user-events`", where="user_id = ? AND event_id = ?", args=(user_id, event_id))
+		if not exists:
+			return False
+		self._delete("`user-events`", "user_id = ? AND event_id = ?", args=(user_id, event_id))
+		return True
+
 class MarkDB(DB):
 	def __init__(self, path):
 		super().__init__(path)

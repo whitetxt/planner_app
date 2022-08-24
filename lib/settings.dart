@@ -13,7 +13,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 void onLogoutResponse(http.Response dontCare) {
-  navigatorKey.currentState!.pushReplacementNamed("/");
+  token = "";
+  navigatorKey.currentState!.pushNamedAndRemoveUntil("/", (_) => false);
 }
 
 class _SettingsPageState extends State<SettingsPage> {

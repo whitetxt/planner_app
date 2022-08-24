@@ -103,9 +103,10 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).clearSnackBars();
       if (reason.startsWith("Bearer")) {
         token = reason;
-        Navigator.pushReplacementNamed(
+        Navigator.pushNamedAndRemoveUntil(
           context,
           "/dash",
+          (_) => false,
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -141,10 +142,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).clearSnackBars();
       if (reason.startsWith("Bearer")) {
         token = reason;
-        Navigator.pushReplacementNamed(
-          context,
-          "/dash",
-        );
+        Navigator.pushNamedAndRemoveUntil(context, "/dash", (_) => false);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

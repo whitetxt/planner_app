@@ -8,6 +8,7 @@ class PLAppBar extends PreferredSize {
           key: key,
           preferredSize: const Size.fromHeight(48),
           child: AppBar(
+            automaticallyImplyLeading: false,
             title: Flex(
               direction: Axis.horizontal,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
