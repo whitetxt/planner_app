@@ -381,3 +381,30 @@ class EventDB(DB):
 			return False
 		self._delete("events", "event_id = ?", (event_id, ))
 		return True
+	
+class MarkDB(DB):
+	def __init__(self, path):
+		super().__init__(path)
+	
+	def get_mark(self, mark_id: int) -> Mark:
+		result = self._get("*", "marks", where="mark_id = ?", args=(mark_id, ))
+		if not result:
+			return None
+		return Mark(mark_id = mark_id, user_id=result[1], test_name=result[2], mark=result[3], grade=result[4])
+
+	def get_marks_for_user(self, user_id: int) -> list:
+		results = self._get("*", "marks", where="user_id = ?", args=(user_id, ))
+		return [Mark(mark_id=result[0], user_id=user_id, test_name=result[2], mark=result[3], grade=result[4]) for result in results]
+
+	def add_mark(self, user_id: int, test_name: str, mark: int, grade: str) -> None:
+		self._insert("marks", "user_id, test_name, mark, grade", (user_id, test_name, mark, grade))
+	
+	def delete_mark(self, mark_id: int) -> bool:
+		exists = self.get_mark(mark_id)
+		if exists is None:
+			return False
+		self._delete("marks", "mark_id = ?", (mark_id, ))
+		return True
+	
+	def update_mark(self, mark: Mark) -> None:
+		self._update("marks", "user_id, test_name, mark, grade", "mark_id = ?", (mark.user_id, mark.test_name, mark.mark, mark.grade, mark.mark_id))

@@ -294,3 +294,40 @@ async def delete_homework(id: int = Form(...), user: User = Depends(get_current_
 		return {"status": "error", "message": "Homework doesn't exist."}
 	databases["homework"].delete_homework(id)
 	return {"status": "success"}
+
+# ------------------
+# MARK ENDPOINTS
+# ------------------
+
+@app.get("/api/v1/marks")
+async def get_marks(user: User = Depends(get_current_user)):
+	result = databases["marks"].get_marks_for_user(user.uid)
+	return {"status": "success", "data": result}
+
+@app.post("/api/v1/marks")
+async def add_mark(name: str = Form(...), mark: int = Form(...), grade: int = Form(...), user: User = Depends(get_current_user)):
+	databases["marks"].add_mark(user.uid, name, mark, grade)
+	return {"status": "success"}
+
+@app.put("/api/v1/marks")
+async def update_mark(mark_id: int = Form(...), name: str = Form(...), mark: int = Form(...), grade: int = Form(...), user: User = Depends(get_current_user)):
+	mark = databases["marks"].get_mark(mark_id)
+	if mark is None:
+		return {"status": "error", "message": "Mark doesn't exist."}
+	if mark.user_id != user.uid:
+		return {"status": "error", "message": "Not your mark."}
+	mark.name = name
+	mark.mark = mark
+	mark.grade = grade
+	databases["marks"].update_mark(mark)
+	return {"status": "success"}
+
+@app.delete("/api/v1/marks")
+async def delete_mark(mark_id: int = Form(...), user: User = Depends(get_current_user)):
+	mark = databases["marks"].get_mark(mark_id)
+	if mark is None:
+		return {"status": "error", "message": "Mark doesn't exist."}
+	if mark.user_id != user.uid:
+		return {"status": "error", "message": "Not your mark."}
+	databases["marks"].delete_mark(mark_id)
+	return {"status": "success"}

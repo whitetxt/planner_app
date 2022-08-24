@@ -40,7 +40,6 @@ class Mark(BaseModel):
 	mark_id: int = None
 	user_id: int
 	test_name: str
-	class_name: str
 	mark: int
 	grade: str
 
