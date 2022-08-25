@@ -30,6 +30,7 @@ class TimetableSlot extends StatefulWidget {
     this.height = 32,
     this.borderWidth = 1,
     this.clickable = true,
+    this.reset,
   }) : super(key: key);
 
   final int day;
@@ -40,6 +41,9 @@ class TimetableSlot extends StatefulWidget {
   final double height;
   final double borderWidth;
   final bool clickable;
+
+  // Function passed must force the parent element to reset its state.
+  final Function()? reset;
 
   @override
   State<TimetableSlot> createState() => _TimetableSlotState();
@@ -58,15 +62,17 @@ class _TimetableSlotState extends State<TimetableSlot> {
         (http.Response response) {
           if (response.statusCode != 200) {
             if (response.statusCode == 500) {
-              createPopup("Internal server error");
+              addNotif("Internal server error");
+              Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
               return;
             }
             dynamic data = json.decode(response.body);
-            createPopup("An error has occurred: ${data['message']}");
+            addNotif("An error has occurred: ${data['message']}");
           }
           dynamic data = json.decode(response.body);
           if (data["status"] != "success") {
-            createPopup("An error has occurred: ${data['message']}");
+            addNotif("An error has occurred: ${data['message']}");
+            Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
             return;
           }
           for (var subject in data["data"]) {
@@ -78,20 +84,28 @@ class _TimetableSlotState extends State<TimetableSlot> {
                   (http.Response response) {
                     if (response.statusCode != 200) {
                       if (response.statusCode == 500) {
-                        createPopup("Internal server error");
+                        addNotif("Internal server error");
+                        Navigator.of(context)
+                            .popUntil(ModalRoute.withName("/dash"));
                         return;
                       }
                       dynamic data = json.decode(response.body);
-                      createPopup("An error has occurred: ${data['message']}");
+                      addNotif("An error has occurred: ${data['message']}");
+                      Navigator.of(context)
+                          .popUntil(ModalRoute.withName("/dash"));
                       return;
                     }
                     dynamic data = json.decode(response.body);
                     if (data["status"] != "success") {
-                      createPopup("An error has occurred: ${data['message']}");
+                      addNotif("An error has occurred: ${data['message']}");
+                      Navigator.of(context)
+                          .popUntil(ModalRoute.withName("/dash"));
                       return;
                     }
-                    createPopup("Successfully changed timetable.");
-                    setState(() {});
+                    addNotif("Successfully changed timetable.");
+                    if (widget.reset != null) {
+                      widget.reset!();
+                    }
                   },
                   data: {
                     "subject_id": subject["subject_id"].toString(),
@@ -100,6 +114,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
                   },
                 ),
               );
+              Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
               return;
             }
           }
@@ -110,16 +125,20 @@ class _TimetableSlotState extends State<TimetableSlot> {
               (http.Response response) {
                 if (response.statusCode != 200) {
                   if (response.statusCode == 500) {
-                    createPopup("Internal server error");
+                    addNotif("Internal server error");
+                    Navigator.of(context)
+                        .popUntil(ModalRoute.withName("/dash"));
                     return;
                   }
                   dynamic data = json.decode(response.body);
-                  createPopup("An error has occurred: ${data['message']}");
+                  addNotif("An error has occurred: ${data['message']}");
+                  Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
                   return;
                 }
                 dynamic data = json.decode(response.body);
                 if (data["status"] != "success") {
-                  createPopup("An error has occurred: ${data['message']}");
+                  addNotif("An error has occurred: ${data['message']}");
+                  Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
                   return;
                 }
                 addRequest(
@@ -129,22 +148,30 @@ class _TimetableSlotState extends State<TimetableSlot> {
                     (http.Response response) {
                       if (response.statusCode != 200) {
                         if (response.statusCode == 500) {
-                          createPopup("Internal server error");
+                          addNotif("Internal server error");
+                          Navigator.of(context)
+                              .popUntil(ModalRoute.withName("/dash"));
                           return;
                         }
                         dynamic data = json.decode(response.body);
-                        createPopup(
-                            "An error has occurred: ${data['message']}");
+                        addNotif("An error has occurred: ${data['message']}");
+                        Navigator.of(context)
+                            .popUntil(ModalRoute.withName("/dash"));
                         return;
                       }
                       dynamic data = json.decode(response.body);
                       if (data["status"] != "success") {
-                        createPopup(
-                            "An error has occurred: ${data['message']}");
+                        addNotif("An error has occurred: ${data['message']}");
+                        Navigator.of(context)
+                            .popUntil(ModalRoute.withName("/dash"));
                         return;
                       }
-                      createPopup("Successfully changed timetable.");
-                      setState(() {});
+                      addNotif("Successfully changed timetable.");
+                      if (widget.reset != null) {
+                        widget.reset!();
+                      }
+                      Navigator.of(context)
+                          .popUntil(ModalRoute.withName("/dash"));
                     },
                     data: {
                       "subject_id": data["id"].toString(),
@@ -224,6 +251,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
                                     decoration: const InputDecoration(
                                       labelText: "Subject Name",
                                     ),
+                                    initialValue: widget.data.name,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return "Enter a name";
@@ -241,6 +269,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
                                     decoration: const InputDecoration(
                                       labelText: "Teacher",
                                     ),
+                                    initialValue: widget.data.teacher,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return "Enter a teacher";
@@ -258,6 +287,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
                                     decoration: const InputDecoration(
                                       labelText: "Room",
                                     ),
+                                    initialValue: widget.data.room,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return "Enter a room";
@@ -276,7 +306,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
                                       // Validate the form (returns true if all is ok)
                                       updateTimetable();
                                     },
-                                    child: const Text('Register'),
+                                    child: const Text('Submit'),
                                   ),
                                 ],
                               ),
@@ -414,7 +444,7 @@ void gotTimetable(http.Response response) {
     for (var j = 0; j < today.length; j++) {
       var period = today[j];
       if (period == null) {
-        timetable[i][j] = const TimetableData("Invalid", "Invalid", "Invalid");
+        timetable[i][j] = const TimetableData("None", "None", "None");
       } else {
         timetable[i][j] =
             TimetableData(period["name"], period["teacher"], period["room"]);
@@ -433,6 +463,14 @@ class TimetablePage extends StatefulWidget {
 }
 
 class _TimetablePageState extends State<TimetablePage> {
+  void getTimetable() {
+    addRequest(
+        NetworkOperation("/api/v1/timetable", "GET", (http.Response response) {
+      gotTimetable(response);
+      setState(() {});
+    }));
+  }
+
   @override
   void initState() {
     if (timetable[0].length != 9) {
@@ -541,18 +579,21 @@ class _TimetablePageState extends State<TimetablePage> {
                             ],
                           ),
                         ],
-                        for (int i = 0; i < timetable[0].length; i++)
+                        for (int period = 0;
+                            period < timetable[0].length;
+                            period++)
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
-                              for (int j = 0; j < timetable.length; j++)
+                              for (int day = 0; day < timetable.length; day++)
                                 TimetableSlot(
-                                  j,
-                                  i,
-                                  timetable[j][i],
+                                  day,
+                                  period,
+                                  timetable[day][period],
                                   width: width,
                                   height: height,
                                   borderWidth: borderWidth,
+                                  reset: getTimetable,
                                 ),
                             ],
                           ),

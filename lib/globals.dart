@@ -1,16 +1,22 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import "package:flutter/material.dart";
-import "dart:async";
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 String token = "";
-//List<Popup> popups = [];
+List<String> notifs = [];
 
-void createPopup(String text) {
+void addNotif(String text) {
   print(text);
-  //popups.add(Popup(text));
+  /*notifs.add(text);
+  Timer(
+    const Duration(seconds: 2, milliseconds: 500),
+    () {
+      notifs.removeAt(0);
+    },
+  );*/
 }
 
 String apiUrl = "http://127.0.0.1:8000";

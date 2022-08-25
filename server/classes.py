@@ -46,8 +46,8 @@ class Mark(BaseModel):
 class Homework(BaseModel):
 	homework_id: int = None
 	name: str
-	class_id: int
-	user_id: int
+	class_id: int = None
+	user_id: int = None
 	due_date: int
 	completed: bool
 

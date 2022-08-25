@@ -1,29 +1,41 @@
+import 'dart:convert';
+import 'package:intl/intl.dart';
+
 import "package:flutter/material.dart";
+import 'package:planner_app/globals.dart';
+import 'package:planner_app/network.dart';
+import "package:http/http.dart" as http;
 
 import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
 
-class HomeworkData {
-  HomeworkData(this.timeDue, this.name, this.teacher, this.subject);
+List<HomeworkData> homework = [];
 
+class HomeworkData {
+  const HomeworkData(
+      this.id, this.timeDue, this.name, this.classId, this.completed);
+
+  final int id;
   final DateTime timeDue;
   final String name;
-  final String teacher;
-  final String subject;
+  final String? classId;
+  final bool completed;
 
   factory HomeworkData.fromJson(dynamic jsonData) {
     return HomeworkData(
-      DateTime.fromMillisecondsSinceEpoch(jsonData["timeDue"]),
+      jsonData["homework_id"],
+      DateTime.fromMillisecondsSinceEpoch(jsonData["due_date"]),
       jsonData["name"],
-      jsonData["teacher"],
-      jsonData["subject"],
+      jsonData["class_id"],
+      jsonData["completed"],
     );
   }
 }
 
 class HomeworkWidget extends StatelessWidget {
-  const HomeworkWidget(this.data, {Key? key}) : super(key: key);
+  const HomeworkWidget(this.data, this.reset, {Key? key}) : super(key: key);
 
   final HomeworkData data;
+  final Function reset;
 
   @override
   Widget build(BuildContext context) {
@@ -37,28 +49,33 @@ class HomeworkWidget extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 flex: 1,
-                child: Column(
-                  children: <Widget>[
-                    Text("${data.timeDue.day}/${data.timeDue.month}"),
-                    Text("${data.timeDue.hour}:${data.timeDue.minute}")
-                  ],
+                child: Text(
+                  "${data.timeDue.day}/${data.timeDue.month}",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: data.completed ? Colors.green : Colors.black,
+                  ),
                 ),
               ),
               const VerticalDivider(width: 1),
               Expanded(
                 flex: 4,
-                child: Column(
-                  children: <Widget>[
-                    Text("${data.subject} (${data.teacher}):"),
-                    Text(data.name),
-                  ],
+                child: Text(
+                  data.name,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: data.completed ? Colors.green : Colors.black,
+                  ),
                 ),
               ),
               const VerticalDivider(width: 1),
               Expanded(
                 flex: 1,
                 child: PopupMenuButton(
-                  icon: const Icon(Icons.more_horiz),
+                  icon: Icon(
+                    Icons.more_horiz,
+                    color: data.completed ? Colors.green : Colors.black,
+                  ),
                   itemBuilder: (context) => [
                     PopupMenuItem(
                       onTap: () {},
@@ -69,15 +86,36 @@ class HomeworkWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-                    PopupMenuItem(
-                      onTap: () {},
-                      child: const Text(
-                        "Complete",
-                        style: TextStyle(
-                          fontSize: 14,
+                    if (!data.completed)
+                      PopupMenuItem(
+                        onTap: () {
+                          addRequest(
+                            NetworkOperation(
+                              "/api/v1/homework",
+                              "PUT",
+                              (http.Response response) {
+                                addRequest(
+                                  NetworkOperation(
+                                    "/api/v1/homework",
+                                    "GET",
+                                    (http.Response response) {
+                                      gotHomework(response);
+                                      reset();
+                                    },
+                                  ),
+                                );
+                              },
+                              data: {"id": data.id.toString()},
+                            ),
+                          );
+                        },
+                        child: const Text(
+                          "Complete",
+                          style: TextStyle(
+                            fontSize: 14,
+                          ),
                         ),
                       ),
-                    ),
                   ],
                 ),
               ),
@@ -103,6 +141,28 @@ class _HomeworkMiniState extends State<HomeworkMini> {
   }
 }
 
+void gotHomework(http.Response response) {
+  if (response.statusCode != 200) {
+    if (response.statusCode == 500) {
+      addNotif("Internal Server Error");
+      return;
+    }
+    addNotif(json.decode(response.body)["message"]);
+    return;
+  }
+  dynamic data = json.decode(response.body);
+  if (data["status"] != "success") {
+    addNotif(data["message"]);
+    return;
+  }
+  homework = [];
+  if (data["data"] != null) {
+    for (dynamic hw in data["data"]) {
+      homework.add(HomeworkData.fromJson(hw));
+    }
+  }
+}
+
 class HomeworkPage extends StatefulWidget {
   const HomeworkPage(this.token, {Key? key}) : super(key: key);
 
@@ -113,32 +173,208 @@ class HomeworkPage extends StatefulWidget {
 }
 
 class _HomeworkPageState extends State<HomeworkPage> {
-  List<HomeworkData> sampleHomeworkData = [
-    HomeworkData(DateTime.now(), "Test Name", "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 1)), "Test Name",
-        "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 2)), "Test Name",
-        "Test Teacher", "Test Subject"),
-    HomeworkData(DateTime.now().add(const Duration(days: 3, hours: 6)),
-        "Test Name", "Test Teacher", "Test Subject"),
-    ...[
-      for (int i = 1; i < 25; i++)
-        HomeworkData(DateTime.now().add(Duration(days: 4, hours: i)),
-            "Test Name", "Test Teacher", "Test Subject"),
-    ]
-  ];
+  String name = "";
+  final TextEditingController _dateController = TextEditingController();
+  DateTime date = DateTime.now();
+  bool showCompleted = false;
+
+  void refreshHomework() {
+    addRequest(
+      NetworkOperation(
+        "/api/v1/homework",
+        "GET",
+        (http.Response response) {
+          gotHomework(response);
+          Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+          setState(() {});
+        },
+      ),
+    );
+  }
+
+  void addHomework() {
+    addRequest(
+      NetworkOperation(
+        "/api/v1/homework",
+        "POST",
+        (http.Response response) {
+          refreshHomework();
+        },
+        data: {
+          "name": name,
+          "due_date": date.millisecondsSinceEpoch.toString()
+        },
+      ),
+    );
+  }
+
+  void reset() {
+    setState(() {});
+  }
+
+  @override
+  void initState() {
+    refreshHomework();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PLAppBar("Homework", context),
       backgroundColor: Theme.of(context).backgroundColor,
-      body: Center(
-        child: ListView(
-          children: [
-            for (var hw in sampleHomeworkData) HomeworkWidget(hw),
-          ],
-        ),
+      body: Column(
+        children: <Widget>[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              SizedBox(
+                width: 80,
+                height: 32,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+                  child: TextButton.icon(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Theme.of(context).highlightColor,
+                      side: const BorderSide(color: Colors.black),
+                    ),
+                    icon: const Icon(Icons.add, color: Colors.black),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              child: const Text(
+                                "Add homework",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            content: Form(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Homework Name",
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Enter a name";
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      name = value;
+                                    },
+                                    onFieldSubmitted: (String _) {
+                                      addHomework();
+                                    },
+                                  ),
+                                  InkWell(
+                                    onTap: () async {
+                                      final DateTime? selected =
+                                          await showDatePicker(
+                                        context: context,
+                                        initialDate: DateTime.now(),
+                                        firstDate: DateTime.now(),
+                                        lastDate: DateTime.now().add(
+                                          const Duration(days: 9000),
+                                        ),
+                                      );
+                                      if (selected != null) {
+                                        setState(
+                                          () {
+                                            date = selected;
+                                            _dateController.text =
+                                                DateFormat("dd-MM-yy")
+                                                    .format(selected);
+                                          },
+                                        );
+                                      }
+                                    },
+                                    child: TextFormField(
+                                      enabled: false,
+                                      controller: _dateController,
+                                      decoration: const InputDecoration(
+                                        label: Text("Date Due"),
+                                      ),
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Validate the form (returns true if all is ok)
+                                      addHomework();
+                                    },
+                                    child: const Text('Submit'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    label: const Text(
+                      "New",
+                      style: TextStyle(
+                        color: Colors.black,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 32,
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: showCompleted,
+                          onChanged: (value) {
+                            setState(() {
+                              showCompleted = value!;
+                            });
+                          },
+                        ),
+                        const Text(
+                          "Show Completed?",
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Expanded(
+            child: ListView(
+              children: [
+                if (homework.isEmpty)
+                  const Text(
+                    "No homework!",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 32,
+                    ),
+                  ),
+                for (var hw in homework)
+                  if (!showCompleted && hw.completed)
+                    ...[]
+                  else ...[HomeworkWidget(hw, reset)],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

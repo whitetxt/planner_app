@@ -51,6 +51,13 @@ Future<http.Response> processNetworkRequest(NetworkOperation task) async {
         task.data,
       );
       break;
+    case "PUT":
+      response = await performRequest(
+        http.put,
+        task.url,
+        task.data,
+      );
+      break;
     default:
       throw Exception("Unknown method type: ${task.method}");
   }

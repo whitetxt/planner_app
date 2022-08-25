@@ -16,7 +16,8 @@ databases = {
 	"user-subjects": UserSubjectDB(f"{db_path}/main.db"),
 	"classes": ClassDB(f"{db_path}/main.db"),
 	"class-student": ClassStudentDB(f"{db_path}/main.db"),
-	"homework": HomeworkDB(f"{db_path}/main.db")
+	"homework": HomeworkDB(f"{db_path}/main.db"),
+	"terms": TermDateDB(f"{db_path}/main.db"),
 }
 
 tags_metadata = [

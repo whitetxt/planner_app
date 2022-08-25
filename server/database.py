@@ -225,7 +225,7 @@ class SubjectsDB(DB):
 			"subjects",
 			"name = ?, teacher = ?, room = ?",
 			"subject_id = ?",
-			(subject.name, subject.teacher, subject.room, subject.subject_id)
+			(subject.name.title(), subject.teacher.title(), subject.room.upper(), subject.subject_id)
 		)
 		return True
 
@@ -235,7 +235,7 @@ class SubjectsDB(DB):
 		self._insert(
 			"subjects",
 			"subject_id, name, teacher, room",
-			(subject.subject_id, subject.name, subject.teacher, subject.room)
+			(subject.subject_id, subject.name.title(), subject.teacher.title(), subject.room.upper())
 		)
 		return True
 	
@@ -340,22 +340,23 @@ class HomeworkDB(DB):
 		super().__init__(path)
 
 	def get_homework_for_user(self, user_id: int) -> list:
-		results = self._get("*", "homework", where="user_id = ?", args=(user_id, ))
+		results = self._get("*", "homework", where="user_id = ?", order="due_date ASC", args=(user_id, ))
 		if not results:
 			return None
-		return [Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] == None) for result in results]
+		return [Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=user_id, due_date=result[4], completed=result[5] != None) for result in results]
 
 	def get_homework(self, homework_id: int) -> Homework:
-		result = self._get("*", "homework", where="homework_id = ?", args=(homework_id, ))
+		result = self._get("*", "homework", where="homework_id = ?", order="due_date ASC", args=(homework_id, ))
 		if not result:
 			return None
-		return Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] == None)
+		result = result[0]
+		return Homework(homework_id=homework_id, name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] != None)
 
 	def create_homework(self, user_id: int, name: str, due_date: int) -> None:
-		self._insert("homework", "name, user_id, due_date, completed", (name, user_id, due_date, True))
+		self._insert("homework", "name, user_id, due_date, completed", (name, user_id, due_date, None))
 	
 	def update_homework(self, homework: Homework) -> None:
-		self._update("homework", "name, class_id, user_id, due_date, completed", "homework_id = ?", (homework.name, homework.class_id, homework.user_id, homework.due_date, \
+		self._update("homework", "name = ?, class_id = ?, user_id = ?, due_date = ?, completed = ?", "homework_id = ?", (homework.name, homework.class_id, homework.user_id, homework.due_date, \
 			None if homework.completed == False else 1, homework.homework_id))
 		
 	def delete_homework(self, homework_id: int) -> None:
