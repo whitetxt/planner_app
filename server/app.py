@@ -190,27 +190,7 @@ async def get_subjects(user: User = Depends(get_current_user)):
 	"""
 	sjs = databases["subjects"].get_subjects()
 	if sjs is None:
-		return {"status": "error", "message": "No subjects found."}
-	return {"status": "success", "data": sjs}
-
-@app.get("/api/v1/subjects/name-{subject_name}", tags=["Subjects"])
-async def get_subject_by_name(subject_name: str, user: User = Depends(get_current_user)):
-	"""
-	Gets all subjects which match a certain name.
-	"""
-	sjs = databases["subjects"].get_subjects_by_name(subject_name)
-	if sjs is None:
-		return {"status": "error", "message": "No subjects found."}
-	return {"status": "success", "data": sjs}
-
-@app.get("/api/v1/subjects/id-{subject_id}", tags=["Subjects"])
-async def get_subject_by_id(id: int, user: User = Depends(get_current_user)):
-	"""
-	Gets the subject with a specific ID.
-	"""
-	sjs = databases["subjects"].get_subject_by_id(id)
-	if sjs is None:
-		return {"status": "error", "message": "No subjects found."}
+		return {"status": "success", "data": []}
 	return {"status": "success", "data": sjs}
 
 @app.post("/api/v1/subjects", tags=["Subjects"])
@@ -235,6 +215,27 @@ async def create_subject(name: str = Form(...), teacher: str = Form(...), room: 
 		room=room
 	))
 	return {"status": "success", "id": databases["subjects"].get_next_id() - 1}
+
+@app.get("/api/v1/subjects/name/{subject_name}", tags=["Subjects"])
+async def get_subject_by_name(subject_name: str, user: User = Depends(get_current_user)):
+	"""
+	Gets all subjects which match a certain name.
+	"""
+	sjs = databases["subjects"].get_subjects_by_name(subject_name)
+	if sjs is None:
+		return {"status": "success", "data": []}
+	return {"status": "success", "data": sjs}
+
+@app.get("/api/v1/subjects/id/{subject_id}", tags=["Subjects"])
+async def get_subject_by_id(id: int, user: User = Depends(get_current_user)):
+	"""
+	Gets the subject with a specific ID.
+	"""
+	sjs = databases["subjects"].get_subject_by_id(id)
+	if sjs is None:
+		return {"status": "success", "data": []}
+	return {"status": "success", "data": sjs}
+
 
 # ------------------
 # TIMETABLE ENDPOINTS

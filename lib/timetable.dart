@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
 import "package:http/http.dart" as http;
+import 'package:planner_app/globals.dart';
 
 import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
 import "network.dart"; // Allows network requests on this page.
@@ -21,6 +22,8 @@ DateTime lastFetchTime = DateTime.now();
 
 class TimetableSlot extends StatefulWidget {
   const TimetableSlot(
+    this.day,
+    this.period,
     this.data, {
     Key? key,
     this.width = 128,
@@ -28,6 +31,9 @@ class TimetableSlot extends StatefulWidget {
     this.borderWidth = 1,
     this.clickable = true,
   }) : super(key: key);
+
+  final int day;
+  final int period;
 
   final TimetableData data;
   final double width;
@@ -40,6 +46,126 @@ class TimetableSlot extends StatefulWidget {
 }
 
 class _TimetableSlotState extends State<TimetableSlot> {
+  String teacher = "";
+  String room = "";
+  String name = "";
+
+  Future<void> updateTimetable() async {
+    addRequest(
+      NetworkOperation(
+        "/api/v1/subjects/name/$name",
+        "GET",
+        (http.Response response) {
+          if (response.statusCode != 200) {
+            if (response.statusCode == 500) {
+              createPopup("Internal server error");
+              return;
+            }
+            dynamic data = json.decode(response.body);
+            createPopup("An error has occurred: ${data['message']}");
+          }
+          dynamic data = json.decode(response.body);
+          if (data["status"] != "success") {
+            createPopup("An error has occurred: ${data['message']}");
+            return;
+          }
+          for (var subject in data["data"]) {
+            if (subject["room"] == room && subject["teacher"] == teacher) {
+              addRequest(
+                NetworkOperation(
+                  "/api/v1/timetable",
+                  "POST",
+                  (http.Response response) {
+                    if (response.statusCode != 200) {
+                      if (response.statusCode == 500) {
+                        createPopup("Internal server error");
+                        return;
+                      }
+                      dynamic data = json.decode(response.body);
+                      createPopup("An error has occurred: ${data['message']}");
+                      return;
+                    }
+                    dynamic data = json.decode(response.body);
+                    if (data["status"] != "success") {
+                      createPopup("An error has occurred: ${data['message']}");
+                      return;
+                    }
+                    createPopup("Successfully changed timetable.");
+                    setState(() {});
+                  },
+                  data: {
+                    "subject_id": subject["subject_id"].toString(),
+                    "day": widget.day.toString(),
+                    "period": widget.period.toString()
+                  },
+                ),
+              );
+              return;
+            }
+          }
+          addRequest(
+            NetworkOperation(
+              "/api/v1/subjects",
+              "POST",
+              (http.Response response) {
+                if (response.statusCode != 200) {
+                  if (response.statusCode == 500) {
+                    createPopup("Internal server error");
+                    return;
+                  }
+                  dynamic data = json.decode(response.body);
+                  createPopup("An error has occurred: ${data['message']}");
+                  return;
+                }
+                dynamic data = json.decode(response.body);
+                if (data["status"] != "success") {
+                  createPopup("An error has occurred: ${data['message']}");
+                  return;
+                }
+                addRequest(
+                  NetworkOperation(
+                    "/api/v1/timetable",
+                    "POST",
+                    (http.Response response) {
+                      if (response.statusCode != 200) {
+                        if (response.statusCode == 500) {
+                          createPopup("Internal server error");
+                          return;
+                        }
+                        dynamic data = json.decode(response.body);
+                        createPopup(
+                            "An error has occurred: ${data['message']}");
+                        return;
+                      }
+                      dynamic data = json.decode(response.body);
+                      if (data["status"] != "success") {
+                        createPopup(
+                            "An error has occurred: ${data['message']}");
+                        return;
+                      }
+                      createPopup("Successfully changed timetable.");
+                      setState(() {});
+                    },
+                    data: {
+                      "subject_id": data["id"].toString(),
+                      "day": widget.day.toString(),
+                      "period": widget.period.toString()
+                    },
+                  ),
+                );
+              },
+              data: {
+                "name": name,
+                "teacher": teacher,
+                "room": room,
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -63,8 +189,105 @@ class _TimetableSlotState extends State<TimetableSlot> {
                   textAlign: TextAlign.center,
                 ),
               ),
-              content: Text(
-                  "Room: ${widget.data.room}\nTeacher: ${widget.data.teacher}"),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  Text("Room: ${widget.data.room}"),
+                  Text("Teacher: ${widget.data.teacher}"),
+                  const Divider(thickness: 2),
+                  TextButton(
+                    child: const Text("Change Period"),
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              child: const Text(
+                                "Changing Timetable",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            content: Form(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Subject Name",
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Enter a name";
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      name = value;
+                                    },
+                                    onFieldSubmitted: (String _) async {
+                                      await updateTimetable();
+                                    },
+                                  ),
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Teacher",
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Enter a teacher";
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      teacher = value;
+                                    },
+                                    onFieldSubmitted: (String _) async {
+                                      await updateTimetable();
+                                    },
+                                  ),
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Room",
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Enter a room";
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      room = value;
+                                    },
+                                    onFieldSubmitted: (String _) async {
+                                      await updateTimetable();
+                                    },
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      // Validate the form (returns true if all is ok)
+                                      updateTimetable();
+                                    },
+                                    child: const Text('Register'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
             );
           },
         );
@@ -126,7 +349,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
         NetworkOperation("/api/v1/timetable", "GET", (http.Response response) {
       gotTimetable(response);
       setState(() {});
-    }, priority: 2));
+    }));
     super.initState();
   }
 
@@ -183,7 +406,6 @@ class _TodayTimetableState extends State<TodayTimetable> {
 
 void gotTimetable(http.Response response) {
   if (response.statusCode != 200) {
-    print(response.body);
     return;
   }
   Map<String, dynamic> data = json.decode(response.body);
@@ -225,7 +447,7 @@ class _TimetablePageState extends State<TimetablePage> {
         NetworkOperation("/api/v1/timetable", "GET", (http.Response response) {
       gotTimetable(response);
       setState(() {});
-    }, priority: 2));
+    }));
     super.initState();
   }
 
@@ -272,6 +494,8 @@ class _TimetablePageState extends State<TimetablePage> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: <Widget>[
                               TimetableSlot(
+                                0,
+                                -1,
                                 const TimetableData("Monday", "", ""),
                                 width: width,
                                 height: height,
@@ -279,6 +503,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                 clickable: false,
                               ),
                               TimetableSlot(
+                                1,
+                                -1,
                                 const TimetableData("Tuesday", "", ""),
                                 width: width,
                                 height: height,
@@ -286,6 +512,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                 clickable: false,
                               ),
                               TimetableSlot(
+                                2,
+                                -1,
                                 const TimetableData("Wednesday", "", ""),
                                 width: width,
                                 height: height,
@@ -293,6 +521,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                 clickable: false,
                               ),
                               TimetableSlot(
+                                3,
+                                -1,
                                 const TimetableData("Thursday", "", ""),
                                 width: width,
                                 height: height,
@@ -300,6 +530,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                 clickable: false,
                               ),
                               TimetableSlot(
+                                4,
+                                -1,
                                 const TimetableData("Friday", "", ""),
                                 width: width,
                                 height: height,
@@ -315,6 +547,8 @@ class _TimetablePageState extends State<TimetablePage> {
                             children: <Widget>[
                               for (int j = 0; j < timetable.length; j++)
                                 TimetableSlot(
+                                  j,
+                                  i,
                                   timetable[j][i],
                                   width: width,
                                   height: height,

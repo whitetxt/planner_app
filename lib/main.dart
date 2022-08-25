@@ -1,12 +1,9 @@
-import 'dart:isolate';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import "globals.dart";
-import "network.dart";
 
 import "login.dart";
 import "timetable.dart";
@@ -83,10 +80,6 @@ class _MainPageState extends State<MainPage>
     super.initState();
   }
 
-  void createPopup(String text) {
-    popups.add(Popup(text));
-  }
-
   // And this disposes of the TabController on close.
   @override
   void dispose() {
@@ -111,7 +104,7 @@ class _MainPageState extends State<MainPage>
               ExamPage(token),
             ],
           ),
-          ...popups
+          //...popups
         ],
       ),
       bottomNavigationBar: BottomAppBar(

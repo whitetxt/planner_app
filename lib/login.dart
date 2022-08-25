@@ -216,7 +216,7 @@ class _LoginPageState extends State<LoginPage> {
                       onChanged: (value) {
                         user = value;
                       },
-                      onFieldSubmitted: (String ae) async {
+                      onFieldSubmitted: (String _) async {
                         await validateLogin();
                       },
                     ),
@@ -240,7 +240,7 @@ class _LoginPageState extends State<LoginPage> {
                       onChanged: (value) {
                         pass = value;
                       },
-                      onFieldSubmitted: (String ae) async {
+                      onFieldSubmitted: (String _) async {
                         await validateLogin();
                       },
                     ),

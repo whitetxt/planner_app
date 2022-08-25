@@ -1,21 +1,17 @@
-import 'dart:io';
 import 'dart:isolate';
 
 import "package:http/http.dart" as http;
-import "package:collection/collection.dart";
 
 import "globals.dart";
 
 class NetworkOperation {
-  NetworkOperation(this.url, this.method, this.callback,
-      {this.data, this.priority = 0});
+  NetworkOperation(this.url, this.method, this.callback, {this.data});
 
   String url; // The url to contact.
   final String method; // The method to use (GET, POST etc.)
   final Map<String, dynamic>? data; // The data to send along in the body.
   final Function(http.Response)
       callback; // The function to call with the data retrieved.
-  final int priority; // The priority for this operation.
 }
 
 class PortData {
@@ -25,11 +21,6 @@ class PortData {
   final String? data;
   final NetworkOperation? operation;
 }
-
-PriorityQueue<NetworkOperation> networkRequestQueue =
-    PriorityQueue<NetworkOperation>(
-  (elem1, elem2) => elem1.priority.compareTo(elem2.priority),
-);
 
 void addRequest(NetworkOperation request) {
   request.url = apiUrl + request.url;

@@ -240,7 +240,7 @@ class SubjectsDB(DB):
 		return True
 	
 	def get_next_id(self) -> int:
-		latest_id = self._get("subject_id", "subjects", order="uid DESC")
+		latest_id = self._get("subject_id", "subjects", order="subject_id DESC")
 		if len(latest_id) == 0:
 			return 1
 		return latest_id[0][0] + 1
@@ -276,12 +276,17 @@ class UserSubjectDB(DB):
 				timetable.friday[period] = subject_id
 		return timetable
 
-	def create_connection(self, user_id: int, subject_id: int, day: int, period: int) -> None:
+	def create_connection(self, user_id: int, subject_id: int, day: int, period: int) -> bool:
 		existing = self.get_subject_by_period(user_id, day, period)
-		if existing is not None and existing.subject_id == subject_id:
-			# If inserting will do nothing, just don't do it as it will just waste time.
-			return
+		if existing is not None:
+			if existing.subject_id == subject_id:
+				# If inserting will do nothing, just don't do it as it will just waste time.
+				return False
+			else:
+				self._update("`users-subjects`", "subject_id = ?", "user_id = ? AND day = ? AND period = ?", (subject_id, user_id, day, period))
+				return True
 		self._insert("`users-subjects`", "user_id, subject_id, day, period", (user_id, subject_id, day, period))
+		return True
 
 	def remove_connection(self, user_id: int, day: int, period: int) -> bool:
 		existing = self.get_subject_by_period(user_id, day, period)
