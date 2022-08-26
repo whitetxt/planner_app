@@ -388,26 +388,32 @@ class _TodayTimetableState extends State<TodayTimetable> {
     int today = DateTime.now().weekday;
     if (today >= 6) {
       // If Sat or Sun
-      return Card(
-        elevation: 4,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const <Widget>[
-            AutoSizeText(
-              "No lessons today.",
-              minFontSize: 8,
-              maxFontSize: 32,
-            ),
-          ],
+      return SizedBox(
+        width: 15 * MediaQuery.of(context).size.width / 16,
+        height: MediaQuery.of(context).size.height / 4,
+        child: Card(
+          elevation: 4,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const <Widget>[
+              AutoSizeText(
+                "No lessons today.",
+                minFontSize: 8,
+                maxFontSize: 32,
+              ),
+            ],
+          ),
         ),
       );
     }
     today--;
     return SizedBox(
       width: 15 * MediaQuery.of(context).size.width / 16,
+      height: 5 * MediaQuery.of(context).size.height / 16,
       child: Card(
         elevation: 4,
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
             const Text("Today's Timetable"),
             const Divider(
@@ -417,7 +423,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
             ...[
               for (int idx = 0; idx < timetable[today].length; idx++)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+                  padding: const EdgeInsets.all(4),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[

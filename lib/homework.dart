@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:intl/intl.dart';
 
 import "package:flutter/material.dart";
@@ -135,9 +136,75 @@ class HomeworkMini extends StatefulWidget {
 }
 
 class _HomeworkMiniState extends State<HomeworkMini> {
+  bool any = false;
+  @override
+  void initState() {
+    addRequest(
+      NetworkOperation(
+        "/api/v1/homework",
+        "GET",
+        (http.Response response) {
+          gotHomework(response);
+          setState(() {});
+        },
+      ),
+    );
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container(child: const Text("Hello mini homework"));
+    return SizedBox(
+      width: 15 * MediaQuery.of(context).size.width / 16,
+      height: MediaQuery.of(context).size.height / 4,
+      child: Card(
+        elevation: 4,
+        child: Column(
+          children: <Widget>[
+            const Text("Due Homework"),
+            const Divider(
+              indent: 4,
+              endIndent: 4,
+            ),
+            ...[
+              for (int idx = 0;
+                  idx <
+                          homework
+                              .where((element) => !element.completed)
+                              .length &&
+                      idx < 5;
+                  idx++)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Text(
+                        "${homework.where((element) => !element.completed).toList()[idx].timeDue.day}/${homework[idx].timeDue.month}",
+                      ),
+                      Text(homework
+                          .where((element) => !element.completed)
+                          .toList()[idx]
+                          .name),
+                    ],
+                  ),
+                ),
+            ],
+            if (homework.every(
+              (element) => element.completed,
+            )) ...[
+              const Text(
+                "No Homework!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 32,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -359,7 +426,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
           Expanded(
             child: ListView(
               children: [
-                if (homework.isEmpty)
+                if (homework.isEmpty ||
+                    (homework.every((element) => element.completed) &&
+                        !showCompleted))
                   const Text(
                     "No homework!",
                     textAlign: TextAlign.center,

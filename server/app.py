@@ -203,6 +203,7 @@ async def create_subject(name: str = Form(...), teacher: str = Form(...), room: 
 
 	Returns the ID of the created subject.
 	"""
+	print("Hello")
 	exists = databases["subjects"].get_subjects_by_name(name)
 	if exists is not None:
 		for subject in exists:
