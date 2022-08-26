@@ -90,6 +90,7 @@ class _MainPageState extends State<MainPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       body: Stack(
         children: <Widget>[
           TabBarView(

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:intl/intl.dart';
 
 import "package:flutter/material.dart";
@@ -54,6 +53,8 @@ class HomeworkWidget extends StatelessWidget {
                   "${data.timeDue.day}/${data.timeDue.month}",
                   textAlign: TextAlign.center,
                   style: TextStyle(
+                    // We should change the colours of all the elements if the homework is completed.
+                    // This is because it will be easier for the user to see that they have already done it.
                     color: data.completed ? Colors.green : Colors.black,
                   ),
                 ),
@@ -87,36 +88,26 @@ class HomeworkWidget extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (!data.completed)
-                      PopupMenuItem(
-                        onTap: () {
-                          addRequest(
-                            NetworkOperation(
-                              "/api/v1/homework",
-                              "PUT",
-                              (http.Response response) {
-                                addRequest(
-                                  NetworkOperation(
-                                    "/api/v1/homework",
-                                    "GET",
-                                    (http.Response response) {
-                                      gotHomework(response);
-                                      reset();
-                                    },
-                                  ),
-                                );
-                              },
-                              data: {"id": data.id.toString()},
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Complete",
-                          style: TextStyle(
-                            fontSize: 14,
+                    PopupMenuItem(
+                      onTap: () {
+                        addRequest(
+                          NetworkOperation(
+                            "/api/v1/homework",
+                            "PUT",
+                            (http.Response response) {
+                              reset();
+                            },
+                            data: {"id": data.id.toString()},
                           ),
+                        );
+                      },
+                      child: Text(
+                        data.completed ? "Undo Completion" : "Complete",
+                        style: const TextStyle(
+                          fontSize: 14,
                         ),
                       ),
+                    ),
                   ],
                 ),
               ),
@@ -171,7 +162,8 @@ class _HomeworkMiniState extends State<HomeworkMini> {
                   idx <
                           homework
                               .where((element) => !element.completed)
-                              .length &&
+                              .length && // This filters the list of homework to only ones that have not been completed.
+                      // This is done as the dashboard should only display things the user needs to know.
                       idx < 5;
                   idx++)
                 Padding(
@@ -193,6 +185,8 @@ class _HomeworkMiniState extends State<HomeworkMini> {
             if (homework.every(
               (element) => element.completed,
             )) ...[
+              // If every piece of homework is completed, then we should tell the user instead of having an empty card.
+              // If they are all completed, then we know the above for loop will have not added anything and do not need to worry about that.
               const Text(
                 "No Homework!",
                 textAlign: TextAlign.center,
@@ -209,17 +203,19 @@ class _HomeworkMiniState extends State<HomeworkMini> {
 }
 
 void gotHomework(http.Response response) {
+  // This just handles the server's response for returning homework.
+  // We must check for an error, then notify the user of it.
   if (response.statusCode != 200) {
     if (response.statusCode == 500) {
-      addNotif("Internal Server Error");
+      addNotif("Internal Server Error", error: true);
       return;
     }
-    addNotif(json.decode(response.body)["message"]);
+    addNotif(json.decode(response.body)["message"], error: true);
     return;
   }
   dynamic data = json.decode(response.body);
   if (data["status"] != "success") {
-    addNotif(data["message"]);
+    addNotif(data["message"], error: true);
     return;
   }
   homework = [];
@@ -246,20 +242,24 @@ class _HomeworkPageState extends State<HomeworkPage> {
   bool showCompleted = false;
 
   void refreshHomework() {
+    // This refreshes the homework page, grabbing new data from the API.
     addRequest(
       NetworkOperation(
         "/api/v1/homework",
         "GET",
         (http.Response response) {
           gotHomework(response);
-          Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
-          setState(() {});
+          Navigator.of(context).popUntil(ModalRoute.withName(
+              "/dash")); // This removes any modals or popup dialogs that are active at the current time.
+          setState(
+              () {}); // This then just forces the page to rebuild and redraw itself.
         },
       ),
     );
   }
 
   void addHomework() {
+    // This adds a piece of homework to the server, and then refreshes the page.
     addRequest(
       NetworkOperation(
         "/api/v1/homework",
@@ -273,10 +273,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
         },
       ),
     );
-  }
-
-  void reset() {
-    setState(() {});
   }
 
   @override
@@ -426,7 +422,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
           Expanded(
             child: ListView(
               children: [
-                if (homework.isEmpty ||
+                if (homework
+                        .isEmpty || // We need this OR, otherwise if everything is completed and hidden then the page will be empty.
                     (homework.every((element) => element.completed) &&
                         !showCompleted))
                   const Text(
@@ -438,8 +435,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
                   ),
                 for (var hw in homework)
                   if (!showCompleted && hw.completed)
-                    ...[]
-                  else ...[HomeworkWidget(hw, reset)],
+                    ...[] // I could'nt figure out a way to do this any other way, so we just concatinate an empty array.
+                  else ...[HomeworkWidget(hw, refreshHomework)],
               ],
             ),
           ),

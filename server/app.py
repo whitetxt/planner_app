@@ -301,7 +301,7 @@ async def create_homework(name: str = Form(...), due_date: int = Form(...), user
 @app.put("/api/v1/homework", tags=["Homework"])
 async def complete_homework(id: int = Form(...), user: User = Depends(get_current_user)):
 	"""
-	Marks a piece of homework as complete for the current user.
+	Flips whether a piece of homework is completed or not.
 
 	Homework **must** belong to the current user.
 	"""
@@ -310,7 +310,7 @@ async def complete_homework(id: int = Form(...), user: User = Depends(get_curren
 		return {"status": "error", "message": "Homework doesn't exist."}
 	if homework.user_id != user.uid:
 		return {"status": "error", "message": "Not your homework."}
-	homework.completed = True
+	homework.completed = not homework.completed
 	databases["homework"].update_homework(homework)
 	return {"status": "success"}
 

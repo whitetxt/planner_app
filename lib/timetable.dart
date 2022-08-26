@@ -62,16 +62,17 @@ class _TimetableSlotState extends State<TimetableSlot> {
         (http.Response response) {
           if (response.statusCode != 200) {
             if (response.statusCode == 500) {
-              addNotif("Internal server error");
+              addNotif("Internal server error", error: true);
               Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
               return;
             }
             dynamic data = json.decode(response.body);
-            addNotif("An error has occurred: ${data['message']}");
+            addNotif("An error has occurred: ${data['message']}", error: true);
+            return;
           }
           dynamic data = json.decode(response.body);
           if (data["status"] != "success") {
-            addNotif("An error has occurred: ${data['message']}");
+            addNotif("An error has occurred: ${data['message']}", error: true);
             Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
             return;
           }
@@ -84,25 +85,27 @@ class _TimetableSlotState extends State<TimetableSlot> {
                   (http.Response response) {
                     if (response.statusCode != 200) {
                       if (response.statusCode == 500) {
-                        addNotif("Internal server error");
+                        addNotif("Internal server error", error: true);
                         Navigator.of(context)
                             .popUntil(ModalRoute.withName("/dash"));
                         return;
                       }
                       dynamic data = json.decode(response.body);
-                      addNotif("An error has occurred: ${data['message']}");
+                      addNotif("An error has occurred: ${data['message']}",
+                          error: true);
                       Navigator.of(context)
                           .popUntil(ModalRoute.withName("/dash"));
                       return;
                     }
                     dynamic data = json.decode(response.body);
                     if (data["status"] != "success") {
-                      addNotif("An error has occurred: ${data['message']}");
+                      addNotif("An error has occurred: ${data['message']}",
+                          error: true);
                       Navigator.of(context)
                           .popUntil(ModalRoute.withName("/dash"));
                       return;
                     }
-                    addNotif("Successfully changed timetable.");
+                    addNotif("Successfully changed timetable.", error: false);
                     if (widget.reset != null) {
                       widget.reset!();
                     }
@@ -125,19 +128,21 @@ class _TimetableSlotState extends State<TimetableSlot> {
               (http.Response response) {
                 if (response.statusCode != 200) {
                   if (response.statusCode == 500) {
-                    addNotif("Internal server error");
+                    addNotif("Internal server error", error: true);
                     Navigator.of(context)
                         .popUntil(ModalRoute.withName("/dash"));
                     return;
                   }
                   dynamic data = json.decode(response.body);
-                  addNotif("An error has occurred: ${data['message']}");
+                  addNotif("An error has occurred: ${data['message']}",
+                      error: true);
                   Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
                   return;
                 }
                 dynamic data = json.decode(response.body);
                 if (data["status"] != "success") {
-                  addNotif("An error has occurred: ${data['message']}");
+                  addNotif("An error has occurred: ${data['message']}",
+                      error: true);
                   Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
                   return;
                 }
@@ -148,25 +153,27 @@ class _TimetableSlotState extends State<TimetableSlot> {
                     (http.Response response) {
                       if (response.statusCode != 200) {
                         if (response.statusCode == 500) {
-                          addNotif("Internal server error");
+                          addNotif("Internal server error", error: true);
                           Navigator.of(context)
                               .popUntil(ModalRoute.withName("/dash"));
                           return;
                         }
                         dynamic data = json.decode(response.body);
-                        addNotif("An error has occurred: ${data['message']}");
+                        addNotif("An error has occurred: ${data['message']}",
+                            error: true);
                         Navigator.of(context)
                             .popUntil(ModalRoute.withName("/dash"));
                         return;
                       }
                       dynamic data = json.decode(response.body);
                       if (data["status"] != "success") {
-                        addNotif("An error has occurred: ${data['message']}");
+                        addNotif("An error has occurred: ${data['message']}",
+                            error: true);
                         Navigator.of(context)
                             .popUntil(ModalRoute.withName("/dash"));
                         return;
                       }
-                      addNotif("Successfully changed timetable.");
+                      addNotif("Successfully changed timetable.", error: false);
                       if (widget.reset != null) {
                         widget.reset!();
                       }
