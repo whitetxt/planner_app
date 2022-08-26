@@ -210,7 +210,7 @@ void gotHomework(http.Response response) {
       addNotif("Internal Server Error", error: true);
       return;
     }
-    addNotif(json.decode(response.body)["message"], error: true);
+    addNotif(response.body, error: true);
     return;
   }
   dynamic data = json.decode(response.body);
@@ -236,8 +236,10 @@ class HomeworkPage extends StatefulWidget {
 }
 
 class _HomeworkPageState extends State<HomeworkPage> {
-  String name = "";
   final TextEditingController _dateController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  String name = "";
   DateTime date = DateTime.now();
   bool showCompleted = false;
 
@@ -322,6 +324,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                               ),
                             ),
                             content: Form(
+                              key: _formKey,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
@@ -375,7 +378,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                   ElevatedButton(
                                     onPressed: () {
                                       // Validate the form (returns true if all is ok)
-                                      addHomework();
+                                      if (_formKey.currentState!.validate()) {
+                                        addHomework();
+                                      }
                                     },
                                     child: const Text('Submit'),
                                   ),

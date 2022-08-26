@@ -31,11 +31,6 @@ class Subject(BaseModel):
 	teacher: str
 	room: str
 
-class TermDate(BaseModel):
-	name: str
-	start: int
-	end: int
-
 class Mark(BaseModel):
 	mark_id: int = None
 	user_id: int

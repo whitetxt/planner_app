@@ -17,7 +17,7 @@ databases = {
 	"classes": ClassDB(f"{db_path}/main.db"),
 	"class-student": ClassStudentDB(f"{db_path}/main.db"),
 	"homework": HomeworkDB(f"{db_path}/main.db"),
-	"terms": TermDateDB(f"{db_path}/main.db"),
+	"marks": MarkDB(f"{db_path}/main.db")
 }
 
 tags_metadata = [
@@ -52,7 +52,7 @@ tags_metadata = [
 ]
 
 
-app = FastAPI(title="Planner App API", description="API used for the backend of the planner app.", version="0.3.0b")
+app = FastAPI(title="Planner App API", description="API used for the backend of the planner app.", version="0.3.1b")
 oauth2_scheme = OAuth2PasswordBearer(
 	tokenUrl="/api/v1/auth/login"
 )
@@ -203,7 +203,6 @@ async def create_subject(name: str = Form(...), teacher: str = Form(...), room: 
 
 	Returns the ID of the created subject.
 	"""
-	print("Hello")
 	exists = databases["subjects"].get_subjects_by_name(name)
 	if exists is not None:
 		for subject in exists:
@@ -342,7 +341,7 @@ async def get_marks(user: User = Depends(get_current_user)):
 	return {"status": "success", "data": result}
 
 @app.post("/api/v1/marks", tags=["Marks"])
-async def add_mark(name: str = Form(...), mark: int = Form(...), grade: int = Form(...), user: User = Depends(get_current_user)):
+async def add_mark(name: str = Form(...), mark: int = Form(...), grade: str = Form(...), user: User = Depends(get_current_user)):
 	"""
 	Adds a mark to the database for the current user.
 	"""

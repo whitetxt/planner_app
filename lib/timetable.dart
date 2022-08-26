@@ -50,6 +50,8 @@ class TimetableSlot extends StatefulWidget {
 }
 
 class _TimetableSlotState extends State<TimetableSlot> {
+  final _formKey = GlobalKey<FormState>();
+
   String teacher = "";
   String room = "";
   String name = "";
@@ -251,6 +253,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
                               ),
                             ),
                             content: Form(
+                              key: _formKey,
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
@@ -311,7 +314,9 @@ class _TimetableSlotState extends State<TimetableSlot> {
                                   ElevatedButton(
                                     onPressed: () async {
                                       // Validate the form (returns true if all is ok)
-                                      updateTimetable();
+                                      if (_formKey.currentState!.validate()) {
+                                        updateTimetable();
+                                      }
                                     },
                                     child: const Text('Submit'),
                                   ),

@@ -29,6 +29,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ),
       ),
+      backgroundColor: Theme.of(context).backgroundColor,
       body: SizedBox(
         width: MediaQuery.of(context).size.width / 2,
         height: MediaQuery.of(context).size.height - 32,
