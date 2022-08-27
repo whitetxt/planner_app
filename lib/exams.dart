@@ -36,10 +36,17 @@ class MarkWidget extends StatelessWidget {
             children: <Widget>[
               Expanded(
                 flex: 1,
-                child: Text(
-                  //"${data.timeDue.day}/${data.timeDue.month}",
-                  "hekki",
-                  textAlign: TextAlign.center,
+                child: Column(
+                  children: [
+                    Text(
+                      "${data.mark}",
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      "${data.grade}",
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
               ),
               const VerticalDivider(width: 1),
@@ -61,7 +68,7 @@ class MarkWidget extends StatelessWidget {
                     PopupMenuItem(
                       onTap: () {},
                       child: const Text(
-                        "More Info",
+                        "Modify Mark",
                         style: TextStyle(
                           fontSize: 14,
                         ),
@@ -71,18 +78,18 @@ class MarkWidget extends StatelessWidget {
                       onTap: () {
                         addRequest(
                           NetworkOperation(
-                            "/api/v1/homework",
-                            "PUT",
+                            "/api/v1/marks",
+                            "DELETE",
                             (http.Response response) {
                               reset();
                             },
-                            data: {"id": data.id.toString()},
+                            data: {"mark_id": data.id.toString()},
                           ),
                         );
                       },
-                      child: Text(
-                        "Complete",
-                        style: const TextStyle(
+                      child: const Text(
+                        "Delete",
+                        style: TextStyle(
                           fontSize: 14,
                         ),
                       ),
@@ -102,7 +109,6 @@ void gotMarks(http.Response response) {
   // This just handles the server's response for returning homework.
   // We must check for an error, then notify the user of it.
   if (response.statusCode != 200) {
-    print(response.body);
     if (response.statusCode == 500) {
       addNotif("Internal Server Error", error: true);
       return;
@@ -183,8 +189,8 @@ class _ExamPageState extends State<ExamPage> {
 
   @override
   void initState() {
-    refreshMarks();
     super.initState();
+    refreshMarks();
   }
 
   @override

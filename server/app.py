@@ -17,7 +17,9 @@ databases = {
 	"classes": ClassDB(f"{db_path}/main.db"),
 	"class-student": ClassStudentDB(f"{db_path}/main.db"),
 	"homework": HomeworkDB(f"{db_path}/main.db"),
-	"marks": MarkDB(f"{db_path}/main.db")
+	"marks": MarkDB(f"{db_path}/main.db"),
+	"events": EventDB(f"{db_path}/main.db"),
+	"user-events": UserEventDB(f"{db_path}/main.db")
 }
 
 tags_metadata = [
@@ -52,7 +54,10 @@ tags_metadata = [
 ]
 
 
-app = FastAPI(title="Planner App API", description="API used for the backend of the planner app.", version="0.3.1b")
+app = FastAPI(title="Planner App API",
+			description="API used for the backend of the planner app.",
+			version="0.4.0_beta",
+			tags_metadata=tags_metadata)
 oauth2_scheme = OAuth2PasswordBearer(
 	tokenUrl="/api/v1/auth/login"
 )
@@ -203,6 +208,9 @@ async def create_subject(name: str = Form(...), teacher: str = Form(...), room: 
 
 	Returns the ID of the created subject.
 	"""
+	name = name.title()
+	teacher = teacher.title()
+	room = room.upper()
 	exists = databases["subjects"].get_subjects_by_name(name)
 	if exists is not None:
 		for subject in exists:
@@ -380,3 +388,31 @@ async def delete_mark(mark_id: int = Form(...), user: User = Depends(get_current
 		return {"status": "error", "message": "Not your mark."}
 	databases["marks"].delete_mark(mark_id)
 	return {"status": "success"}
+
+# ------------------
+# MARK ENDPOINTS
+# ------------------
+@app.get("/api/v1/events", tags=["Events"])
+async def get_events(user: User = Depends(get_current_user)):
+	"""
+	Gets all events.
+	"""
+	return {"status": "success", "data": databases["events"].get_events()}
+
+@app.get("/api/v1/events/user/{user_id}", tags=["Events"])
+async def get_events_by_user(user_id: int, user: User = Depends(get_current_user)):
+	"""
+	Gets all events created by a user.
+	"""
+	return {"status": "success", "data": databases["events"].get_events_by_user(user_id)}
+
+@app.post("/api/v1/events", tags=["Events"])
+async def create_event(name: str = Form(...), time: int = Form(...), description: str = Form(...), private: bool = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Creates an event.
+	
+	This event can be marked as private or public. Public events require a teacher account.
+	"""
+	if user.permissions != Permissions.Teacher and not private:
+		return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized to create public events.")
+	

@@ -365,18 +365,21 @@ class HomeworkDB(DB):
 class EventDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
-	
-	def get_event(self, event_id: int) -> Event:
+
+	def get_events(self) -> list:
+		public_results = self._get("*", "events", where="private = ?", args=(None, ))
+		return [Event(event_id=result[0], user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None) for result in public_results]
+
+	def get_event(self, event_id: int, user_id: int) -> Event:
 		result = self._get("*", "events", where="event_id = ?", args=(event_id, ))
-		if not result:
+		if not result or (result[5] != None and result[1] != user_id):
+			# If it doesn't exist or its private and we dont own it.
 			return None
-		return Event(event_id = event_id, user_id=result[1], name=result[2], time=result[3], description=result[4])
+		return Event(event_id=event_id, user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None)
 	
 	def get_events_by_user(self, user_id: int) -> list:
 		results = self._get("*", "events", where="user_id = ?", args=(user_id, ))
-		if not results:
-			return None
-		return [Event(event_id=result[0], user_id=user_id, name=result[2], time=result[3], description=result[4]) for result in results]
+		return [Event(event_id=result[0], user_id=user_id, name=result[2], time=result[3], description=result[4], private=result[5] != None) for result in results]
 	
 	def create_event(self, user_id: int, name: str, time: int, description: str) -> None:
 		self._insert("events", "user_id, name, time, description", (user_id, name, time, description))
@@ -418,6 +421,7 @@ class MarkDB(DB):
 		result = self._get("*", "marks", where="mark_id = ?", args=(mark_id, ))
 		if not result:
 			return None
+		result = result[0]
 		return Mark(mark_id = mark_id, user_id=result[1], test_name=result[2], mark=result[3], grade=result[4])
 
 	def get_marks_for_user(self, user_id: int) -> list:
