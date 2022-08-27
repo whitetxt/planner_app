@@ -179,8 +179,6 @@ class SubjectsDB(DB):
 	
 	def get_subjects_by_name(self, name: str) -> list:
 		subject_data = self._get("*", "subjects", where="name = ?", args=(name,))
-		if len(subject_data) == 0:
-			return None
 		return [Subject(
 			subject_id=sd[0],
 			name=sd[1],
@@ -190,8 +188,6 @@ class SubjectsDB(DB):
 	
 	def get_subjects_by_teacher(self, name: str) -> list:
 		subject_data = self._get("*", "subjects", where="teacher = ?", args=(name,))
-		if len(subject_data) == 0:
-			return None
 		return [Subject(
 			subject_id=sd[0],
 			name=sd[1],
@@ -201,8 +197,6 @@ class SubjectsDB(DB):
 
 	def get_subjects_by_room(self, room: str) -> list:
 		subject_data = self._get("*", "subjects", where="room = ?", args=(room,))
-		if len(subject_data) == 0:
-			return None
 		return [Subject(
 			subject_id=sd[0],
 			name=sd[1],
@@ -212,8 +206,6 @@ class SubjectsDB(DB):
 	
 	def get_subjects(self) -> list:
 		subjects = self._get("*", "subjects")
-		if len(subjects) == 0:
-			return None
 		[Subject(
 			subject_id=subject[0],
 			name=subject[1],

@@ -280,8 +280,6 @@ async def get_subjects(user: User = Depends(get_current_user)):
 	Gets all subjects avaliable in the database.
 	"""
 	sjs = Subjects_DB.get_subjects()
-	if sjs is None:
-		return {"status": "success", "data": []}
 	return {"status": "success", "data": sjs}
 
 @app.post("/api/v1/subjects", tags=["Subjects"])
@@ -297,7 +295,7 @@ async def create_subject(name: str = Form(...), teacher: str = Form(...), room: 
 	teacher = teacher.title()
 	room = room.upper()
 	exists = Subjects_DB.get_subjects_by_name(name)
-	if exists is not None:
+	if not exists:
 		for subject in exists:
 			if subject.teacher == teacher and subject.room == room:
 				# If we find that this specific subject already exists,
@@ -316,8 +314,6 @@ async def get_subject_by_name(subject_name: str, user: User = Depends(get_curren
 	Gets all subjects which match a certain name.
 	"""
 	sjs = Subjects_DB.get_subjects_by_name(subject_name)
-	if sjs is None:
-		return {"status": "success", "data": []}
 	return {"status": "success", "data": sjs}
 
 @app.get("/api/v1/subjects/id/{subject_id}", tags=["Subjects"])
@@ -326,8 +322,6 @@ async def get_subject_by_id(id: int, user: User = Depends(get_current_user)):
 	Gets the subject with a specific ID.
 	"""
 	sjs = Subjects_DB.get_subject_by_id(id)
-	if sjs is None:
-		return {"status": "success", "data": []}
 	return {"status": "success", "data": sjs}
 
 
