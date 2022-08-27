@@ -155,6 +155,9 @@ class UsersDB(DB):
 		latest_uid = self._get("uid", "users", order="uid DESC")
 		return 1 if len(latest_uid) == 0 else latest_uid[0][0] + 1
 	
+	def delete_user(self, user: User) -> None:
+		self._delete("users", "uid = ? AND username = ?", (user.uid, user.username))
+	
 class SubjectsDB(DB):
 	"""
 	This implements functions to deal with subjects inside the database.
@@ -300,7 +303,7 @@ class ClassDB(DB):
 	def get_classes(self, teacher_id: int) -> list:
 		results = self._get("*", "classes", where="teacher_id = ?", args=(teacher_id,))
 
-		return [Class(class_id=result[0], teacher_id=teacher_id, class_name=result[2]) for result in results] if results else None
+		return [Class(class_id=result[0], teacher_id=teacher_id, class_name=result[2]) for result in results]
 
 	def create_class(self, teacher_id: int, name: str, students: list) -> None:
 		self._insert("classes", "teacher_id, class_name, students", (teacher_id, name, json.dumps(students)))
@@ -332,8 +335,7 @@ class HomeworkDB(DB):
 
 	def get_homework_for_user(self, user_id: int) -> list:
 		results = self._get("*", "homework", where="user_id = ?", order="due_date ASC", args=(user_id,))
-
-		return [Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=user_id, due_date=result[4], completed=result[5] != None) for result in results] if results else None
+		return [Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=user_id, due_date=result[4], completed=result[5] != None) for result in results]
 
 	def get_homework(self, homework_id: int) -> Homework:
 		result = self._get("*", "homework", where="homework_id = ?", order="due_date ASC", args=(homework_id, ))
@@ -362,7 +364,9 @@ class EventDB(DB):
 
 	def get_event(self, event_id: int, user_id: int) -> Event:
 		result = self._get("*", "events", where="event_id = ?", args=(event_id, ))
-		if result and (result[5] is None or result[1] == user_id):
+		print(result)
+		if result and (result[0][5] is None or result[0][1] == user_id):
+			result = result[0]
 			return Event(event_id=event_id, user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None)
 		else:
 			return None
@@ -374,8 +378,8 @@ class EventDB(DB):
 	def create_event(self, user_id: int, name: str, time: int, description: str, private: bool) -> None:
 		self._insert("events", "user_id, name, time, description, private", (user_id, name, time, description, 1 if private else 0))
 	
-	def delete_event(self, event_id: int) -> bool:
-		exists = self.get_event(event_id)
+	def delete_event(self, event_id: int, user_id: int) -> bool:
+		exists = self.get_event(event_id, user_id)
 		if exists is None:
 			return False
 		self._delete("events", "event_id = ?", (event_id, ))

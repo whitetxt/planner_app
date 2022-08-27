@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:isolate';
 
 import "package:http/http.dart" as http;
@@ -24,7 +25,23 @@ class PortData {
 
 void addRequest(NetworkOperation request) {
   request.url = apiUrl + request.url;
+  while (token.isEmpty) {
+    sleep(const Duration(milliseconds: 100));
+  }
+  print(token);
   processNetworkRequest(request).then((value) => request.callback(value));
+}
+
+bool validateResponse(http.Response response) {
+  if (response.statusCode != 200) {
+    if (response.statusCode == 500) {
+      addNotif("Internal Server Error", error: true);
+      return false;
+    }
+    addNotif(response.body, error: true);
+    return false;
+  }
+  return true;
 }
 
 Future<http.Response> processNetworkRequest(NetworkOperation task) async {

@@ -219,14 +219,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
 void gotHomework(http.Response response) {
   // This just handles the server's response for returning homework.
   // We must check for an error, then notify the user of it.
-  if (response.statusCode != 200) {
-    if (response.statusCode == 500) {
-      addNotif("Internal Server Error", error: true);
-      return;
-    }
-    addNotif(response.body, error: true);
-    return;
-  }
+  if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
   if (data["status"] != "success") {
     addNotif(data["message"], error: true);

@@ -1,5 +1,3 @@
-import 'dart:isolate';
-
 import "package:flutter/material.dart";
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -13,7 +11,10 @@ void addNotif(String text, {bool error = true}) {
     SnackBar(
       content: Text(
         text,
-        style: Theme.of(scaffoldKey.currentContext!).textTheme.bodyMedium,
+        style:
+            Theme.of(scaffoldKey.currentContext!).textTheme.bodyMedium!.apply(
+                  color: error ? Colors.white : Colors.black,
+                ),
         textAlign: TextAlign.center,
       ),
       backgroundColor: error
@@ -25,4 +26,3 @@ void addNotif(String text, {bool error = true}) {
 }
 
 String apiUrl = "http://127.0.0.1:8000";
-SendPort? networkSendPort;

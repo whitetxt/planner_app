@@ -62,14 +62,8 @@ class _TimetableSlotState extends State<TimetableSlot> {
         "/api/v1/subjects/name/$name",
         "GET",
         (http.Response response) {
-          if (response.statusCode != 200) {
-            if (response.statusCode == 500) {
-              addNotif("Internal server error", error: true);
-              Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
-              return;
-            }
-            dynamic data = json.decode(response.body);
-            addNotif("An error has occurred: ${data['message']}", error: true);
+          if (!validateResponse(response)) {
+            Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
             return;
           }
           dynamic data = json.decode(response.body);
@@ -85,16 +79,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
                   "/api/v1/timetable",
                   "POST",
                   (http.Response response) {
-                    if (response.statusCode != 200) {
-                      if (response.statusCode == 500) {
-                        addNotif("Internal server error", error: true);
-                        Navigator.of(context)
-                            .popUntil(ModalRoute.withName("/dash"));
-                        return;
-                      }
-                      dynamic data = json.decode(response.body);
-                      addNotif("An error has occurred: ${data['message']}",
-                          error: true);
+                    if (!validateResponse(response)) {
                       Navigator.of(context)
                           .popUntil(ModalRoute.withName("/dash"));
                       return;
@@ -128,16 +113,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
               "/api/v1/subjects",
               "POST",
               (http.Response response) {
-                if (response.statusCode != 200) {
-                  if (response.statusCode == 500) {
-                    addNotif("Internal server error", error: true);
-                    Navigator.of(context)
-                        .popUntil(ModalRoute.withName("/dash"));
-                    return;
-                  }
-                  dynamic data = json.decode(response.body);
-                  addNotif("An error has occurred: ${data['message']}",
-                      error: true);
+                if (!validateResponse(response)) {
                   Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
                   return;
                 }
@@ -153,16 +129,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
                     "/api/v1/timetable",
                     "POST",
                     (http.Response response) {
-                      if (response.statusCode != 200) {
-                        if (response.statusCode == 500) {
-                          addNotif("Internal server error", error: true);
-                          Navigator.of(context)
-                              .popUntil(ModalRoute.withName("/dash"));
-                          return;
-                        }
-                        dynamic data = json.decode(response.body);
-                        addNotif("An error has occurred: ${data['message']}",
-                            error: true);
+                      if (!validateResponse(response)) {
                         Navigator.of(context)
                             .popUntil(ModalRoute.withName("/dash"));
                         return;
@@ -455,9 +422,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
 }
 
 void gotTimetable(http.Response response) {
-  if (response.statusCode != 200) {
-    return;
-  }
+  if (response.statusCode != 200) return;
   Map<String, dynamic> data = json.decode(response.body);
   for (var i = 0; i < data["data"].length; i++) {
     var today = data["data"][i];
