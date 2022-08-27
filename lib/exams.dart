@@ -29,7 +29,7 @@ class MarkWidget extends StatelessWidget {
     return Card(
       elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: IntrinsicHeight(
           child: Flex(
             direction: Axis.horizontal,

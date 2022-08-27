@@ -51,7 +51,7 @@ class Event(BaseModel):
 	user_id: int
 	name: str
 	time: int
-	description: str
+	description: str = None
 	private: bool
 
 class Class(BaseModel):

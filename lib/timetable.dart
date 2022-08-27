@@ -398,7 +398,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
   @override
   Widget build(BuildContext context) {
     int today = DateTime.now().weekday;
-    if (today >= 6) {
+    if (today >= DateTime.saturday) {
       // If Sat or Sun
       return SizedBox(
         width: 15 * MediaQuery.of(context).size.width / 16,
@@ -408,10 +408,12 @@ class _TodayTimetableState extends State<TodayTimetable> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const <Widget>[
-              AutoSizeText(
-                "No lessons today.",
-                minFontSize: 8,
-                maxFontSize: 32,
+              Text(
+                "No lessons today!",
+                style: TextStyle(
+                  fontSize: 32,
+                ),
+                textAlign: TextAlign.center,
               ),
             ],
           ),
@@ -421,7 +423,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
     today--;
     return SizedBox(
       width: 15 * MediaQuery.of(context).size.width / 16,
-      height: 5 * MediaQuery.of(context).size.height / 16,
+      height: MediaQuery.of(context).size.height / 4,
       child: Card(
         elevation: 4,
         child: Column(

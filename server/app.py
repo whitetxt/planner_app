@@ -182,9 +182,9 @@ async def get_user(user_id: int, user: User = Depends(get_current_user)):
 	Raises 404 if the user specified is not found.
 	"""
 	user = databases["users"].get_user_from_uid(user_id)
-	if not user:
-		raise HTTPException(status_code=404, detail="User not found")
-	return user.remove("session", "password", "salt")
+	if user:
+		return user.remove("session", "password", "salt")
+	raise HTTPException(status_code=404, detail="User not found")
 
 # ------------------
 # SUBJECT ENDPOINTS
@@ -390,7 +390,7 @@ async def delete_mark(mark_id: int = Form(...), user: User = Depends(get_current
 	return {"status": "success"}
 
 # ------------------
-# MARK ENDPOINTS
+# EVENT ENDPOINTS
 # ------------------
 @app.get("/api/v1/events", tags=["Events"])
 async def get_events(user: User = Depends(get_current_user)):
@@ -398,6 +398,13 @@ async def get_events(user: User = Depends(get_current_user)):
 	Gets all events.
 	"""
 	return {"status": "success", "data": databases["events"].get_events()}
+
+@app.get("/api/v1/events/user/@me", tags=["Events"])
+async def get_events_by_user(user: User = Depends(get_current_user)):
+	"""
+	Gets all events created by the current user..
+	"""
+	return {"status": "success", "data": databases["events"].get_events_by_user(user.uid)}
 
 @app.get("/api/v1/events/user/{user_id}", tags=["Events"])
 async def get_events_by_user(user_id: int, user: User = Depends(get_current_user)):
@@ -407,12 +414,13 @@ async def get_events_by_user(user_id: int, user: User = Depends(get_current_user
 	return {"status": "success", "data": databases["events"].get_events_by_user(user_id)}
 
 @app.post("/api/v1/events", tags=["Events"])
-async def create_event(name: str = Form(...), time: int = Form(...), description: str = Form(...), private: bool = Form(...), user: User = Depends(get_current_user)):
+async def create_event(name: str = Form(...), time: int = Form(...), description: str = Form(None), private: bool = Form(...), user: User = Depends(get_current_user)):
 	"""
 	Creates an event.
 	
 	This event can be marked as private or public. Public events require a teacher account.
 	"""
-	if user.permissions != Permissions.Teacher and not private:
+	if user.permissions < Permissions.Teacher and not private:
 		return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized to create public events.")
-	
+	databases["events"].create_event(user.uid, name, time, description, private)
+	return {"status": "success"}

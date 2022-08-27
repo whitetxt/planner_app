@@ -153,9 +153,7 @@ class UsersDB(DB):
 
 	def get_next_uid(self) -> int:
 		latest_uid = self._get("uid", "users", order="uid DESC")
-		if len(latest_uid) == 0:
-			return 1
-		return latest_uid[0][0] + 1
+		return 1 if len(latest_uid) == 0 else latest_uid[0][0] + 1
 	
 class SubjectsDB(DB):
 	"""
@@ -241,9 +239,7 @@ class SubjectsDB(DB):
 	
 	def get_next_id(self) -> int:
 		latest_id = self._get("subject_id", "subjects", order="subject_id DESC")
-		if len(latest_id) == 0:
-			return 1
-		return latest_id[0][0] + 1
+		return 1 if len(latest_id) == 0 else latest_id[0][0] + 1
 
 class UserSubjectDB(DB):
 	def __init__(self, path):
@@ -251,9 +247,8 @@ class UserSubjectDB(DB):
 	
 	def get_subject_by_period(self, user_id: int, day: int, period: int) -> UserSubjectJoin:
 		result = self._get("subject_id", "`users-subjects`", where="user_id = ? AND day = ? AND period = ?", args=(user_id, day, period))
-		if not result:
-			return None
-		return UserSubjectJoin(user_id=user_id, subject_id=result[0][0], day=day, period=period)
+
+		return UserSubjectJoin(user_id=user_id, subject_id=result[0][0], day=day, period=period) if result else None
 
 	def get_timetable(self, user_id: int) -> Timetable:
 		results = self._get("day, period, subject_id", "`users-subjects`", where="user_id = ?", order="day ASC", args=(user_id, ))
@@ -282,9 +277,8 @@ class UserSubjectDB(DB):
 			if existing.subject_id == subject_id:
 				# If inserting will do nothing, just don't do it as it will just waste time.
 				return False
-			else:
-				self._update("`users-subjects`", "subject_id = ?", "user_id = ? AND day = ? AND period = ?", (subject_id, user_id, day, period))
-				return True
+			self._update("`users-subjects`", "subject_id = ?", "user_id = ? AND day = ? AND period = ?", (subject_id, user_id, day, period))
+			return True
 		self._insert("`users-subjects`", "user_id, subject_id, day, period", (user_id, subject_id, day, period))
 		return True
 
@@ -301,15 +295,12 @@ class ClassDB(DB):
 
 	def get_class(self, class_id: int) -> Class:
 		result = self._get("*", "classes", where="class_id = ?", args=(class_id, ))
-		if not result:
-			return None
-		return Class(class_id=class_id, teacher_id=result[1], class_name=result[2])
+		return Class(class_id=class_id, teacher_id=result[1], class_name=result[2]) if result else None
 	
 	def get_classes(self, teacher_id: int) -> list:
-		results = self._get("*", "classes", where="teacher_id = ?", args=(teacher_id, ))
-		if not results:
-			return None
-		return [Class(class_id=result[0], teacher_id=teacher_id, class_name=result[2]) for result in results]
+		results = self._get("*", "classes", where="teacher_id = ?", args=(teacher_id,))
+
+		return [Class(class_id=result[0], teacher_id=teacher_id, class_name=result[2]) for result in results] if results else None
 
 	def create_class(self, teacher_id: int, name: str, students: list) -> None:
 		self._insert("classes", "teacher_id, class_name, students", (teacher_id, name, json.dumps(students)))
@@ -340,10 +331,9 @@ class HomeworkDB(DB):
 		super().__init__(path)
 
 	def get_homework_for_user(self, user_id: int) -> list:
-		results = self._get("*", "homework", where="user_id = ?", order="due_date ASC", args=(user_id, ))
-		if not results:
-			return None
-		return [Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=user_id, due_date=result[4], completed=result[5] != None) for result in results]
+		results = self._get("*", "homework", where="user_id = ?", order="due_date ASC", args=(user_id,))
+
+		return [Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=user_id, due_date=result[4], completed=result[5] != None) for result in results] if results else None
 
 	def get_homework(self, homework_id: int) -> Homework:
 		result = self._get("*", "homework", where="homework_id = ?", order="due_date ASC", args=(homework_id, ))
@@ -372,17 +362,17 @@ class EventDB(DB):
 
 	def get_event(self, event_id: int, user_id: int) -> Event:
 		result = self._get("*", "events", where="event_id = ?", args=(event_id, ))
-		if not result or (result[5] != None and result[1] != user_id):
-			# If it doesn't exist or its private and we dont own it.
+		if result and (result[5] is None or result[1] == user_id):
+			return Event(event_id=event_id, user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None)
+		else:
 			return None
-		return Event(event_id=event_id, user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None)
 	
 	def get_events_by_user(self, user_id: int) -> list:
 		results = self._get("*", "events", where="user_id = ?", args=(user_id, ))
 		return [Event(event_id=result[0], user_id=user_id, name=result[2], time=result[3], description=result[4], private=result[5] != None) for result in results]
 	
-	def create_event(self, user_id: int, name: str, time: int, description: str) -> None:
-		self._insert("events", "user_id, name, time, description", (user_id, name, time, description))
+	def create_event(self, user_id: int, name: str, time: int, description: str, private: bool) -> None:
+		self._insert("events", "user_id, name, time, description, private", (user_id, name, time, description, 1 if private else 0))
 	
 	def delete_event(self, event_id: int) -> bool:
 		exists = self.get_event(event_id)

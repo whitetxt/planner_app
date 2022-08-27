@@ -42,7 +42,7 @@ class HomeworkWidget extends StatelessWidget {
     return Card(
       elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 6, 0, 6),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: IntrinsicHeight(
           child: Flex(
             direction: Axis.horizontal,
@@ -145,6 +145,30 @@ class _HomeworkMiniState extends State<HomeworkMini> {
 
   @override
   Widget build(BuildContext context) {
+    if (homework.every(
+      (element) => element.completed,
+    )) {
+      return SizedBox(
+        width: 15 * MediaQuery.of(context).size.width / 16,
+        height: MediaQuery.of(context).size.height / 4,
+        child: Card(
+          elevation: 4,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: const <Text>[
+              Text(
+                "No Due Homework!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 32,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return SizedBox(
       width: 15 * MediaQuery.of(context).size.width / 16,
       height: MediaQuery.of(context).size.height / 4,
@@ -167,7 +191,10 @@ class _HomeworkMiniState extends State<HomeworkMini> {
                       idx < 5;
                   idx++)
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 4,
+                    vertical: 8,
+                  ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
@@ -181,19 +208,6 @@ class _HomeworkMiniState extends State<HomeworkMini> {
                     ],
                   ),
                 ),
-            ],
-            if (homework.every(
-              (element) => element.completed,
-            )) ...[
-              // If every piece of homework is completed, then we should tell the user instead of having an empty card.
-              // If they are all completed, then we know the above for loop will have not added anything and do not need to worry about that.
-              const Text(
-                "No Homework!",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                ),
-              ),
             ],
           ],
         ),
