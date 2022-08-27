@@ -6,10 +6,16 @@ API Versions currently supported
 
 | Version | Supported          |
 | ------- | ------------------ |
-| < 1.0.0  | :white_check_mark: |
+| <= 1.0.0  | :white_check_mark: |
+
+App Versions currently supported
+
+| Version | Supported          |
+| ------- | ------------------ |
+| <= 1.0.0  | :white_check_mark: |
 
 ## Reporting a Vulnerability
 
-To report a vulnerability, please create an issue with the **VULN** tag.
+To report a vulnerability, please go to the **Security Tab ** > **Advisories** > **New draft security advisory**
 
-Please tag your issue with the appropriate level of concern tag aswell.
+Here, please fill out all the information necessary and submit. 
