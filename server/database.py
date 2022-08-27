@@ -61,75 +61,45 @@ class UsersDB(DB):
 	"""
 	def __init__(self, path):
 		super().__init__(path)
-	
+
+	def convert_result_to_user(self, user_data):
+		return User(
+			uid=user_data[0],
+			username=user_data[1],
+			password=user_data[2],
+			salt=user_data[3],
+			created_at=user_data[4],
+			permissions=user_data[5],
+			session=OAuthToken(
+				uid=user_data[0],
+				access_token=user_data[6]) 
+				if user_data[6] is not None else None
+		)
+
 	def get_user_from_username(self, username: str) -> User:
 		user_data = self._get("*", "users", where="username = ?", args=(username,))
 		if len(user_data) == 0:
 			return None
 		user_data = user_data[0]
-		return User(
-			uid=user_data[0],
-			username=user_data[1],
-			password=user_data[2],
-			salt=user_data[3],
-			created_at=user_data[4],
-			permissions=user_data[5],
-			session=OAuthToken(
-				uid=user_data[0],
-				access_token=user_data[6]) 
-				if user_data[6] is not None else None
-		)
-	
+		return self.convert_result_to_user(user_data)
+
 	def get_user_from_uid(self, uid: int) -> User:
 		user_data = self._get("*", "users", where="uid = ?", args=(uid,))
 		if len(user_data) == 0:
 			return None
 		user_data = user_data[0]
-		return User(
-			uid=user_data[0],
-			username=user_data[1],
-			password=user_data[2],
-			salt=user_data[3],
-			created_at=user_data[4],
-			permissions=user_data[5],
-			session=OAuthToken(
-				uid=user_data[0],
-				access_token=user_data[6]) 
-				if user_data[6] is not None else None
-		)
+		return self.convert_result_to_user(user_data)
 	
 	def get_user_from_session(self, session: str) -> User:
 		user_data = self._get("*", "users", where="session = ?", args=(session,))
 		if len(user_data) == 0:
 			return None
 		user_data = user_data[0]
-		return User(
-			uid=user_data[0],
-			username=user_data[1],
-			password=user_data[2],
-			salt=user_data[3],
-			created_at=user_data[4],
-			permissions=user_data[5],
-			session=OAuthToken(
-				uid=user_data[0],
-				access_token=user_data[6]) 
-				if user_data[6] is not None else None
-		)
+		return self.convert_result_to_user(user_data)
 	
 	def get_users(self) -> list:
 		users = self._get("*", "users")
-		return [User(
-			uid=user[0],
-			username=user[1],
-			password=user[2],
-			salt=user[3],
-			created_at=user[4],
-			permissions=user[5],
-			token=OAuthToken(
-				uid=user[0],
-				access_token=user[6])
-				if user[6] is not None else None
-		) for user in users]
+		return [self.convert_result_to_user(user) for user in users]
 	
 	def update_user(self, user: User) -> bool:
 		token = user.session.access_token if user.session is not None else None
@@ -164,54 +134,37 @@ class SubjectsDB(DB):
 	"""
 	def __init__(self, path):
 		super().__init__(path)
-	
+
+	def convert_result_to_subject(self, subject):
+		return Subject(
+				subject_id=subject[0],
+				name=subject[1],
+				teacher=subject[2],
+				room=subject[3]
+			)
+
 	def get_subject_by_id(self, id: int) -> Subject:
 		subject_data = self._get("*", "subjects", where="subject_id = ?", args=(id,))
 		if len(subject_data) == 0:
 			return None
 		subject_data = subject_data[0]
-		return Subject(
-			subject_id=subject_data[0],
-			name=subject_data[1],
-			teacher=subject_data[2],
-			room=subject_data[3]
-		)
+		return self.convert_result_to_subject(subject_data)
 	
 	def get_subjects_by_name(self, name: str) -> list:
 		subject_data = self._get("*", "subjects", where="name = ?", args=(name,))
-		return [Subject(
-			subject_id=sd[0],
-			name=sd[1],
-			teacher=sd[2],
-			room=sd[3]
-		) for sd in subject_data]
+		return [self.convert_result_to_subject(subject) for subject in subject_data]
 	
 	def get_subjects_by_teacher(self, name: str) -> list:
 		subject_data = self._get("*", "subjects", where="teacher = ?", args=(name,))
-		return [Subject(
-			subject_id=sd[0],
-			name=sd[1],
-			teacher=sd[2],
-			room=sd[3]
-		) for sd in subject_data]
+		return [self.convert_result_to_subject(subject) for subject in subject_data]
 
 	def get_subjects_by_room(self, room: str) -> list:
 		subject_data = self._get("*", "subjects", where="room = ?", args=(room,))
-		return [Subject(
-			subject_id=sd[0],
-			name=sd[1],
-			teacher=sd[2],
-			room=sd[3]
-		) for sd in subject_data]
+		return [self.convert_result_to_subject(subject) for subject in subject_data]
 	
 	def get_subjects(self) -> list:
 		subjects = self._get("*", "subjects")
-		[Subject(
-			subject_id=subject[0],
-			name=subject[1],
-			teacher=subject[2],
-			room=subject[3]
-		) for subject in subjects]
+		[self.new_method(subject) for subject in subjects]
 
 	def update_subject(self, subject: Subject) -> bool:
 		self._update(
@@ -288,14 +241,17 @@ class ClassDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 
+	def convert_result_to_class(self, result):
+		return Class(class_id=result[0], teacher_id=result[1], class_name=result[2])
+	
 	def get_class(self, class_id: int) -> Class:
 		result = self._get("*", "classes", where="class_id = ?", args=(class_id, ))
-		return Class(class_id=class_id, teacher_id=result[1], class_name=result[2]) if result else None
+		return self.convert_result_to_class(result) if result else None
+
 	
 	def get_classes(self, teacher_id: int) -> list:
 		results = self._get("*", "classes", where="teacher_id = ?", args=(teacher_id,))
-
-		return [Class(class_id=result[0], teacher_id=teacher_id, class_name=result[2]) for result in results]
+		return [self.convert_result_to_class(result) for result in results]
 
 	def create_class(self, teacher_id: int, name: str, students: list) -> None:
 		self._insert("classes", "teacher_id, class_name, students", (teacher_id, name, json.dumps(students)))
@@ -325,16 +281,20 @@ class HomeworkDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 
+	def convert_result_to_homework(self, result):
+		return Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] != None)
+
 	def get_homework_for_user(self, user_id: int) -> list:
 		results = self._get("*", "homework", where="user_id = ?", order="due_date ASC", args=(user_id,))
-		return [Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=user_id, due_date=result[4], completed=result[5] != None) for result in results]
+		return [self.new_method(result) for result in results]
+
 
 	def get_homework(self, homework_id: int) -> Homework:
 		result = self._get("*", "homework", where="homework_id = ?", order="due_date ASC", args=(homework_id, ))
 		if not result:
 			return None
 		result = result[0]
-		return Homework(homework_id=homework_id, name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] != None)
+		return self.convert_result_to_homework(result)
 
 	def create_homework(self, user_id: int, name: str, due_date: int) -> None:
 		self._insert("homework", "name, user_id, due_date, completed", (name, user_id, due_date, None))
@@ -350,22 +310,25 @@ class EventDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 
+	def convert_result_to_event(self, result):
+		return Event(event_id=result[0], user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None)
+
 	def get_events(self) -> list:
 		public_results = self._get("*", "events", where="private = ?", args=(None, ))
-		return [Event(event_id=result[0], user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None) for result in public_results]
+		return [self.convert_result_to_event(result) for result in public_results]
 
 	def get_event(self, event_id: int, user_id: int) -> Event:
 		result = self._get("*", "events", where="event_id = ?", args=(event_id, ))
 		print(result)
 		if result and (result[0][5] is None or result[0][1] == user_id):
 			result = result[0]
-			return Event(event_id=event_id, user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None)
+			return self.convert_result_to_event(result)
 		else:
 			return None
 	
 	def get_events_by_user(self, user_id: int) -> list:
 		results = self._get("*", "events", where="user_id = ?", args=(user_id, ))
-		return [Event(event_id=result[0], user_id=user_id, name=result[2], time=result[3], description=result[4], private=result[5] != None) for result in results]
+		return [self.convert_result_to_event(result) for result in results]
 	
 	def create_event(self, user_id: int, name: str, time: int, description: str, private: bool) -> None:
 		self._insert("events", "user_id, name, time, description, private", (user_id, name, time, description, 1 if private else 0))
@@ -403,26 +366,29 @@ class MarkDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 	
+	def convert_result_to_mark(self, result):
+		return Mark(mark_id=result[0], user_id=result[1], test_name=result[2], mark=result[3], grade=result[4])
+
 	def get_mark(self, mark_id: int) -> Mark:
 		result = self._get("*", "marks", where="mark_id = ?", args=(mark_id, ))
 		if not result:
 			return None
 		result = result[0]
-		return Mark(mark_id = mark_id, user_id=result[1], test_name=result[2], mark=result[3], grade=result[4])
+		return self.convert_result_to_mark(mark_id, result)
 
 	def get_marks_for_user(self, user_id: int) -> list:
 		results = self._get("*", "marks", where="user_id = ?", args=(user_id, ))
-		return [Mark(mark_id=result[0], user_id=user_id, test_name=result[2], mark=result[3], grade=result[4]) for result in results]
+		return [self.convert_result_to_mark(result) for result in results]
 
 	def add_mark(self, user_id: int, test_name: str, mark: int, grade: str) -> None:
 		self._insert("marks", "user_id, test_name, mark, grade", (user_id, test_name, mark, grade))
-	
+
 	def delete_mark(self, mark_id: int) -> bool:
 		exists = self.get_mark(mark_id)
 		if exists is None:
 			return False
 		self._delete("marks", "mark_id = ?", (mark_id, ))
 		return True
-	
+
 	def update_mark(self, mark: Mark) -> None:
 		self._update("marks", "user_id, test_name, mark, grade", "mark_id = ?", (mark.user_id, mark.test_name, mark.mark, mark.grade, mark.mark_id))
