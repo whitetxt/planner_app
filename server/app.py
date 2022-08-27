@@ -54,7 +54,7 @@ tags_metadata = [
 
 app = FastAPI(title="Planner App API",
 			description="API used for the backend of the planner app.",
-			version="0.4.0_beta",
+			version="0.4.2_beta",
 			tags_metadata=tags_metadata)
 oauth2_scheme = OAuth2PasswordBearer(
 	tokenUrl="/api/v1/auth/login"

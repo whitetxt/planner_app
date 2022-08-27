@@ -28,7 +28,6 @@ void addRequest(NetworkOperation request) {
   while (token.isEmpty) {
     sleep(const Duration(milliseconds: 100));
   }
-  print(token);
   processNetworkRequest(request).then((value) => request.callback(value));
 }
 
