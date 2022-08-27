@@ -132,7 +132,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
+                                  vertical: 16,
                                 ),
                                 child: ElevatedButton(
                                   child: const Text(
@@ -145,7 +145,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
+                                  vertical: 16,
                                 ),
                                 child: ElevatedButton(
                                   child: const Text(
@@ -223,7 +223,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
+                                  vertical: 16,
                                 ),
                                 child: ElevatedButton(
                                   child: const Text(
@@ -236,7 +236,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  vertical: 4,
+                                  vertical: 16,
                                 ),
                                 child: ElevatedButton(
                                   child: const Text(
