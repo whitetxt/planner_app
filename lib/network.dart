@@ -67,6 +67,13 @@ Future<http.Response> processNetworkRequest(NetworkOperation task) async {
         task.data,
       );
       break;
+    case "PUT":
+      response = await performRequest(
+        http.put,
+        task.url,
+        task.data,
+      );
+      break;
     case "PATCH":
       response = await performRequest(
         http.patch,
