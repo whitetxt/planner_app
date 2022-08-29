@@ -26,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
 
   String user = "";
   String pass = "";
-  String serverIp = "http://127.0.0.1:8000";
+  String reg_code = "";
 
   String calculatePasswordHash(String password) {
     // Hashes the password client-side to prevent sending it as plaintext over the wire.
@@ -37,12 +37,80 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<String> register(String username, String password) async {
-    String url = "$serverIp/api/v1/auth/register";
+    String url = "$apiUrl/api/v1/auth/register";
     String passwordHash = calculatePasswordHash(password);
+    bool proceed = false;
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Container(
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(
+                  color: Theme.of(context).dividerColor,
+                  width: 2,
+                ),
+              ),
+            ),
+            child: const Text(
+              "Do you have a registration code?",
+              textAlign: TextAlign.center,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              const Text(
+                "If you have been given a registration code, please enter it below.",
+              ),
+              TextField(
+                decoration:
+                    const InputDecoration(labelText: "Registration Code"),
+                onChanged: (String value) => reg_code = value,
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: <Widget>[
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ElevatedButton(
+                        child: const Text("Cancel"),
+                        onPressed: () {
+                          proceed = false;
+                          Navigator.of(context)
+                              .popUntil(ModalRoute.withName("/"));
+                        },
+                      ),
+                    ),
+                    ElevatedButton(
+                      child: const Text("Submit"),
+                      onPressed: () {
+                        proceed = true;
+                        Navigator.of(context)
+                            .popUntil(ModalRoute.withName("/"));
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (!proceed) return "Cancelled by user";
     // POSTs to the server the user's desired details and waits for a response.
     final response = await http.post(
       Uri.parse(url),
-      body: {"username": username, "password": passwordHash},
+      body: {
+        "username": username,
+        "password": passwordHash,
+        "registration_code": reg_code
+      },
     );
 
     // If the response code isn't OK
@@ -62,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<String> login(String username, String password) async {
-    String url = "$serverIp/api/v1/auth/login";
+    String url = "$apiUrl/api/v1/auth/login";
     String passwordToSend = calculatePasswordHash(password);
     // POSTs to the server the user's details and waits for a response.
     final response = await http.post(

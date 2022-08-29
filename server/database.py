@@ -402,4 +402,4 @@ class RegistrationCodeDB(DB):
 		if not result:
 			return None
 		result = result[0]
-		return Permissions(result[0])
+		return Permissions(result[1])
