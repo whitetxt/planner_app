@@ -88,3 +88,7 @@ class Timetable:
 		This returns the timetable in the format which the client expects.
 		"""
 		return [self.monday, self.tuesday, self.wednesday, self.thursday, self.friday]
+	
+class RegistrationCode(BaseModel):
+	code: str
+	permissions: Permissions

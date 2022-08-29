@@ -392,3 +392,14 @@ class MarkDB(DB):
 
 	def update_mark(self, mark: Mark) -> None:
 		self._update("marks", "user_id, test_name, mark, grade", "mark_id = ?", (mark.user_id, mark.test_name, mark.mark, mark.grade, mark.mark_id))
+
+class RegistrationCodeDB(DB):
+	def __init__(self, path):
+		super().__init__(path)
+	
+	def get_permissions(self, code: str) -> Permissions:
+		result = self._get("*", "registration_codes", where="code = ?", args=(code, ))
+		if not result:
+			return None
+		result = result[0]
+		return Permissions(result[0])

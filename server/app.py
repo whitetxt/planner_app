@@ -19,6 +19,7 @@ Homework_DB = HomeworkDB(f"{db_path}/main.db")
 Marks_DB = MarkDB(f"{db_path}/main.db")
 Events_DB = EventDB(f"{db_path}/main.db")
 User_Events_DB = UserEventDB(f"{db_path}/main.db")
+Registration_Code_DB = RegistrationCodeDB(f"{db_path}/main.db")
 
 tags_metadata = [
 	{
@@ -86,7 +87,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 # AUTHENTICATION ENDPOINTS
 # ------------------
 @app.post("/api/v1/auth/register", tags=["Authentication"])
-async def register(username: str = Form(...), password: str = Form(...)):
+async def register(username: str = Form(...), password: str = Form(...), registration_code: str = Form(None)):
 	"""
 	Registers a user with a username and password.
 
@@ -110,13 +111,17 @@ async def register(username: str = Form(...), password: str = Form(...)):
 		for method in [sha256, sha384, sha512]:
 			password = method(f"{salt}{password}".encode()).hexdigest()
 
+	permissions = Registration_Code_DB.get_permissions(registration_code)
+	if registration_code is None or permissions is None:
+		permissions = Permissions.Student
+
 	user = User(
 		uid=uid,
 		username=username,
 		password=password,
 		salt=salt,
 		created_at=time(),
-		permissions=Permissions.Student, # TODO: Change this to check register code.
+		permissions=permissions,
 		session=OAuthToken(access_token=token, uid=uid)
 	)
 	Users_DB.add_user(user)
