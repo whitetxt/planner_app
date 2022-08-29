@@ -335,6 +335,21 @@ async def get_subject_by_id(id: int, user: User = Depends(get_current_user)):
 # TIMETABLE ENDPOINTS
 # ------------------
 
+@app.get("/api/v1/timetable", tags=["Timetable"])
+async def get_timetable(user: User = Depends(get_current_user)):
+	"""
+	Gets the current user's timetable.
+	"""
+	result = User_Subjects_DB.get_timetable(user.uid)
+	timetable = result.get_client_format()
+
+	# Here, instead of directly using the variable, I am getting indexes as this will allow me to modify the
+	# Timetable in-place instead of having to create a copy and waste memory.
+	for day in range(len(timetable)):
+		for period in range(len(timetable[day])):
+			timetable[day][period] = Subjects_DB.get_subject_by_id(timetable[day][period])
+	return {"status": "success", "data": timetable}
+
 @app.post("/api/v1/timetable", tags=["Timetable"])
 async def add_timetable_subject(subject_id: int = Form(...), day: int = Form(...), period: int = Form(...), user: User = Depends(get_current_user)):
 	"""
@@ -354,21 +369,6 @@ async def remove_timetable_subject(subject_id: int = Form(...), day: int = Form(
 	if result:
 		return {"status": "success"}
 	return {"status": "error"}
-
-@app.get("/api/v1/timetable", tags=["Timetable"])
-async def get_timetable(user: User = Depends(get_current_user)):
-	"""
-	Gets the current user's timetable.
-	"""
-	result = User_Subjects_DB.get_timetable(user.uid)
-	timetable = result.get_client_format()
-
-	# Here, instead of directly using the variable, I am getting indexes as this will allow me to modify the
-	# Timetable in-place instead of having to create a copy and waste memory.
-	for day in range(len(timetable)):
-		for period in range(len(timetable[day])):
-			timetable[day][period] = Subjects_DB.get_subject_by_id(timetable[day][period])
-	return {"status": "success", "data": timetable}
 
 # ------------------
 # HOMEWORK ENDPOINTS
