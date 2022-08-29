@@ -318,6 +318,7 @@ async def get_subject_by_name(subject_name: str, user: User = Depends(get_curren
 	"""
 	Gets all subjects which match a certain name.
 	"""
+	subject_name = subject_name.title()
 	sjs = Subjects_DB.get_subjects_by_name(subject_name)
 	return {"status": "success", "data": sjs}
 
