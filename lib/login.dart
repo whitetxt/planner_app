@@ -26,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
 
   String user = "";
   String pass = "";
-  String reg_code = "";
+  String regCode = "";
 
   String calculatePasswordHash(String password) {
     // Hashes the password client-side to prevent sending it as plaintext over the wire.
@@ -67,7 +67,7 @@ class _LoginPageState extends State<LoginPage> {
               TextField(
                 decoration:
                     const InputDecoration(labelText: "Registration Code"),
-                onChanged: (String value) => reg_code = value,
+                onChanged: (String value) => regCode = value,
               ),
               Padding(
                 padding: const EdgeInsets.only(top: 16),
@@ -109,7 +109,7 @@ class _LoginPageState extends State<LoginPage> {
       body: {
         "username": username,
         "password": passwordHash,
-        "registration_code": reg_code
+        "registration_code": regCode
       },
     );
 

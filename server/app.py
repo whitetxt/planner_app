@@ -355,10 +355,13 @@ async def add_timetable_subject(subject_id: int = Form(...), day: int = Form(...
 	"""
 	Adds a subject to the current user's timetable.
 	"""
+	subject = Subjects_DB.get_subject_by_id(subject_id)
+	if subject is None:
+		return {"status": "error", "message": "Subject does not exist."}
 	result = User_Subjects_DB.create_connection(user.uid, subject_id, day, period)
 	if result:
 		return {"status": "success"}
-	return {"status": "error"}
+	return {"status": "error", "message": "An unknown error has occured."}
 
 @app.delete("/api/v1/timetable", tags=["Timetable"])
 async def remove_timetable_subject(day: int = Form(...), period: int = Form(...), user: User = Depends(get_current_user)):
@@ -368,7 +371,7 @@ async def remove_timetable_subject(day: int = Form(...), period: int = Form(...)
 	result = User_Subjects_DB.remove_connection(user.uid, day, period)
 	if result:
 		return {"status": "success"}
-	return {"status": "error"}
+	return {"status": "error", "message": "No connection exists."}
 
 # ------------------
 # HOMEWORK ENDPOINTS
@@ -390,7 +393,7 @@ async def create_homework(name: str = Form(...), due_date: int = Form(...), user
 	Homework_DB.create_homework(user.uid, name, due_date)
 	return {"status": "success"}
 
-@app.put("/api/v1/homework", tags=["Homework"])
+@app.patch("/api/v1/homework", tags=["Homework"])
 async def complete_homework(id: int = Form(...), user: User = Depends(get_current_user)):
 	"""
 	Flips whether a piece of homework is completed or not.

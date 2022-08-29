@@ -93,7 +93,7 @@ class HomeworkWidget extends StatelessWidget {
                         addRequest(
                           NetworkOperation(
                             "/api/v1/homework",
-                            "PUT",
+                            "PATCH",
                             (http.Response response) {
                               reset();
                             },

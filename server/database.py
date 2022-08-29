@@ -224,7 +224,7 @@ class UserSubjectDB(DB):
 		if existing is not None:
 			if existing.subject_id == subject_id:
 				# If inserting will do nothing, just don't do it as it will just waste time.
-				return False
+				return True
 			self._update("`users-subjects`", "subject_id = ?", "user_id = ? AND day = ? AND period = ?", (subject_id, user_id, day, period))
 			return True
 		self._insert("`users-subjects`", "user_id, subject_id, day, period", (user_id, subject_id, day, period))
