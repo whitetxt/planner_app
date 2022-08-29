@@ -361,11 +361,11 @@ async def add_timetable_subject(subject_id: int = Form(...), day: int = Form(...
 	return {"status": "error"}
 
 @app.delete("/api/v1/timetable", tags=["Timetable"])
-async def remove_timetable_subject(subject_id: int = Form(...), day: int = Form(...), period: int = Form(...), user: User = Depends(get_current_user)):
+async def remove_timetable_subject(day: int = Form(...), period: int = Form(...), user: User = Depends(get_current_user)):
 	"""
 	Removes a subject from the current user's timetable.
 	"""
-	result = User_Subjects_DB.remove_connection(user.uid, subject_id, day, period)
+	result = User_Subjects_DB.remove_connection(user.uid, day, period)
 	if result:
 		return {"status": "success"}
 	return {"status": "error"}
