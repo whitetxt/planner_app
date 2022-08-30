@@ -5,20 +5,20 @@ import "package:flutter/material.dart";
 import 'package:planner_app/globals.dart';
 import 'package:planner_app/network.dart';
 import "package:http/http.dart" as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
 
 List<HomeworkData> homework = [];
 
 class HomeworkData {
-  const HomeworkData(
-      this.id, this.timeDue, this.name, this.classId, this.completed);
+  HomeworkData(this.id, this.timeDue, this.name, this.classId, this.completed);
 
   final int id;
   final DateTime timeDue;
   final String name;
   final String? classId;
-  final bool completed;
+  bool completed;
 
   factory HomeworkData.fromJson(dynamic jsonData) {
     return HomeworkData(
@@ -28,6 +28,16 @@ class HomeworkData {
       jsonData["class_id"],
       jsonData["completed"],
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "homework_id": id,
+      "due_date": timeDue.millisecondsSinceEpoch,
+      "name": name,
+      "class_id": classId,
+      "completed": completed,
+    };
   }
 }
 
@@ -41,6 +51,13 @@ class HomeworkWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
+      color: data.completed
+          ? Colors.green.shade200
+          : data.timeDue.difference(DateTime.now()).inDays < 3
+              ? Colors.redAccent.shade100
+              : data.timeDue.difference(DateTime.now()).inDays < 7
+                  ? Colors.orange.shade200
+                  : Colors.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: IntrinsicHeight(
@@ -50,12 +67,12 @@ class HomeworkWidget extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: Text(
-                  "${data.timeDue.day}/${data.timeDue.month}",
+                  "${data.timeDue.day}/${data.timeDue.month}/${data.timeDue.year}",
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     // We should change the colours of all the elements if the homework is completed.
                     // This is because it will be easier for the user to see that they have already done it.
-                    color: data.completed ? Colors.green : Colors.black,
+                    color: Colors.black,
                   ),
                 ),
               ),
@@ -65,8 +82,8 @@ class HomeworkWidget extends StatelessWidget {
                 child: Text(
                   data.name,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: data.completed ? Colors.green : Colors.black,
+                  style: const TextStyle(
+                    color: Colors.black,
                   ),
                 ),
               ),
@@ -74,9 +91,9 @@ class HomeworkWidget extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: PopupMenuButton(
-                  icon: Icon(
+                  icon: const Icon(
                     Icons.more_horiz,
-                    color: data.completed ? Colors.green : Colors.black,
+                    color: Colors.black,
                   ),
                   itemBuilder: (context) => [
                     PopupMenuItem(
@@ -89,7 +106,16 @@ class HomeworkWidget extends StatelessWidget {
                       ),
                     ),
                     PopupMenuItem(
-                      onTap: () {
+                      onTap: () async {
+                        data.completed = !data.completed;
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setString(
+                          "homework",
+                          json.encode(
+                            [for (HomeworkData hw in homework) hw.toJson()],
+                          ),
+                        );
+                        reset();
                         addRequest(
                           NetworkOperation(
                             "/api/v1/homework",
@@ -128,8 +154,18 @@ class HomeworkMini extends StatefulWidget {
 
 class _HomeworkMiniState extends State<HomeworkMini> {
   bool any = false;
-  @override
-  void initState() {
+
+  Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedHomework = prefs.getString("homework");
+    if (storedHomework != null) {
+      List<dynamic> data = json.decode(storedHomework);
+      homework = [];
+      for (dynamic hw in data) {
+        homework.add(HomeworkData.fromJson(hw));
+      }
+      setState(() {});
+    }
     addRequest(
       NetworkOperation(
         "/api/v1/homework",
@@ -140,7 +176,12 @@ class _HomeworkMiniState extends State<HomeworkMini> {
         },
       ),
     );
+  }
+
+  @override
+  void initState() {
     super.initState();
+    load();
   }
 
   @override
@@ -181,34 +222,39 @@ class _HomeworkMiniState extends State<HomeworkMini> {
               indent: 4,
               endIndent: 4,
             ),
-            ...[
-              for (int idx = 0;
-                  idx <
-                          homework
-                              .where((element) => !element.completed)
-                              .length && // This filters the list of homework to only ones that have not been completed.
-                      // This is done as the dashboard should only display things the user needs to know.
-                      idx < 5;
-                  idx++)
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 4,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text(
-                        "${homework.where((element) => !element.completed).toList()[idx].timeDue.day}/${homework[idx].timeDue.month}",
+            Expanded(
+              child: ListView(
+                children: [
+                  for (int idx = 0;
+                      idx <
+                              homework
+                                  .where((element) => !element
+                                      .completed) // This filters the list of homework to only ones that have not been completed.
+                                  .length && // This is done as the dashboard should only display things the user needs to know.
+
+                          idx < 5;
+                      idx++)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 8,
                       ),
-                      Text(homework
-                          .where((element) => !element.completed)
-                          .toList()[idx]
-                          .name),
-                    ],
-                  ),
-                ),
-            ],
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(
+                            "${homework.where((element) => !element.completed).toList()[idx].timeDue.day}/${homework[idx].timeDue.month}/${homework[idx].timeDue.year}",
+                          ),
+                          Text(homework
+                              .where((element) => !element.completed)
+                              .toList()[idx]
+                              .name),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -216,7 +262,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
   }
 }
 
-void gotHomework(http.Response response) {
+Future<void> gotHomework(http.Response response) async {
   // This just handles the server's response for returning homework.
   // We must check for an error, then notify the user of it.
   if (!validateResponse(response)) return;
@@ -231,6 +277,8 @@ void gotHomework(http.Response response) {
       homework.add(HomeworkData.fromJson(hw));
     }
   }
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString("homework", json.encode(data["data"]));
 }
 
 class HomeworkPage extends StatefulWidget {
@@ -250,7 +298,17 @@ class _HomeworkPageState extends State<HomeworkPage> {
   DateTime date = DateTime.now();
   bool showCompleted = false;
 
-  void refreshHomework() {
+  Future<void> refreshHomework() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedHomework = prefs.getString("homework");
+    if (storedHomework != null) {
+      List<dynamic> data = json.decode(storedHomework);
+      homework = [];
+      for (dynamic hw in data) {
+        homework.add(HomeworkData.fromJson(hw));
+      }
+      setState(() {});
+    }
     // This refreshes the homework page, grabbing new data from the API.
     addRequest(
       NetworkOperation(
@@ -267,7 +325,25 @@ class _HomeworkPageState extends State<HomeworkPage> {
     );
   }
 
-  void addHomework() {
+  void removePopups() {
+    Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+  }
+
+  Future<void> addHomework() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedHomework = prefs.getString("homework");
+    if (storedHomework != null) {
+      List<dynamic> data = json.decode(storedHomework);
+      homework = [];
+      for (dynamic hw in data) {
+        homework.add(HomeworkData.fromJson(hw));
+      }
+      homework.add(HomeworkData(0, date, name, "", false));
+      await prefs.setString("homework",
+          json.encode([for (HomeworkData hw in homework) hw.toJson()]));
+      removePopups();
+      setState(() {});
+    }
     // This adds a piece of homework to the server, and then refreshes the page.
     addRequest(
       NetworkOperation(
@@ -286,8 +362,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   @override
   void initState() {
-    refreshHomework();
     super.initState();
+    refreshHomework();
   }
 
   @override

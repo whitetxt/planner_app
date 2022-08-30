@@ -286,7 +286,7 @@ class HomeworkDB(DB):
 
 	def get_homework_for_user(self, user_id: int) -> list:
 		results = self._get("*", "homework", where="user_id = ?", order="due_date ASC", args=(user_id,))
-		return [self.new_method(result) for result in results]
+		return [self.convert_result_to_homework(result) for result in results]
 
 
 	def get_homework(self, homework_id: int) -> Homework:

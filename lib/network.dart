@@ -47,13 +47,17 @@ void addRequest(NetworkOperation request) {
             if (validateResponse(resp)) {
               onlineMode = true;
               for (var request in pending) {
-                processNetworkRequest(request).then(
-                  (value) => request.callback(value),
-                );
                 // We must rate-limit ourselves since the server has just started back up,
                 // it will be under quite a lot of load from other users and we don't want
                 // to overload it.
-                sleep(const Duration(seconds: 1));
+
+                // This queues up all of the requests for once every 500ms.
+                Future.delayed(
+                  Duration(milliseconds: pending.indexOf(request) * 500),
+                  () => processNetworkRequest(request).then(
+                    (value) => request.callback(value),
+                  ),
+                );
               }
               pending = [];
               addNotif("Back online!", error: false);
