@@ -22,7 +22,7 @@ void main() {
   Timer.periodic(
     const Duration(seconds: 5),
     (timer) {
-      if (me != null || me!.uid != 0) {
+      if (me != null && me!.uid != 0) {
         timer.cancel();
       }
       getMe().then((value) => me = value);

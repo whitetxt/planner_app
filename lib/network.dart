@@ -36,45 +36,59 @@ void addRequest(NetworkOperation request) {
     sleep(const Duration(milliseconds: 100));
   }
   if (onlineMode) {
-    processNetworkRequest(request).then((value) => request.callback(value));
-  } else {
-    pending.add(request);
-    onlineTest ??= Timer.periodic(
-      const Duration(seconds: 10),
-      (timer) {
-        processNetworkRequest(NetworkOperation("$apiUrl/", "GET", (_) {})).then(
-          (http.Response resp) {
-            if (validateResponse(resp)) {
-              onlineMode = true;
-              for (var request in pending) {
-                // We must rate-limit ourselves since the server has just started back up,
-                // it will be under quite a lot of load from other users and we don't want
-                // to overload it.
-
-                // This queues up all of the requests for once every 250ms (4 per second).
-                Future.delayed(
-                  Duration(milliseconds: pending.indexOf(request) * 250),
-                  () => processNetworkRequest(request).then(
-                    (value) => request.callback(value),
-                  ),
-                );
-              }
-              pending = [];
-              addNotif("Back online!", error: false);
-              timer.cancel();
-              onlineTest = null;
-              Timer(
-                const Duration(seconds: 1),
-                () => ScaffoldMessenger.of(
-                  scaffoldKey.currentContext!,
-                ).clearSnackBars(),
-              );
-            }
-          },
-        );
+    processNetworkRequest(request).then(
+      (value) {
+        if (value.statusCode == 999) {
+          pending.add(request);
+          onlineMode = false;
+          createOnlineTest();
+        } else {
+          request.callback(value);
+        }
       },
     );
+  } else {
+    pending.add(request);
+    createOnlineTest();
   }
+}
+
+void createOnlineTest() {
+  onlineTest ??= Timer.periodic(
+    const Duration(seconds: 10),
+    (timer) {
+      processNetworkRequest(NetworkOperation("$apiUrl/", "GET", (_) {})).then(
+        (http.Response resp) {
+          if (validateResponse(resp)) {
+            onlineMode = true;
+            for (var request in pending) {
+              // We must rate-limit ourselves since the server has just started back up,
+              // it will be under quite a lot of load from other users and we don't want
+              // to overload it.
+
+              // This queues up all of the requests for once every 250ms (4 per second).
+              Future.delayed(
+                Duration(milliseconds: pending.indexOf(request) * 250),
+                () => processNetworkRequest(request).then(
+                  (value) => request.callback(value),
+                ),
+              );
+            }
+            pending = [];
+            addNotif("Back online!", error: false);
+            timer.cancel();
+            onlineTest = null;
+            Timer(
+              const Duration(seconds: 1),
+              () => ScaffoldMessenger.of(
+                scaffoldKey.currentContext!,
+              ).clearSnackBars(),
+            );
+          }
+        },
+      );
+    },
+  );
 }
 
 bool validateResponse(http.Response response) {

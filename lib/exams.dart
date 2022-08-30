@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import "package:flutter/material.dart";
 import "package:http/http.dart" as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'globals.dart';
 import 'network.dart';
@@ -16,6 +17,10 @@ class ExamMark {
   final String name;
   final int mark;
   final String? grade;
+
+  Map<String, dynamic> toJson() {
+    return {"mark_id": id, "test_name": name, "mark": mark, "grade": grade};
+  }
 }
 
 class MarkWidget extends StatelessWidget {
@@ -105,7 +110,7 @@ class MarkWidget extends StatelessWidget {
   }
 }
 
-void gotMarks(http.Response response) {
+Future<void> gotMarks(http.Response response) async {
   // This just handles the server's response for returning homework.
   // We must check for an error, then notify the user of it.
   if (!validateResponse(response)) return;
@@ -127,6 +132,8 @@ void gotMarks(http.Response response) {
       );
     }
   }
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString("marks", json.encode(data["data"]));
 }
 
 class ExamPage extends StatefulWidget {
@@ -145,8 +152,26 @@ class _ExamPageState extends State<ExamPage> {
   int mark = 0;
   String grade = "";
 
-  void refreshMarks() {
-    // This refreshes the homework page, grabbing new data from the API.
+  Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedMarks = prefs.getString("marks");
+    if (storedMarks != null) {
+      List<dynamic> data = json.decode(storedMarks);
+      marks = [];
+      print(data);
+      for (dynamic mark in data) {
+        marks.add(
+          ExamMark(
+            mark["mark_id"],
+            mark["test_name"],
+            mark["mark"],
+            mark["grade"],
+          ),
+        );
+      }
+      setState(() {});
+    }
+    // This refreshes the marks page, grabbing new data from the API.
     addRequest(
       NetworkOperation(
         "/api/v1/marks",
@@ -162,14 +187,42 @@ class _ExamPageState extends State<ExamPage> {
     );
   }
 
-  void addMark() {
+  void removePopups() {
+    Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+  }
+
+  Future<void> addMark() async {
+    // First we update our offline buffer of marks.
+    final prefs = await SharedPreferences.getInstance();
+    String? storedMarks = prefs.getString("marks");
+    if (storedMarks != null) {
+      List<dynamic> data = json.decode(storedMarks);
+      marks = [];
+      for (dynamic mark in data) {
+        marks.add(
+          ExamMark(
+            mark["mark_id"],
+            mark["test_name"],
+            mark["mark"],
+            mark["grade"],
+          ),
+        );
+      }
+      // After getting the ones currently in the buffer, now we should add the new
+      // one and update the buffer.
+      marks.add(ExamMark(0, name, mark, grade));
+      await prefs.setString(
+          "marks", json.encode([for (ExamMark mark in marks) mark.toJson()]));
+      removePopups();
+      setState(() {});
+    }
     // This adds a piece of homework to the server, and then refreshes the page.
     addRequest(
       NetworkOperation(
         "/api/v1/marks",
         "POST",
         (http.Response response) {
-          refreshMarks();
+          load();
         },
         data: {
           "name": name,
@@ -183,7 +236,7 @@ class _ExamPageState extends State<ExamPage> {
   @override
   void initState() {
     super.initState();
-    refreshMarks();
+    load();
   }
 
   @override
@@ -327,7 +380,7 @@ class _ExamPageState extends State<ExamPage> {
                       fontSize: 32,
                     ),
                   ),
-                for (var hw in marks) ...[MarkWidget(hw, refreshMarks)],
+                for (var hw in marks) ...[MarkWidget(hw, load)],
               ],
             ),
           ),
