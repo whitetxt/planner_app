@@ -1,9 +1,11 @@
-import random, sqlite3, os
+import random, uvicorn
 from time import time
-from typing import Optional
-from fastapi import Body, FastAPI, Form, HTTPException, Depends, status
+from fastapi import FastAPI, Form, HTTPException, Depends, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from hashlib import sha512, sha256, sha384
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 from database import *
 from classes import *
@@ -53,10 +55,15 @@ tags_metadata = [
 ]
 
 
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Planner App API",
 			description="API used for the backend of the planner app.",
 			version="0.4.2_beta",
 			tags_metadata=tags_metadata)
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 oauth2_scheme = OAuth2PasswordBearer(
 	tokenUrl="/api/v1/auth/login"
 )
@@ -87,7 +94,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 # AUTHENTICATION ENDPOINTS
 # ------------------
 @app.post("/api/v1/auth/register", tags=["Authentication"])
-async def register(username: str = Form(...), password: str = Form(...), registration_code: str = Form(None)):
+@limiter.limit("2/minute")
+async def register(request: Request, username: str = Form(...), password: str = Form(...), registration_code: str = Form(None)):
 	"""
 	Registers a user with a username and password.
 
@@ -131,7 +139,8 @@ async def register(username: str = Form(...), password: str = Form(...), registr
 	return {"access_token": token, "token_type": "Bearer"}
 
 @app.post("/api/v1/auth/login", tags=["Authentication"])
-async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+@limiter.limit("2/minute")
+async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
 	"""
 	Logs a user in with their username and password.
 	"""
@@ -157,7 +166,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 	return {"access_token": token, "token_type": "Bearer"}
 
 @app.get("/api/v1/auth/logout", tags=["Authentication"])
-async def logout(current_user: User = Depends(get_current_user)):
+@limiter.limit("2/minute")
+async def logout(request: Request, current_user: User = Depends(get_current_user)):
 	"""
 	Invalidates the logged in user's token, effectively logging them out.
 	"""
@@ -192,7 +202,8 @@ async def get_user(user_id: int, user: User = Depends(get_current_user)):
 	raise HTTPException(status_code=404, detail="User not found")
 
 @app.post("/api/v1/users/reset", tags=["Users"])
-async def reset_me(current_user: User = Depends(get_current_user)):
+@limiter.limit("2/minute")
+async def reset_me(request: Request, current_user: User = Depends(get_current_user)):
 	"""
 	Deletes all of the current user's data, but keeps their account.
 
@@ -234,7 +245,8 @@ async def reset_me(current_user: User = Depends(get_current_user)):
 	return {"status": "success"}
 
 @app.delete("/api/v1/users/@me", tags=["Users"])
-async def delete_me(current_user: User = Depends(get_current_user)):
+@limiter.limit("2/minute")
+async def delete_me(request: Request, current_user: User = Depends(get_current_user)):
 	"""
 	Deletes all of the current user's data, and completely removes their account.
 
@@ -512,3 +524,6 @@ async def create_event(name: str = Form(...), time: int = Form(...), description
 		return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized to create public events.")
 	Events_DB.create_event(user.uid, name, time, description, private)
 	return {"status": "success"}
+
+if __name__ == "__main__":
+	uvicorn.run("app:app", port=8000, debug=True, reload=True)

@@ -49,6 +49,9 @@ void addRequest(NetworkOperation request) {
                 processNetworkRequest(request).then(
                   (value) => request.callback(value),
                 );
+                // We must rate-limit ourselves since the server has just started back up,
+                // it will be under quite a lot of load from other users and we don't want
+                // to overload it.
                 sleep(const Duration(milliseconds: 100));
               }
               pending = [];
