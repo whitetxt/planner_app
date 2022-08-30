@@ -272,7 +272,7 @@ class _ExamPageState extends State<ExamPage> {
                                 ),
                               ),
                               child: const Text(
-                                "Add homework",
+                                "Add a mark",
                                 textAlign: TextAlign.center,
                               ),
                             ),

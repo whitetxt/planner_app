@@ -140,6 +140,12 @@ class ClassPage extends StatefulWidget {
 }
 
 class _ClassPageState extends State<ClassPage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  String name = "";
+
+  void createClass() {}
+
   @override
   Widget build(BuildContext context) {
     if (!onlineMode) {
@@ -188,7 +194,66 @@ class _ClassPageState extends State<ClassPage> {
                     "Create Class",
                     style: TextStyle(color: Colors.black),
                   ),
-                  onPressed: () {},
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Theme.of(context).dividerColor,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            child: const Text(
+                              "Create a class",
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          content: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: "Class Name",
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Enter a name";
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    name = value;
+                                  },
+                                  onFieldSubmitted: (String _) {
+                                    createClass();
+                                  },
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      // Validate the form (returns true if all is ok)
+                                      if (_formKey.currentState!.validate()) {
+                                        createClass();
+                                      }
+                                    },
+                                    child: const Text('Create Class!'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
                   style: TextButton.styleFrom(
                     backgroundColor: Theme.of(context).highlightColor,
                     side: const BorderSide(color: Colors.black),
