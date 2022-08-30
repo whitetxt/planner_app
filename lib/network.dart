@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:flutter/material.dart';
 import "package:http/http.dart" as http;
 
 import "globals.dart";
@@ -52,12 +53,18 @@ void addRequest(NetworkOperation request) {
                 // We must rate-limit ourselves since the server has just started back up,
                 // it will be under quite a lot of load from other users and we don't want
                 // to overload it.
-                sleep(const Duration(milliseconds: 100));
+                sleep(const Duration(seconds: 1));
               }
               pending = [];
               addNotif("Back online!", error: false);
               timer.cancel();
               onlineTest = null;
+              Timer(
+                const Duration(seconds: 1),
+                () => ScaffoldMessenger.of(
+                  scaffoldKey.currentContext!,
+                ).clearSnackBars(),
+              );
             }
           },
         );
@@ -141,6 +148,9 @@ Future<http.Response> performRequest(
     ).catchError(
       (error, stackTrace) {
         if (url != "$apiUrl/") {
+          ScaffoldMessenger.of(
+            scaffoldKey.currentContext!,
+          ).clearSnackBars();
           addNotif(
             "Connection Error. Running in offline mode.",
           );
@@ -159,6 +169,9 @@ Future<http.Response> performRequest(
   ).catchError(
     (error, stackTrace) {
       if (url != "$apiUrl/") {
+        ScaffoldMessenger.of(
+          scaffoldKey.currentContext!,
+        ).clearSnackBars();
         addNotif(
           "Connection Error. Running in offline mode.",
         );

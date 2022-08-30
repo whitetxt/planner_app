@@ -358,14 +358,19 @@ class _TimetableSlotState extends State<TimetableSlot> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                AutoSizeText(
-                  widget.data.name,
-                  textAlign: TextAlign.center,
-                  minFontSize: 6,
-                  maxFontSize: 16,
-                  maxLines: 2,
-                  semanticsLabel: widget.data.name,
-                  wrapWords: false,
+                Expanded(
+                  child: Center(
+                    child: AutoSizeText(
+                      widget.data.name,
+                      textAlign: TextAlign.center,
+                      minFontSize: 5,
+                      maxFontSize: 16,
+                      stepGranularity: 0.1,
+                      maxLines: 3,
+                      semanticsLabel: widget.data.name,
+                      wrapWords: false,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -575,7 +580,7 @@ class _TimetablePageState extends State<TimetablePage> {
                     double width = constraints.maxWidth / 6 -
                         (borderWidth * 2 + borderWidth);
                     double height =
-                        constraints.maxHeight / (timetable[0].length + 2) -
+                        constraints.maxHeight / (timetable[0].length + 4) -
                             (borderWidth * 2 + borderWidth);
                     return Column(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -632,7 +637,55 @@ class _TimetablePageState extends State<TimetablePage> {
                             ],
                           ),
                         ],
+                        const Divider(
+                          indent: 8,
+                          endIndent: 8,
+                        ),
                         for (int period = 0;
+                            period < timetable[0].length && period < 4;
+                            period++)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              for (int day = 0; day < timetable.length; day++)
+                                TimetableSlot(
+                                  day,
+                                  period,
+                                  timetable[day][period],
+                                  width: width,
+                                  height: height,
+                                  borderWidth: borderWidth,
+                                  reset: getTimetable,
+                                ),
+                            ],
+                          ),
+                        const Divider(
+                          indent: 8,
+                          endIndent: 8,
+                        ),
+                        for (int period = 4;
+                            period < timetable[0].length && period < 6;
+                            period++)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              for (int day = 0; day < timetable.length; day++)
+                                TimetableSlot(
+                                  day,
+                                  period,
+                                  timetable[day][period],
+                                  width: width,
+                                  height: height,
+                                  borderWidth: borderWidth,
+                                  reset: getTimetable,
+                                ),
+                            ],
+                          ),
+                        const Divider(
+                          indent: 8,
+                          endIndent: 8,
+                        ),
+                        for (int period = 6;
                             period < timetable[0].length;
                             period++)
                           Row(
