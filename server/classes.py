@@ -1,6 +1,6 @@
 from enum import IntEnum
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 class Permissions(IntEnum):
 	Student = 1
@@ -57,7 +57,9 @@ class Event(BaseModel):
 class Class(BaseModel):
 	class_id: int = None
 	teacher_id: int
-	class_name: int
+	class_name: str
+	homework: List[Homework] = []
+	students: List[User] = []
 
 class ClassStudentJoin(BaseModel):
 	student_id: int

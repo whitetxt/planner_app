@@ -378,7 +378,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                 width: 80,
                 height: 32,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+                  padding: const EdgeInsets.only(top: 4),
                   child: TextButton.icon(
                     style: TextButton.styleFrom(
                       backgroundColor: Theme.of(context).highlightColor,

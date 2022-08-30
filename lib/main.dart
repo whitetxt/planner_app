@@ -40,12 +40,7 @@ Future<User?> getMe() async {
     return null;
   }
   dynamic data = json.decode(resp.body);
-  return User(
-    data["uid"],
-    data["username"],
-    DateTime.fromMillisecondsSinceEpoch(data["created_at"]),
-    Permissions.values[data["permissions"]],
-  );
+  return User.fromJson(data);
 }
 
 class PlannerApp extends StatelessWidget {

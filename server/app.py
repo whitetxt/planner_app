@@ -558,6 +558,12 @@ async def get_classes(user: User = Depends(get_current_user)):
 	Gets all classes owned by the current user.
 	"""
 	classes = Classes_DB.get_classes(user.uid)
+	for idx, thisClass in enumerate(classes):
+		students = User_Class_DB.get_students_in_class(thisClass.class_id)
+		classes[idx].students = []
+		for student in students:
+			classes[idx].students.append(Users_DB.get_user_from_uid(student))
+		classes[idx].homework = Homework_DB.get_homework_for_class(thisClass.class_id)
 	return {"status": "success", "data": classes}
 
 @app.get("/api/v1/classes/{class_id}", tags=["Classes"])

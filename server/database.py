@@ -1,5 +1,5 @@
 import sqlite3, json
-from typing import Optional
+from typing import List, Optional
 from classes import *
 
 class DB:
@@ -12,7 +12,7 @@ class DB:
 	def __init__(self, path):
 		self.path = path
 
-	def _get(self, col: str, table: str, where: Optional[str] = None, order: Optional[str] = None, args: Optional[tuple] = ()) -> list:
+	def _get(self, col: str, table: str, where: Optional[str] = None, order: Optional[str] = None, args: Optional[tuple] = ()) -> List:
 		db = sqlite3.connect(self.path)
 		cursor = db.cursor()
 		statement = f"SELECT {col} FROM {table}"
@@ -23,7 +23,7 @@ class DB:
 		cursor.execute(statement, args)
 		return cursor.fetchall()
 
-	def _get_raw(self, query: str) -> list:
+	def _get_raw(self, query: str) -> List:
 		db = sqlite3.connect(self.path)
 		cursor = db.cursor()
 		cursor.execute(query)
@@ -62,7 +62,7 @@ class UsersDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 
-	def convert_result_to_user(self, user_data):
+	def convert_result_to_user(self, user_data: dict) -> User:
 		return User(
 			uid=user_data[0],
 			username=user_data[1],
@@ -97,7 +97,7 @@ class UsersDB(DB):
 		user_data = user_data[0]
 		return self.convert_result_to_user(user_data)
 	
-	def get_users(self) -> list:
+	def get_users(self) -> List[User]:
 		users = self._get("*", "users")
 		return [self.convert_result_to_user(user) for user in users]
 	
@@ -150,15 +150,15 @@ class SubjectsDB(DB):
 		subject_data = subject_data[0]
 		return self.convert_result_to_subject(subject_data)
 	
-	def get_subjects_by_name(self, name: str) -> list:
+	def get_subjects_by_name(self, name: str) -> List[Subject]:
 		subject_data = self._get("*", "subjects", where="name = ?", args=(name,))
 		return [self.convert_result_to_subject(subject) for subject in subject_data]
 	
-	def get_subjects_by_teacher(self, name: str) -> list:
+	def get_subjects_by_teacher(self, name: str) -> List[Subject]:
 		subject_data = self._get("*", "subjects", where="teacher = ?", args=(name,))
 		return [self.convert_result_to_subject(subject) for subject in subject_data]
 
-	def get_subjects_by_room(self, room: str) -> list:
+	def get_subjects_by_room(self, room: str) -> List[Subject]:
 		subject_data = self._get("*", "subjects", where="room = ?", args=(room,))
 		return [self.convert_result_to_subject(subject) for subject in subject_data]
 	
@@ -241,7 +241,7 @@ class ClassDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 
-	def convert_result_to_class(self, result):
+	def convert_result_to_class(self, result) -> Class:
 		return Class(class_id=result[0], teacher_id=result[1], class_name=result[2])
 	
 	def get_class(self, class_id: int) -> Class:
@@ -249,11 +249,11 @@ class ClassDB(DB):
 		return self.convert_result_to_class(result) if result else None
 
 	
-	def get_classes(self, teacher_id: int) -> list:
+	def get_classes(self, teacher_id: int) -> List[Class]:
 		results = self._get("*", "classes", where="teacher_id = ?", args=(teacher_id,))
 		return [self.convert_result_to_class(result) for result in results]
 
-	def create_class(self, teacher_id: int, name: str, students: list) -> None:
+	def create_class(self, teacher_id: int, name: str, students: List[int]) -> None:
 		self._insert("classes", "teacher_id, class_name, students", (teacher_id, name, json.dumps(students)))
 
 	def delete_class(self, class_id: int) -> None:
@@ -263,11 +263,11 @@ class ClassStudentDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 
-	def get_classes_for_student(self, student_id: int) -> list:
+	def get_classes_for_student(self, student_id: int) -> List[Class]:
 		classes = self._get("class_id", "`class-student`", where="student_id = ?", args=(student_id, ))
 		return [cl[0] for cl in classes]
 	
-	def get_students_in_class(self, class_id: int) -> list:
+	def get_students_in_class(self, class_id: int) -> List[int]:
 		students = self._get("student_id", "`class-student`", where="class_id = ?", args=(class_id,))
 		return [student[0] for student in students]
 	
@@ -281,14 +281,14 @@ class HomeworkDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 
-	def convert_result_to_homework(self, result):
+	def convert_result_to_homework(self, result) -> Homework:
 		return Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] != None)
 
-	def get_homework_for_user(self, user_id: int) -> list:
+	def get_homework_for_user(self, user_id: int) -> List[Homework]:
 		results = self._get("*", "homework", where="user_id = ?", order="due_date ASC", args=(user_id,))
 		return [self.convert_result_to_homework(result) for result in results]
 
-	def get_homework_for_class(self, class_id: int) -> list:
+	def get_homework_for_class(self, class_id: int) -> List[Homework]:
 		results = self._get("*", "homework", where="class_id = ?", order="due_date ASC", args=(class_id, ))
 		output = set() # I am using a set here to remove duplicate pieces of homework.
 		# This is because there will be the same piece of homework for each user, and the only difference is the user_id.
@@ -323,10 +323,10 @@ class EventDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 
-	def convert_result_to_event(self, result):
+	def convert_result_to_event(self, result) -> Event:
 		return Event(event_id=result[0], user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None)
 
-	def get_events(self) -> list:
+	def get_events(self) -> List[Event]:
 		public_results = self._get("*", "events", where="private = ?", args=(None, ))
 		return [self.convert_result_to_event(result) for result in public_results]
 
@@ -337,7 +337,7 @@ class EventDB(DB):
 		else:
 			return None
 	
-	def get_events_by_user(self, user_id: int) -> list:
+	def get_events_by_user(self, user_id: int) -> List[Event]:
 		results = self._get("*", "events", where="user_id = ?", args=(user_id, ))
 		return [self.convert_result_to_event(result) for result in results]
 	
@@ -355,11 +355,11 @@ class UserEventDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 	
-	def get_users_for_event(self, event_id: int) -> list:
+	def get_users_for_event(self, event_id: int) -> List[int]:
 		results = self._get("user_id", "`user-events`", where="event_id = ?", args=(event_id, ))
 		return [user_id[0] for user_id in results]
 
-	def get_events_for_user(self, user_id: int) -> list:
+	def get_events_for_user(self, user_id: int) -> List[int]:
 		results = self._get("event_id", "`user-events`", where="user_id = ?", args=(user_id, ))
 		return [event_id[0] for event_id in results]
 
@@ -377,7 +377,7 @@ class MarkDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
 	
-	def convert_result_to_mark(self, result):
+	def convert_result_to_mark(self, result) -> Mark:
 		return Mark(mark_id=result[0], user_id=result[1], test_name=result[2], mark=result[3], grade=result[4])
 
 	def get_mark(self, mark_id: int) -> Mark:
@@ -387,7 +387,7 @@ class MarkDB(DB):
 		result = result[0]
 		return self.convert_result_to_mark(mark_id, result)
 
-	def get_marks_for_user(self, user_id: int) -> list:
+	def get_marks_for_user(self, user_id: int) -> List[Mark]:
 		results = self._get("*", "marks", where="user_id = ?", args=(user_id, ))
 		return [self.convert_result_to_mark(result) for result in results]
 

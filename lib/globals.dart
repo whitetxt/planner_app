@@ -18,6 +18,15 @@ class User {
   final String name;
   final DateTime createdAt;
   final Permissions permissions;
+
+  factory User.fromJson(Map<String, dynamic> data) {
+    return User(
+      data["uid"],
+      data["username"],
+      DateTime.fromMillisecondsSinceEpoch(data["created_at"]),
+      Permissions.values[data["permissions"]],
+    );
+  }
 }
 
 String token =
