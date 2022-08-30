@@ -577,11 +577,55 @@ async def create_class(name: str = Form(...), user: User = Depends(get_current_u
 	"""
 	Creates a class with the parameters defined in the POST Form.
 
-	MUST be a teacher account to create the class.
+	**MUST** be a teacher account to create the class.
 	"""
 	if user.permissions < Permissions.Teacher:
 		return {"status": "error", "message": "Only teachers can create classes."}
 	Classes_DB.create_class(user.uid, name, [])
+	return {"status": "success"}
+
+@app.patch("/api/v1/classes/{class_id}", tags=["Classes"])
+async def add_student_to_class(class_id: int, student_id: int = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Adds a student to a class.
+	
+	Class **MUST** be owned by current user.
+	"""
+	thisClass = Classes_DB.get_class(class_id)
+	if thisClass.teacher_id != user.uid:
+		return {"status": "error", "message": "You can only add to your own class."}
+	student = Users_DB.get_user_from_uid(student_id)
+	if student is None:
+		return {"status": "error", "message": "Student doesn't exist."}
+	User_Class_DB.create_connection(thisClass.class_id, student_id)
+	return {"status": "success"}
+
+@app.get("/api/v1/classes/{class_id}/homework")
+async def get_class_homework(class_id: int, user: User = Depends(get_current_user)):
+	"""
+	Gets all pieces of homework set for a class.
+	
+	Class **MUST** belong to the current user.
+	"""
+	thisClass = Classes_DB.get_class(class_id)
+	if thisClass.teacher_id != user.uid:
+		return {"status": "error", "message": "You may only set homework for your own class."}
+	homeworkSet = Homework_DB.get_homework_for_class(class_id)
+	return {"status": "success", "data": homeworkSet}
+
+@app.post("/api/v1/classes/{class_id}/homework")
+async def set_class_homework(class_id: int, homework_name: str = Form(...), due_date: int = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Creates a piece of homework for an entire class.
+	
+	Class **MUST** belong to the current user.
+	"""
+	thisClass = Classes_DB.get_class(class_id)
+	if thisClass.teacher_id != user.uid:
+		return {"status": "error", "message": "You may only set homework for your own class."}
+	studentsInClass = User_Class_DB.get_students_in_class(class_id)
+	for student in studentsInClass:
+		Homework_DB.create_homework_for_class(class_id, student, homework_name, due_date)
 	return {"status": "success"}
 
 if __name__ == "__main__":
