@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import "package:http/http.dart" as http;
 import 'package:planner_app/globals.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
 import "network.dart"; // Allows network requests on this page.
@@ -56,7 +57,42 @@ class _TimetableSlotState extends State<TimetableSlot> {
   String room = "";
   String name = "";
 
+  void resetStates() {
+    Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+    if (widget.reset != null) {
+      widget.reset!();
+    }
+  }
+
   Future<void> updateTimetable() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedTimetable = prefs.getString("timetable");
+    if (storedTimetable != null) {
+      List<dynamic> data = json.decode(storedTimetable);
+      for (var i = 0; i < data.length; i++) {
+        var today = data[i];
+        for (var j = 0; j < today.length; j++) {
+          var period = today[j];
+          if (period == null) {
+            timetable[i][j] = const TimetableData("None", "None", "None");
+          } else {
+            timetable[i][j] = TimetableData(
+              period["name"],
+              period["teacher"],
+              period["room"],
+            );
+          }
+        }
+      }
+      timetable[widget.day][widget.period] = TimetableData(name, teacher, room);
+      data[widget.day][widget.period] = {
+        "name": name,
+        "teacher": teacher,
+        "room": room,
+      };
+      await prefs.setString("timetable", json.encode(data));
+      resetStates();
+    }
     addRequest(
       NetworkOperation(
         "/api/v1/subjects/name/$name",
@@ -159,8 +195,8 @@ class _TimetableSlotState extends State<TimetableSlot> {
               },
               data: {
                 "name": name,
-                "teacher": teacher,
-                "room": room,
+                "teacher": teacher.isEmpty ? "None" : teacher,
+                "room": room.isEmpty ? "None" : teacher,
               },
             ),
           );
@@ -195,8 +231,12 @@ class _TimetableSlotState extends State<TimetableSlot> {
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Text("Room: ${widget.data.room}"),
-                  Text("Teacher: ${widget.data.teacher}"),
+                  Text(
+                    "Room: ${widget.data.room.isEmpty ? 'None' : widget.data.room}",
+                  ),
+                  Text(
+                    "Teacher: ${widget.data.teacher.isEmpty ? 'None' : widget.data.teacher}",
+                  ),
                   const Divider(thickness: 2),
                   TextButton(
                     child: const Text("Change Period"),
@@ -401,19 +441,23 @@ class _TodayTimetableState extends State<TodayTimetable> {
               indent: 4,
               endIndent: 4,
             ),
-            ...[
-              for (int idx = 0; idx < timetable[today].length; idx++)
-                Padding(
-                  padding: const EdgeInsets.all(4),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      Text("Period ${idx + 1}"),
-                      Text(timetable[today][idx].name),
-                    ],
-                  ),
-                ),
-            ]
+            Expanded(
+              child: ListView(
+                children: [
+                  for (int idx = 0; idx < timetable[today].length; idx++)
+                    Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text("Period ${idx + 1}"),
+                          Text(timetable[today][idx].name),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            )
           ],
         ),
       ),
@@ -421,7 +465,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
   }
 }
 
-void gotTimetable(http.Response response) {
+Future<void> gotTimetable(http.Response response) async {
   if (response.statusCode != 200) return;
   Map<String, dynamic> data = json.decode(response.body);
   for (var i = 0; i < data["data"].length; i++) {
@@ -436,6 +480,8 @@ void gotTimetable(http.Response response) {
       }
     }
   }
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString("timetable", json.encode(data["data"]));
 }
 
 class TimetablePage extends StatefulWidget {
@@ -448,12 +494,38 @@ class TimetablePage extends StatefulWidget {
 }
 
 class _TimetablePageState extends State<TimetablePage> {
-  void getTimetable() {
-    addRequest(
-        NetworkOperation("/api/v1/timetable", "GET", (http.Response response) {
-      gotTimetable(response);
+  void getTimetable() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedTimetable = prefs.getString("timetable");
+    if (storedTimetable != null) {
+      List<dynamic> data = json.decode(storedTimetable);
+      for (var i = 0; i < data.length; i++) {
+        var today = data[i];
+        for (var j = 0; j < today.length; j++) {
+          var period = today[j];
+          if (period == null) {
+            timetable[i][j] = const TimetableData("None", "None", "None");
+          } else {
+            timetable[i][j] = TimetableData(
+              period["name"],
+              period["teacher"],
+              period["room"],
+            );
+          }
+        }
+      }
       setState(() {});
-    }));
+    }
+    addRequest(
+      NetworkOperation(
+        "/api/v1/timetable",
+        "GET",
+        (http.Response response) async {
+          await gotTimetable(response);
+          setState(() {});
+        },
+      ),
+    );
   }
 
   @override
@@ -466,11 +538,7 @@ class _TimetablePageState extends State<TimetablePage> {
         }
       }
     }
-    addRequest(
-        NetworkOperation("/api/v1/timetable", "GET", (http.Response response) {
-      gotTimetable(response);
-      setState(() {});
-    }));
+    getTimetable();
     super.initState();
   }
 

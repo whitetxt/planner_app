@@ -1,9 +1,15 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
 
 import "package:http/http.dart" as http;
 
 import "globals.dart";
+
+bool onlineMode = true;
+Timer? onlineTest;
+
+List<NetworkOperation> pending = [];
 
 class NetworkOperation {
   NetworkOperation(this.url, this.method, this.callback, {this.data});
@@ -28,13 +34,42 @@ void addRequest(NetworkOperation request) {
   while (token.isEmpty) {
     sleep(const Duration(milliseconds: 100));
   }
-  processNetworkRequest(request).then((value) => request.callback(value));
+  if (onlineMode) {
+    processNetworkRequest(request).then((value) => request.callback(value));
+  } else {
+    pending.add(request);
+    onlineTest ??= Timer.periodic(
+      const Duration(seconds: 10),
+      (timer) {
+        processNetworkRequest(NetworkOperation("$apiUrl/", "GET", (_) {})).then(
+          (http.Response resp) {
+            if (validateResponse(resp)) {
+              onlineMode = true;
+              for (var request in pending) {
+                processNetworkRequest(request).then(
+                  (value) => request.callback(value),
+                );
+                sleep(const Duration(milliseconds: 100));
+              }
+              pending = [];
+              addNotif("Back online!", error: false);
+              timer.cancel();
+              onlineTest = null;
+            }
+          },
+        );
+      },
+    );
+  }
 }
 
 bool validateResponse(http.Response response) {
   if (response.statusCode != 200) {
     if (response.statusCode == 500) {
       addNotif("Internal Server Error", error: true);
+      return false;
+    }
+    if (response.statusCode == 999) {
       return false;
     }
     addNotif(response.body, error: true);
@@ -92,15 +127,44 @@ Future<http.Response> performRequest(
   String url,
   Map<String, dynamic>? body,
 ) async {
+  if (token.isEmpty) {
+    return http.Response("", 998);
+  }
   if (body != null) {
     return await method(
       Uri.parse(url),
       body: body,
       headers: {"Authorization": token},
+    ).catchError(
+      (error, stackTrace) {
+        if (url != "$apiUrl/") {
+          addNotif(
+            "Connection Error. Running in offline mode.",
+          );
+          addNotif(
+            "If you close the app before we are back online, data will be lost.",
+          );
+          onlineMode = false;
+        }
+        return http.Response("", 999);
+      },
     );
   }
   return await method(
     Uri.parse(url),
     headers: {"Authorization": token},
+  ).catchError(
+    (error, stackTrace) {
+      if (url != "$apiUrl/") {
+        addNotif(
+          "Connection Error. Running in offline mode.",
+        );
+        addNotif(
+          "If you close the app before we are back online, data will be lost.",
+        );
+        onlineMode = false;
+      }
+      return http.Response("", 999);
+    },
   );
 }

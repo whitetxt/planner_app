@@ -288,7 +288,7 @@ async def get_subjects(user: User = Depends(get_current_user)):
 	return {"status": "success", "data": sjs}
 
 @app.post("/api/v1/subjects", tags=["Subjects"])
-async def create_subject(name: str = Form(...), teacher: str = Form(...), room: str = Form(...), user: User = Depends(get_current_user)):
+async def create_subject(name: str = Form(...), teacher: str = Form("None"), room: str = Form("None"), user: User = Depends(get_current_user)):
 	"""
 	This allows for a user to create a subject.
 

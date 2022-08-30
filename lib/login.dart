@@ -119,6 +119,9 @@ class _LoginPageState extends State<LoginPage> {
         // Internal server errors mean that JSON was not returned, therefore we have to check as otherwise an error would occur trying to parse incorrect JSON.
         return "Internal Server Error";
       }
+      if (response.statusCode == 999) {
+        return "Connection Error";
+      }
       return json.decode(response.body)["detail"];
     }
     var responseData = json.decode(response.body);
@@ -143,6 +146,9 @@ class _LoginPageState extends State<LoginPage> {
       if (response.statusCode == 500) {
         // Internal server errors mean that JSON was not returned, therefore we have to check as otherwise an error would occur trying to parse incorrect JSON.
         return "Internal Server Error";
+      }
+      if (response.statusCode == 999) {
+        return "Connection Error";
       }
       return json.decode(response.body)["detail"];
     }
