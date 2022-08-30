@@ -490,9 +490,7 @@ Future<void> gotTimetable(http.Response response) async {
 }
 
 class TimetablePage extends StatefulWidget {
-  const TimetablePage(this.token, {Key? key}) : super(key: key);
-
-  final String token;
+  const TimetablePage({Key? key}) : super(key: key);
 
   @override
   State<TimetablePage> createState() => _TimetablePageState();

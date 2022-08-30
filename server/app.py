@@ -548,5 +548,41 @@ async def delete_event(event_id: int, user: User = Depends(get_current_user)):
 		return {"status": "success"}
 	return {"status": "error", "message": "Event doesn't exist or it's not your event."}
 
+# ------------------
+# CLASS ENDPOINTS
+# ------------------
+
+@app.get("/api/v1/classes", tags=["Classes"])
+async def get_classes(user: User = Depends(get_current_user)):
+	"""
+	Gets all classes owned by the current user.
+	"""
+	classes = Classes_DB.get_classes(user.uid)
+	return {"status": "success", "data": classes}
+
+@app.get("/api/v1/classes/{class_id}", tags=["Classes"])
+async def get_class(class_id: int, user: User = Depends(get_current_user)):
+	"""
+	Gets the class specified by the URL.
+
+	Returns an error if it doesn't exist.
+	"""
+	thisClass = Classes_DB.get_class(class_id)
+	if thisClass is None:
+		return {"status": "error", "message": "Class doesn't exist."}
+	return {"status": "success", "data": thisClass}
+
+@app.post("/api/v1/classes", tags=["Classes"])
+async def create_class(name: str = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Creates a class with the parameters defined in the POST Form.
+
+	MUST be a teacher account to create the class.
+	"""
+	if user.permissions < Permissions.Teacher:
+		return {"status": "error", "message": "Only teachers can create classes."}
+	Classes_DB.create_class(user.uid, name, [])
+	return {"status": "success"}
+
 if __name__ == "__main__":
 	uvicorn.run("app:app", port=8000, debug=True, reload=True, workers=4)

@@ -137,9 +137,7 @@ Future<void> gotMarks(http.Response response) async {
 }
 
 class ExamPage extends StatefulWidget {
-  const ExamPage(this.token, {Key? key}) : super(key: key);
-
-  final String token;
+  const ExamPage({Key? key}) : super(key: key);
 
   @override
   State<ExamPage> createState() => _ExamPageState();
@@ -158,7 +156,6 @@ class _ExamPageState extends State<ExamPage> {
     if (storedMarks != null) {
       List<dynamic> data = json.decode(storedMarks);
       marks = [];
-      print(data);
       for (dynamic mark in data) {
         marks.add(
           ExamMark(

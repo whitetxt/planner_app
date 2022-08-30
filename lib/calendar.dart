@@ -206,9 +206,7 @@ void gotEvents(http.Response response, {bool add = false}) {
 }
 
 class CalendarPage extends StatefulWidget {
-  const CalendarPage(this.token, {Key? key}) : super(key: key);
-
-  final String token;
+  const CalendarPage({Key? key}) : super(key: key);
 
   @override
   State<CalendarPage> createState() => _CalendarPageState();

@@ -282,9 +282,7 @@ Future<void> gotHomework(http.Response response) async {
 }
 
 class HomeworkPage extends StatefulWidget {
-  const HomeworkPage(this.token, {Key? key}) : super(key: key);
-
-  final String token;
+  const HomeworkPage({Key? key}) : super(key: key);
 
   @override
   State<HomeworkPage> createState() => _HomeworkPageState();

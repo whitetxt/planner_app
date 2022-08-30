@@ -17,6 +17,7 @@ import "dashboard.dart";
 import "calendar.dart";
 import "exams.dart";
 import "settings.dart";
+import "classes.dart";
 
 void main() {
   Timer.periodic(
@@ -39,7 +40,6 @@ Future<User?> getMe() async {
     return null;
   }
   dynamic data = json.decode(resp.body);
-  print(resp.body);
   return User(
     data["uid"],
     data["username"],
@@ -128,11 +128,14 @@ class _MainPageState extends State<MainPage>
             physics: const BouncingScrollPhysics(),
             dragStartBehavior: DragStartBehavior.down,
             children: [
-              TimetablePage(token),
-              HomeworkPage(token),
-              Dashboard(token),
-              CalendarPage(token),
-              ExamPage(token),
+              const TimetablePage(),
+              const HomeworkPage(),
+              const Dashboard(),
+              const CalendarPage(),
+              me!.permissions == Permissions.user
+                  ? const ExamPage()
+                  : const ClassPage(), // We switch out the marks page with a page
+              // For managing classes for teacher accounts.
             ],
           ),
           //...popups
@@ -149,8 +152,8 @@ class _MainPageState extends State<MainPage>
           indicatorColor: Colors.purple.shade300,
           indicatorSize: TabBarIndicatorSize.label,
           enableFeedback: true,
-          tabs: const <Widget>[
-            Tooltip(
+          tabs: <Widget>[
+            const Tooltip(
               message: "Timetable",
               child: Tab(
                 icon: Icon(
@@ -165,7 +168,7 @@ class _MainPageState extends State<MainPage>
                 ),
               ),
             ),
-            Tooltip(
+            const Tooltip(
               message: "Homework",
               child: Tab(
                 icon: Icon(
@@ -180,7 +183,7 @@ class _MainPageState extends State<MainPage>
                 ),
               ),
             ),
-            Tooltip(
+            const Tooltip(
               message: "Dashboard",
               child: Tab(
                 icon: Icon(
@@ -195,7 +198,7 @@ class _MainPageState extends State<MainPage>
                 ),
               ),
             ),
-            Tooltip(
+            const Tooltip(
               message: "Calendar",
               child: Tab(
                 icon: Icon(
@@ -210,21 +213,37 @@ class _MainPageState extends State<MainPage>
                 ),
               ),
             ),
-            Tooltip(
-              message: "Exams",
-              child: Tab(
-                icon: Icon(
-                  Icons.check_circle_outline_outlined,
-                  semanticLabel: "Exams",
-                ),
-                child: AutoSizeText(
-                  "Exams",
-                  maxLines: 1,
-                  minFontSize: 0,
-                  maxFontSize: 16,
-                ),
-              ),
-            ),
+            me!.permissions == Permissions.user
+                ? const Tooltip(
+                    message: "Exams",
+                    child: Tab(
+                      icon: Icon(
+                        Icons.check_circle_outline_outlined,
+                        semanticLabel: "Exams",
+                      ),
+                      child: AutoSizeText(
+                        "Exams",
+                        maxLines: 1,
+                        minFontSize: 0,
+                        maxFontSize: 16,
+                      ),
+                    ),
+                  )
+                : const Tooltip(
+                    message: "Classes",
+                    child: Tab(
+                      icon: Icon(
+                        Icons.school,
+                        semanticLabel: "Classes",
+                      ),
+                      child: AutoSizeText(
+                        "Classes",
+                        maxLines: 1,
+                        minFontSize: 0,
+                        maxFontSize: 16,
+                      ),
+                    ),
+                  ),
           ],
         ),
       ),

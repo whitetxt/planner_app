@@ -182,7 +182,6 @@ class _LoginPageState extends State<LoginPage> {
             NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
         if (!validateResponse(resp)) return;
         dynamic data = json.decode(resp.body);
-        print(resp.body);
         me = User(
           data["uid"],
           data["username"],
@@ -232,7 +231,6 @@ class _LoginPageState extends State<LoginPage> {
             NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
         if (!validateResponse(resp)) return;
         dynamic data = json.decode(resp.body);
-        print(resp.body);
         me = User(
           data["uid"],
           data["username"],
