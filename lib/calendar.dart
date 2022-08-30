@@ -81,6 +81,27 @@ class _EventsMiniState extends State<EventsMini> {
       upcoming = true;
       break;
     }
+    if (!onlineMode) {
+      return SizedBox(
+        width: 15 * MediaQuery.of(context).size.width / 16,
+        height: MediaQuery.of(context).size.height / 4,
+        child: Card(
+          elevation: 4,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const <Widget>[
+              Text(
+                "Offline :(",
+                style: TextStyle(
+                  fontSize: 32,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     if (!upcoming) {
       // If there arent any events in the future.
       return SizedBox(
@@ -211,6 +232,7 @@ class _CalendarPageState extends State<CalendarPage> {
         "/api/v1/events",
         "GET",
         (http.Response response) {
+          setState(() {});
           gotEvents(response);
           addRequest(
             NetworkOperation(
@@ -257,6 +279,37 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (!onlineMode) {
+      return Scaffold(
+        appBar: PLAppBar("Calendar", context),
+        backgroundColor: Theme.of(context).backgroundColor,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const <Widget>[
+              AutoSizeText(
+                "Unfortunately, you are offline.",
+                style: TextStyle(
+                  fontSize: 24,
+                ),
+              ),
+              AutoSizeText(
+                "Events cannot be managed without an internet connection.",
+                style: TextStyle(
+                  fontSize: 24,
+                ),
+              ),
+              AutoSizeText(
+                "Please try again later.",
+                style: TextStyle(
+                  fontSize: 24,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
     return Scaffold(
       appBar: PLAppBar("Calendar", context),
       backgroundColor: Theme.of(context).backgroundColor,

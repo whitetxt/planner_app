@@ -51,9 +51,9 @@ void addRequest(NetworkOperation request) {
                 // it will be under quite a lot of load from other users and we don't want
                 // to overload it.
 
-                // This queues up all of the requests for once every 500ms.
+                // This queues up all of the requests for once every 250ms (4 per second).
                 Future.delayed(
-                  Duration(milliseconds: pending.indexOf(request) * 500),
+                  Duration(milliseconds: pending.indexOf(request) * 250),
                   () => processNetworkRequest(request).then(
                     (value) => request.callback(value),
                   ),
