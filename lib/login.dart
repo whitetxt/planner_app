@@ -7,6 +7,7 @@ import 'package:crypto/crypto.dart';
 import "package:flutter/material.dart";
 
 import "globals.dart";
+import 'network.dart';
 
 class MainPageArgs {
   final String token;
@@ -177,6 +178,17 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).clearSnackBars();
       if (reason.startsWith("Bearer")) {
         token = reason;
+        http.Response resp = await processNetworkRequest(
+            NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
+        if (!validateResponse(resp)) return;
+        dynamic data = json.decode(resp.body);
+        print(resp.body);
+        me = User(
+          data["uid"],
+          data["username"],
+          DateTime.fromMillisecondsSinceEpoch(data["created_at"]),
+          Permissions.values[data["permissions"]],
+        );
         Navigator.pushNamedAndRemoveUntil(
           context,
           "/dash",
@@ -216,6 +228,17 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).clearSnackBars();
       if (reason.startsWith("Bearer")) {
         token = reason;
+        http.Response resp = await processNetworkRequest(
+            NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
+        if (!validateResponse(resp)) return;
+        dynamic data = json.decode(resp.body);
+        print(resp.body);
+        me = User(
+          data["uid"],
+          data["username"],
+          DateTime.fromMillisecondsSinceEpoch(data["created_at"]),
+          Permissions.values[data["permissions"]],
+        );
         Navigator.pushNamedAndRemoveUntil(context, "/dash", (_) => false);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

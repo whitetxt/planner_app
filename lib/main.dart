@@ -1,7 +1,12 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:planner_app/network.dart';
+import "package:http/http.dart" as http;
 
 import "globals.dart";
 
@@ -14,8 +19,33 @@ import "exams.dart";
 import "settings.dart";
 
 void main() {
-  // This tells flutter to start the app and render stuff.
+  Timer.periodic(
+    const Duration(seconds: 5),
+    (timer) {
+      if (me != null || me!.uid != 0) {
+        timer.cancel();
+      }
+      getMe().then((value) => me = value);
+    },
+  );
+  // This tells Flutter to start the app and render stuff.
   runApp(const PlannerApp());
+}
+
+Future<User?> getMe() async {
+  http.Response resp = await processNetworkRequest(
+      NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
+  if (!validateResponse(resp)) {
+    return null;
+  }
+  dynamic data = json.decode(resp.body);
+  print(resp.body);
+  return User(
+    data["uid"],
+    data["username"],
+    DateTime.fromMillisecondsSinceEpoch(data["created_at"]),
+    Permissions.values[data["permissions"]],
+  );
 }
 
 class PlannerApp extends StatelessWidget {

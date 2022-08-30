@@ -321,8 +321,7 @@ class EventDB(DB):
 		result = self._get("*", "events", where="event_id = ?", args=(event_id, ))
 		print(result)
 		if result and (result[0][5] is None or result[0][1] == user_id):
-			result = result[0]
-			return self.convert_result_to_event(result)
+			return self.convert_result_to_event(result[0])
 		else:
 			return None
 	

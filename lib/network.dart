@@ -83,7 +83,7 @@ bool validateResponse(http.Response response) {
       addNotif("Internal Server Error", error: true);
       return false;
     }
-    if (response.statusCode == 999) {
+    if (response.statusCode > 900) {
       return false;
     }
     addNotif(response.body, error: true);

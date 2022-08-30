@@ -94,8 +94,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
 # AUTHENTICATION ENDPOINTS
 # ------------------
 @app.post("/api/v1/auth/register", tags=["Authentication"])
-@limiter.limit("2/minute")
-async def register(request: Request, username: str = Form(...), password: str = Form(...), registration_code: str = Form(None)):
+async def register(username: str = Form(...), password: str = Form(...), registration_code: str = Form(None)):
 	"""
 	Registers a user with a username and password.
 
@@ -139,8 +138,7 @@ async def register(request: Request, username: str = Form(...), password: str = 
 	return {"access_token": token, "token_type": "Bearer"}
 
 @app.post("/api/v1/auth/login", tags=["Authentication"])
-@limiter.limit("2/minute")
-async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends()):
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 	"""
 	Logs a user in with their username and password.
 	"""
@@ -166,8 +164,7 @@ async def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends
 	return {"access_token": token, "token_type": "Bearer"}
 
 @app.get("/api/v1/auth/logout", tags=["Authentication"])
-@limiter.limit("2/minute")
-async def logout(request: Request, current_user: User = Depends(get_current_user)):
+async def logout(current_user: User = Depends(get_current_user)):
 	"""
 	Invalidates the logged in user's token, effectively logging them out.
 	"""
@@ -525,5 +522,31 @@ async def create_event(name: str = Form(...), time: int = Form(...), description
 	Events_DB.create_event(user.uid, name, time, description, private)
 	return {"status": "success"}
 
+@app.get("/api/v1/events/{event_id}", tags=["Events"])
+async def get_event(event_id: int, user: User = Depends(get_current_user)):
+	"""
+	Fetches the event with the specified ID.
+	"""
+	event = Events_DB.get_event(event_id, user.uid)
+	if not event:
+		return {"status": "error", "message": "Event doesn't exist."}
+	return {"status": "success", "data": event}
+
+@app.delete("/api/v1/events/{event_id}", tags=["Events"])
+async def delete_event(event_id: int, user: User = Depends(get_current_user)):
+	"""
+	Deletes the event with the specified ID.
+	
+	This event must be owned by the current user.
+	"""
+	event = Events_DB.get_event(event_id, user.uid)
+	if not event:
+		return {"status": "error", "message": "Event doesn't exist."}
+	if event.user_id != user.uid:
+		return {"status": "error", "message": "Not your event."}
+	if Events_DB.delete_event(event_id, user.uid):
+		return {"status": "success"}
+	return {"status": "error", "message": "Event doesn't exist or it's not your event."}
+
 if __name__ == "__main__":
-	uvicorn.run("app:app", port=8000, debug=True, reload=True)
+	uvicorn.run("app:app", port=8000, debug=True, reload=True, workers=4)

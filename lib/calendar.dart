@@ -232,7 +232,6 @@ class _CalendarPageState extends State<CalendarPage> {
         "/api/v1/events",
         "GET",
         (http.Response response) {
-          setState(() {});
           gotEvents(response);
           addRequest(
             NetworkOperation(
@@ -242,8 +241,9 @@ class _CalendarPageState extends State<CalendarPage> {
                 gotEvents(response, add: true);
                 Navigator.of(context).popUntil(ModalRoute.withName(
                     "/dash")); // This removes any modals or popup dialogs that are active at the current time.
-                setState(
-                    () {}); // This then just forces the page to rebuild and redraw itself.
+                setState(() {
+                  _selectedEvents = events.get(time);
+                }); // This then just forces the page to rebuild and redraw itself.
               },
             ),
           );
@@ -382,10 +382,10 @@ class _CalendarPageState extends State<CalendarPage> {
                                   final DateTime? selected =
                                       await showDatePicker(
                                     context: context,
-                                    initialDate: DateTime.now(),
+                                    initialDate: time,
                                     firstDate: DateTime.now(),
                                     lastDate: DateTime.now().add(
-                                      const Duration(days: 9000),
+                                      const Duration(days: 365),
                                     ),
                                   );
                                   final TimeOfDay? selectedTime =
@@ -521,6 +521,30 @@ class _CalendarPageState extends State<CalendarPage> {
                             : event.description!,
                       ),
                     ),
+                    if (event.userId == me!.uid)
+                      ListTile(
+                        title: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            primary: Colors.red.shade400,
+                          ),
+                          child: const Text("Delete"),
+                          onPressed: () {
+                            addRequest(
+                              NetworkOperation(
+                                "/api/v1/events/${event.eventId}",
+                                "DELETE",
+                                (http.Response resp) {
+                                  if (!validateResponse(resp)) return;
+                                  refreshCalendar();
+                                  setState(() {
+                                    _selectedEvents = events.get(time);
+                                  });
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                   ],
                 ),
               ),
