@@ -128,8 +128,8 @@ class _LoginPageState extends State<LoginPage> {
     var responseData = json.decode(response.body);
 
     // Combines the token and type together into a single string we can send with following requests.
-    var token = responseData["access_token"];
-    var tokenType = responseData["token_type"];
+    var token = responseData["data"]["access_token"];
+    var tokenType = responseData["data"]["token_type"];
     return "$tokenType $token";
   }
 
@@ -156,8 +156,8 @@ class _LoginPageState extends State<LoginPage> {
     var responseData = json.decode(response.body);
 
     // Combines the token and type together into a single string we can send with following requests.
-    var token = responseData["access_token"];
-    var tokenType = responseData["token_type"];
+    var token = responseData["data"]["access_token"];
+    var tokenType = responseData["data"]["token_type"];
     return "$tokenType $token";
   }
 
@@ -181,7 +181,7 @@ class _LoginPageState extends State<LoginPage> {
         http.Response resp = await processNetworkRequest(
             NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
         if (!validateResponse(resp)) return;
-        dynamic data = json.decode(resp.body);
+        dynamic data = json.decode(resp.body)["data"];
         me = User(
           data["uid"],
           data["username"],
@@ -230,7 +230,7 @@ class _LoginPageState extends State<LoginPage> {
         http.Response resp = await processNetworkRequest(
             NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
         if (!validateResponse(resp)) return;
-        dynamic data = json.decode(resp.body);
+        dynamic data = json.decode(resp.body)["data"];
         me = User(
           data["uid"],
           data["username"],

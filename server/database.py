@@ -289,7 +289,7 @@ class ClassDB(DB):
 	
 	def get_class(self, class_id: int) -> Class:
 		result = self._get("*", "classes", where="class_id = ?", args=(class_id, ))
-		return self.convert_result_to_class(result) if result else None
+		return self.convert_result_to_class(result[0]) if result else None
 
 	def get_classes(self, teacher_id: int) -> List[Class]:
 		results = self._get("*", "classes", where="teacher_id = ?", args=(teacher_id,))

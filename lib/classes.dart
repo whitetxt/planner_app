@@ -42,15 +42,6 @@ class AppClass {
 
 List<AppClass> classes = [];
 
-class ClassWidget extends StatefulWidget {
-  const ClassWidget(this.data, {Key? key}) : super(key: key);
-
-  final AppClass data;
-
-  @override
-  State<ClassWidget> createState() => _ClassWidgetState();
-}
-
 void gotClasses(http.Response response) {
   if (!validateResponse(response)) return;
   Map<String, dynamic> data = json.decode(response.body);
@@ -60,68 +51,153 @@ void gotClasses(http.Response response) {
   }
 }
 
-class _ClassWidgetState extends State<ClassWidget> {
-  void load() {
-    // This refreshes the homework page, grabbing new data from the API.
-    addRequest(
-      NetworkOperation(
-        "/api/v1/classes",
-        "GET",
-        (http.Response response) {
-          gotClasses(response);
-          setState(
-              () {}); // This then just forces the page to rebuild and redraw itself.
-        },
-      ),
-    );
-  }
+class ClassWidget extends StatefulWidget {
+  const ClassWidget(this.data, this.reset, {Key? key}) : super(key: key);
+
+  final AppClass data;
+  final Function reset;
 
   @override
-  void initState() {
-    super.initState();
-    load();
-  }
+  State<ClassWidget> createState() => _ClassWidgetState();
+}
 
+class _ClassWidgetState extends State<ClassWidget> {
+  User? selectedUser;
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      title: const Text("Class Name Here"),
+      title: Text(widget.data.className),
       children: <Widget>[
-        Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: <Widget>[
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            Column(
+              mainAxisSize: MainAxisSize.max,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                Column(
-                  children: <Widget>[
-                    const AutoSizeText(
-                      "Students",
-                      style: TextStyle(
-                        fontSize: 24,
-                      ),
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.add),
-                      label: const Text("Add Student"),
-                      onPressed: () {},
-                    ),
-                  ],
+                const AutoSizeText(
+                  "Students",
+                  style: TextStyle(
+                    fontSize: 24,
+                  ),
                 ),
-                Column(
-                  children: <Widget>[
-                    const AutoSizeText(
-                      "Homework",
-                      style: TextStyle(
-                        fontSize: 24,
-                      ),
-                    ),
-                    TextButton.icon(
-                      icon: const Icon(Icons.add),
-                      label: const Text("Create Homework"),
-                      onPressed: () {},
-                    ),
-                  ],
+                TextButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text("Add Student"),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Theme.of(context).dividerColor,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            child: const Text(
+                              "Create a class",
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              Autocomplete<User>(
+                                optionsBuilder:
+                                    (TextEditingValue textEditingValue) {
+                                  if (textEditingValue.text.isEmpty) {
+                                    return const Iterable<User>.empty();
+                                  }
+                                  return processNetworkRequest(
+                                    NetworkOperation(
+                                      "$apiUrl/api/v1/users/search/${textEditingValue.text}",
+                                      "GET",
+                                      (_) {},
+                                    ),
+                                  ).then(
+                                    (http.Response resp) {
+                                      if (!validateResponse(resp)) {
+                                        return const Iterable<User>.empty();
+                                      }
+                                      Map<String, dynamic> data =
+                                          json.decode(resp.body);
+                                      List<User> users = [];
+                                      for (Map<String, dynamic> user
+                                          in data["data"]) {
+                                        users.add(User.fromJson(user));
+                                      }
+                                      List<User> finalUsers = [];
+                                      for (User user in users) {
+                                        // Filter out any users that are already in the class.
+                                        if (!widget.data.students.any(
+                                            (User element) =>
+                                                element.uid == user.uid)) {
+                                          finalUsers.add(user);
+                                        }
+                                      }
+                                      return finalUsers;
+                                    },
+                                  );
+                                },
+                                onSelected: (User option) =>
+                                    selectedUser = option,
+                                displayStringForOption: (User option) =>
+                                    option.name,
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8),
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    if (selectedUser == null) {
+                                      return;
+                                    }
+                                    addRequest(
+                                      NetworkOperation(
+                                        "/api/v1/classes/${widget.data.classId}",
+                                        "PATCH",
+                                        (_) {
+                                          widget.reset();
+                                        },
+                                        data: {
+                                          "student_id":
+                                              selectedUser!.uid.toString(),
+                                        },
+                                      ),
+                                    );
+                                  },
+                                  child: const Text('Add Student'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                ...[
+                  for (User student in widget.data.students) Text(student.name)
+                ]
+              ],
+            ),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              children: <Widget>[
+                const AutoSizeText(
+                  "Homework",
+                  style: TextStyle(
+                    fontSize: 24,
+                  ),
+                ),
+                TextButton.icon(
+                  icon: const Icon(Icons.add),
+                  label: const Text("Create Homework"),
+                  onPressed: () {},
                 ),
               ],
             ),
@@ -298,7 +374,14 @@ class _ClassPageState extends State<ClassPage> {
             ],
           ),
           ...[
-            for (AppClass cls in classes) ClassWidget(cls),
+            for (AppClass cls in classes)
+              ClassWidget(
+                cls,
+                () {
+                  refreshClasses();
+                  Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+                },
+              ),
           ]
         ],
       ),

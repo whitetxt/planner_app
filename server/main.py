@@ -67,7 +67,7 @@ async def online_check():
 	"""
 	Returns if the API is online.
 	"""
-	return {"status": "online"}
+	return {"status": "success"}
 
 async def get_current_user(token: str = Depends(oauth2_scheme)):
 	"""
@@ -129,7 +129,7 @@ async def register(username: str = Form(...), password: str = Form(...), registr
 
 	# Gives the user their token.
 	# This means they are now logged in as this user.
-	return {"access_token": token, "token_type": "Bearer"}
+	return {"status": "success", "data": {"access_token": token, "token_type": "Bearer"}}
 
 @app.post("/api/v1/auth/login", tags=["Authentication"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -155,7 +155,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 	Users_DB.update_user(user)
 
-	return {"access_token": token, "token_type": "Bearer"}
+	return {"status": "success", "data": {"access_token": token, "token_type": "Bearer"}}
 
 @app.get("/api/v1/auth/logout", tags=["Authentication"])
 async def logout(current_user: User = Depends(get_current_user)):
@@ -169,6 +169,20 @@ async def logout(current_user: User = Depends(get_current_user)):
 # ------------------
 # USER ENDPOINTS
 # ------------------
+@app.get("/api/v1/users/search/{name}", tags=["Users"])
+async def get_users(name: str, current_user: User = Depends(get_current_user)):
+	"""
+	Returns users with usernames similar to the search.
+	
+	Account **MUST** be a teacher account.
+	"""
+	if (current_user.permissions < Permissions.Teacher):
+		return {"status": "error", "message": "Account must be a teacher account"}
+	users = Users_DB.get_users()
+	users.remove(current_user)
+	final_users = [user for user in users if user.username.count(name) != 0]
+	return {"status": "success", "data": [user.remove("session", "password", "salt") for user in final_users]}
+
 @app.get("/api/v1/users/@me", tags=["Users"])
 async def get_me(current_user: User = Depends(get_current_user)):
 	"""
@@ -176,7 +190,7 @@ async def get_me(current_user: User = Depends(get_current_user)):
 
 	This also removes sensitive pieces of information as to protect the user from attacks.
 	"""
-	return current_user.remove("session", "password", "salt")
+	return {"status": "success", "data": current_user.remove("session", "password", "salt")}
 
 @app.get("/api/v1/users/{user_id}", tags=["Users"])
 async def get_user(user_id: int, user: User = Depends(get_current_user)):
@@ -189,7 +203,7 @@ async def get_user(user_id: int, user: User = Depends(get_current_user)):
 	"""
 	user = Users_DB.get_user_from_uid(user_id)
 	if user:
-		return user.remove("session", "password", "salt")
+		return {"status": "success", "data": user.remove("session", "password", "salt")}
 	raise HTTPException(status_code=404, detail="User not found")
 
 @app.post("/api/v1/users/reset", tags=["Users"])
@@ -554,7 +568,7 @@ async def get_classes(user: User = Depends(get_current_user)):
 		students = User_Class_DB.get_students_in_class(thisClass.class_id)
 		classes[idx].students = []
 		for student in students:
-			classes[idx].students.append(Users_DB.get_user_from_uid(student))
+			classes[idx].students.append(Users_DB.get_user_from_uid(student).remove("password", "salt", "session"))
 		classes[idx].homework = Homework_DB.get_homework_for_class(thisClass.class_id)
 	return {"status": "success", "data": classes}
 
@@ -568,6 +582,10 @@ async def get_class(class_id: int, user: User = Depends(get_current_user)):
 	thisClass = Classes_DB.get_class(class_id)
 	if thisClass is None:
 		return {"status": "error", "message": "Class doesn't exist."}
+	students = User_Class_DB.get_students_in_class(thisClass.class_id)
+	thisClass.students = [Users_DB.get_user_from_uid(student).remove("password", "salt", "session") for student in students]
+	homework = Homework_DB.get_homework_for_class(thisClass.class_id)
+	thisClass.homework = homework
 	return {"status": "success", "data": thisClass}
 
 @app.post("/api/v1/classes", tags=["Classes"])

@@ -53,11 +53,13 @@ class HomeworkWidget extends StatelessWidget {
       elevation: 4,
       color: data.completed
           ? Colors.green.shade200
-          : data.timeDue.difference(DateTime.now()).inDays < 3
-              ? Colors.redAccent.shade100
-              : data.timeDue.difference(DateTime.now()).inDays < 7
-                  ? Colors.orange.shade200
-                  : Colors.white,
+          : data.timeDue.isBefore(DateTime.now())
+              ? Colors.red
+              : data.timeDue.difference(DateTime.now()).inDays < 3
+                  ? Colors.redAccent.shade100
+                  : data.timeDue.difference(DateTime.now()).inDays < 7
+                      ? Colors.orange.shade200
+                      : Colors.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: IntrinsicHeight(
