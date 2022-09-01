@@ -144,7 +144,35 @@ class _ClassPageState extends State<ClassPage> {
 
   String name = "";
 
-  void createClass() {}
+  void refreshClasses() {
+    // This refreshes the class page, grabbing new data from the API.
+    addRequest(
+      NetworkOperation(
+        "/api/v1/classes",
+        "GET",
+        (http.Response response) {
+          gotClasses(response);
+          setState(
+              () {}); // This then just forces the page to rebuild and redraw itself.
+        },
+      ),
+    );
+  }
+
+  void createClass() {
+    addRequest(
+      NetworkOperation(
+        "/api/v1/classes",
+        "POST",
+        (http.Response response) {
+          refreshClasses();
+        },
+        data: {
+          "name": name,
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
