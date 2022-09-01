@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
@@ -57,7 +58,9 @@ void createOnlineTest() {
   onlineTest ??= Timer.periodic(
     const Duration(seconds: 10),
     (timer) {
-      processNetworkRequest(NetworkOperation("$apiUrl/", "GET", (_) {})).then(
+      processNetworkRequest(
+              NetworkOperation("$apiUrl/onlineCheck", "GET", (_) {}))
+          .then(
         (http.Response resp) {
           if (validateResponse(resp)) {
             onlineMode = true;
@@ -94,13 +97,18 @@ void createOnlineTest() {
 bool validateResponse(http.Response response) {
   if (response.statusCode != 200) {
     if (response.statusCode == 500) {
-      addNotif("Internal Server Error", error: true);
+      addNotif("Internal Server Error");
       return false;
     }
     if (response.statusCode > 900) {
       return false;
     }
-    addNotif(response.body, error: true);
+    addNotif(response.body);
+    return false;
+  }
+  Map<String, dynamic> data = json.decode(response.body);
+  if (data["status"] != "success") {
+    addNotif(data["message"]);
     return false;
   }
   return true;
@@ -165,7 +173,7 @@ Future<http.Response> performRequest(
       headers: {"Authorization": token},
     ).catchError(
       (error, stackTrace) {
-        if (url != "$apiUrl/") {
+        if (url != "$apiUrl/onlineCheck") {
           ScaffoldMessenger.of(
             scaffoldKey.currentContext!,
           ).clearSnackBars();
@@ -186,7 +194,7 @@ Future<http.Response> performRequest(
     headers: {"Authorization": token},
   ).catchError(
     (error, stackTrace) {
-      if (url != "$apiUrl/") {
+      if (url != "$apiUrl/onlineCheck") {
         ScaffoldMessenger.of(
           scaffoldKey.currentContext!,
         ).clearSnackBars();

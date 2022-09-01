@@ -62,10 +62,10 @@ oauth2_scheme = OAuth2PasswordBearer(
 	tokenUrl="/api/v1/auth/login"
 )
 
-@app.get("/")
-async def root():
+@app.get("/onlineCheck")
+async def online_check():
 	"""
-	Returns if the API is online. Can be used as a simple check I guess?
+	Returns if the API is online.
 	"""
 	return {"status": "online"}
 
@@ -579,7 +579,7 @@ async def create_class(name: str = Form(...), user: User = Depends(get_current_u
 	"""
 	if user.permissions < Permissions.Teacher:
 		return {"status": "error", "message": "Only teachers can create classes."}
-	Classes_DB.create_class(user.uid, name, [])
+	Classes_DB.create_class(user.uid, name,)
 	return {"status": "success"}
 
 @app.patch("/api/v1/classes/{class_id}", tags=["Classes"])

@@ -279,7 +279,6 @@ class ClassDB(DB):
 	"class_id"	INTEGER NOT NULL,
 	"teacher_id"	INTEGER NOT NULL,
 	"class_name"	TEXT NOT NULL,
-	"students"	TEXT,
 	FOREIGN KEY("teacher_id") REFERENCES "users"("uid"),
 	PRIMARY KEY("class_id" AUTOINCREMENT)
 )"""
@@ -292,13 +291,12 @@ class ClassDB(DB):
 		result = self._get("*", "classes", where="class_id = ?", args=(class_id, ))
 		return self.convert_result_to_class(result) if result else None
 
-	
 	def get_classes(self, teacher_id: int) -> List[Class]:
 		results = self._get("*", "classes", where="teacher_id = ?", args=(teacher_id,))
 		return [self.convert_result_to_class(result) for result in results]
 
-	def create_class(self, teacher_id: int, name: str, students: List[int]) -> None:
-		self._insert("classes", "teacher_id, class_name, students", (teacher_id, name, json.dumps(students)))
+	def create_class(self, teacher_id: int, name: str) -> None:
+		self._insert("classes", "teacher_id, class_name", (teacher_id, name))
 
 	def delete_class(self, class_id: int) -> None:
 		self._delete("classes", "class_id = ?", (class_id, ))

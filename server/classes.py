@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 class Permissions(IntEnum):
-	Student = 1
-	Teacher = 2
+	Student = 0
+	Teacher = 1
 
 class OAuthToken(BaseModel):
 	access_token: str

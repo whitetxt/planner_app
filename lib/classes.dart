@@ -175,6 +175,12 @@ class _ClassPageState extends State<ClassPage> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    refreshClasses();
+  }
+
+  @override
   Widget build(BuildContext context) {
     if (!onlineMode) {
       return Scaffold(
