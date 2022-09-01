@@ -1,4 +1,4 @@
-package org.duckdns.evieuwu.planner_app
+package org.duckdns.evieuwu.planner-app
 
 import io.flutter.embedding.android.FlutterActivity
 
