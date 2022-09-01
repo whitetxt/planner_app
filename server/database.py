@@ -336,6 +336,7 @@ class HomeworkDB(DB):
 	"class_id"	INTEGER DEFAULT NULL,
 	"user_id"	INTEGER DEFAULT NULL,
 	"due_date"	INTEGER NOT NULL,
+	"decription" TEXT,
 	"completed"	INTEGER,
 	PRIMARY KEY("homework_id" AUTOINCREMENT),
 	FOREIGN KEY("user_id") REFERENCES "users"("uid"),
@@ -344,7 +345,7 @@ class HomeworkDB(DB):
 		self._create_raw(DDL)
 
 	def convert_result_to_homework(self, result) -> Homework:
-		return Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] != None)
+		return Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] != None, description=result[6])
 
 	def get_homework_for_user(self, user_id: int) -> List[Homework]:
 		results = self._get("*", "homework", where="user_id = ?", order="due_date ASC", args=(user_id,))
@@ -368,8 +369,8 @@ class HomeworkDB(DB):
 		result = result[0]
 		return self.convert_result_to_homework(result)
 
-	def create_homework(self, user_id: int, name: str, due_date: int) -> None:
-		self._insert("homework", "name, user_id, due_date, completed", (name, user_id, due_date, None))
+	def create_homework(self, user_id: int, name: str, due_date: int, description: str) -> None:
+		self._insert("homework", "name, user_id, due_date, completed, description", (name, user_id, due_date, None, description))
 	
 	def create_homework_for_class(self, user_id: int, class_id: int, name: str, due_date: int) -> None:
 		self._insert("homework", "name, class_id, user_id, due_date, completed", (name, class_id, user_id, due_date, None))

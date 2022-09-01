@@ -44,6 +44,7 @@ class Homework(BaseModel):
 	class_id: int = None
 	user_id: int = None
 	due_date: int
+	description: str = None
 	completed: bool
 
 class Event(BaseModel):

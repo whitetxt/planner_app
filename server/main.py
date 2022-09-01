@@ -401,11 +401,11 @@ async def get_homework(user: User = Depends(get_current_user)):
 	return {"status": "success", "data": result}
 
 @app.post("/api/v1/homework", tags=["Homework"])
-async def create_homework(name: str = Form(...), due_date: int = Form(...), user: User = Depends(get_current_user)):
+async def create_homework(name: str = Form(...), due_date: int = Form(...), description: str = Form(""), user: User = Depends(get_current_user)):
 	"""
 	Creates a piece of homework for the current user.
 	"""
-	Homework_DB.create_homework(user.uid, name, due_date)
+	Homework_DB.create_homework(user.uid, name, due_date, description)
 	return {"status": "success"}
 
 @app.patch("/api/v1/homework", tags=["Homework"])

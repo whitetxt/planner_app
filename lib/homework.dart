@@ -12,12 +12,20 @@ import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the scre
 List<HomeworkData> homework = [];
 
 class HomeworkData {
-  HomeworkData(this.id, this.timeDue, this.name, this.classId, this.completed);
+  HomeworkData(
+    this.id,
+    this.timeDue,
+    this.name,
+    this.classId,
+    this.description,
+    this.completed,
+  );
 
   final int id;
   final DateTime timeDue;
   final String name;
-  final String? classId;
+  final int? classId;
+  final String? description;
   bool completed;
 
   factory HomeworkData.fromJson(dynamic jsonData) {
@@ -26,6 +34,7 @@ class HomeworkData {
       DateTime.fromMillisecondsSinceEpoch(jsonData["due_date"]),
       jsonData["name"],
       jsonData["class_id"],
+      jsonData["description"],
       jsonData["completed"],
     );
   }
@@ -36,6 +45,7 @@ class HomeworkData {
       "due_date": timeDue.millisecondsSinceEpoch,
       "name": name,
       "class_id": classId,
+      "description": description,
       "completed": completed,
     };
   }
@@ -62,8 +72,8 @@ class HomeworkWidget extends StatelessWidget {
                       : Colors.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
-        child: IntrinsicHeight(
-          child: Flex(
+        child: ExpansionTile(
+          title: Flex(
             direction: Axis.horizontal,
             children: <Widget>[
               Expanded(
@@ -78,7 +88,6 @@ class HomeworkWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              const VerticalDivider(width: 1),
               Expanded(
                 flex: 4,
                 child: Text(
@@ -89,58 +98,68 @@ class HomeworkWidget extends StatelessWidget {
                   ),
                 ),
               ),
-              const VerticalDivider(width: 1),
-              Expanded(
-                flex: 1,
-                child: PopupMenuButton(
-                  icon: const Icon(
-                    Icons.more_horiz,
-                    color: Colors.black,
-                  ),
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      onTap: () {},
-                      child: const Text(
-                        "More Info",
-                        style: TextStyle(
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                    PopupMenuItem(
-                      onTap: () async {
-                        data.completed = !data.completed;
-                        final prefs = await SharedPreferences.getInstance();
-                        await prefs.setString(
-                          "homework",
-                          json.encode(
-                            [for (HomeworkData hw in homework) hw.toJson()],
-                          ),
-                        );
-                        reset();
-                        addRequest(
-                          NetworkOperation(
-                            "/api/v1/homework",
-                            "PATCH",
-                            (http.Response response) {
-                              reset();
-                            },
-                            data: {"id": data.id.toString()},
-                          ),
-                        );
-                      },
-                      child: Text(
-                        data.completed ? "Undo Completion" : "Complete",
-                        style: const TextStyle(
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
+          children: [
+            Text(
+              data.timeDue.isBefore(DateTime.now())
+                  ? "Past Due!"
+                  : data.timeDue.difference(DateTime.now()) >=
+                          const Duration(days: 1, hours: 12)
+                      ? "Due in ${data.timeDue.difference(DateTime.now()).inDays} days and ${data.timeDue.difference(DateTime.now()).inHours - data.timeDue.difference(DateTime.now()).inDays * 24} hours"
+                      : data.timeDue.difference(DateTime.now()) >=
+                              const Duration(hours: 12)
+                          ? "Due in ${data.timeDue.difference(DateTime.now()).inHours} hours"
+                          : "Due in ${data.timeDue.difference(DateTime.now()).toString().substring(0, 4)}",
+              style: TextStyle(
+                fontWeight: data.timeDue.isBefore(DateTime.now())
+                    ? FontWeight.w900
+                    : FontWeight.normal,
+                fontSize: data.timeDue.isBefore(DateTime.now()) ? 24 : 16,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                data.description != null && data.description!.isNotEmpty
+                    ? data.description!
+                    : "No Description",
+                textAlign: TextAlign.center,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: ElevatedButton(
+                child: Text(
+                  data.completed ? "Mark as Incomplete" : "Mark as Complete",
+                  style: const TextStyle(
+                    fontSize: 14,
+                  ),
+                ),
+                onPressed: () async {
+                  data.completed = !data.completed;
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setString(
+                    "homework",
+                    json.encode(
+                      [for (HomeworkData hw in homework) hw.toJson()],
+                    ),
+                  );
+                  reset();
+                  addRequest(
+                    NetworkOperation(
+                      "/api/v1/homework",
+                      "PATCH",
+                      (http.Response response) {
+                        reset();
+                      },
+                      data: {"id": data.id.toString()},
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -229,12 +248,10 @@ class _HomeworkMiniState extends State<HomeworkMini> {
                 children: [
                   for (int idx = 0;
                       idx <
-                              homework
-                                  .where((element) => !element
-                                      .completed) // This filters the list of homework to only ones that have not been completed.
-                                  .length && // This is done as the dashboard should only display things the user needs to know.
-
-                          idx < 5;
+                          homework
+                              .where((element) => !element
+                                  .completed) // This filters the list of homework to only ones that have not been completed.
+                              .length;
                       idx++)
                     Padding(
                       padding: const EdgeInsets.symmetric(
@@ -297,6 +314,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   String name = "";
   DateTime date = DateTime.now();
   bool showCompleted = false;
+  String description = "";
 
   Future<void> refreshHomework() async {
     final prefs = await SharedPreferences.getInstance();
@@ -338,9 +356,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
       for (dynamic hw in data) {
         homework.add(HomeworkData.fromJson(hw));
       }
-      homework.add(HomeworkData(0, date, name, "", false));
-      await prefs.setString("homework",
-          json.encode([for (HomeworkData hw in homework) hw.toJson()]));
+      homework.add(HomeworkData(0, date, name, 0, "", false));
+      await prefs.setString(
+        "homework",
+        json.encode([for (HomeworkData hw in homework) hw.toJson()]),
+      );
       removePopups();
       setState(() {});
     }
@@ -354,7 +374,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
         },
         data: {
           "name": name,
-          "due_date": date.millisecondsSinceEpoch.toString()
+          "due_date": date.millisecondsSinceEpoch.toString(),
+          "description": description,
         },
       ),
     );
@@ -458,14 +479,30 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                       ),
                                     ),
                                   ),
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      // Validate the form (returns true if all is ok)
-                                      if (_formKey.currentState!.validate()) {
-                                        addHomework();
-                                      }
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Description (Optional)",
+                                    ),
+                                    maxLines: 5,
+                                    keyboardType: TextInputType.multiline,
+                                    onChanged: (value) {
+                                      description = value;
                                     },
-                                    child: const Text('Submit'),
+                                    onFieldSubmitted: (String _) {
+                                      addHomework();
+                                    },
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.only(top: 8),
+                                    child: ElevatedButton(
+                                      onPressed: () {
+                                        // Validate the form (returns true if all is ok)
+                                        if (_formKey.currentState!.validate()) {
+                                          addHomework();
+                                        }
+                                      },
+                                      child: const Text('Submit'),
+                                    ),
                                   ),
                                 ],
                               ),
