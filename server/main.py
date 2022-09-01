@@ -597,7 +597,7 @@ async def create_class(name: str = Form(...), user: User = Depends(get_current_u
 	"""
 	if user.permissions < Permissions.Teacher:
 		return {"status": "error", "message": "Only teachers can create classes."}
-	Classes_DB.create_class(user.uid, name,)
+	Classes_DB.create_class(user.uid, name)
 	return {"status": "success"}
 
 @app.patch("/api/v1/classes/{class_id}", tags=["Classes"])
@@ -630,7 +630,7 @@ async def get_class_homework(class_id: int, user: User = Depends(get_current_use
 	return {"status": "success", "data": homeworkSet}
 
 @app.post("/api/v1/classes/{class_id}/homework", tags=["Classes"])
-async def set_class_homework(class_id: int, homework_name: str = Form(...), due_date: int = Form(...), user: User = Depends(get_current_user)):
+async def set_class_homework(class_id: int, homework_name: str = Form(...), due_date: int = Form(...), description: str = Form(""), user: User = Depends(get_current_user)):
 	"""
 	Creates a piece of homework for an entire class.
 	
@@ -641,7 +641,7 @@ async def set_class_homework(class_id: int, homework_name: str = Form(...), due_
 		return {"status": "error", "message": "You may only set homework for your own class."}
 	studentsInClass = User_Class_DB.get_students_in_class(class_id)
 	for student in studentsInClass:
-		Homework_DB.create_homework_for_class(class_id, student, homework_name, due_date)
+		Homework_DB.create_homework_for_class(class_id, student, homework_name, due_date, description)
 	return {"status": "success"}
 
 if __name__ == "__main__":

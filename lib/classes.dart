@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import "package:http/http.dart" as http;
+import 'package:intl/intl.dart';
 
 import 'homework.dart';
 import 'pl_appbar.dart';
@@ -45,6 +46,7 @@ List<AppClass> classes = [];
 void gotClasses(http.Response response) {
   if (!validateResponse(response)) return;
   Map<String, dynamic> data = json.decode(response.body);
+  print(data);
   classes = [];
   for (dynamic cls in data["data"]) {
     classes.add(AppClass.fromJson(cls));
@@ -62,11 +64,37 @@ class ClassWidget extends StatefulWidget {
 }
 
 class _ClassWidgetState extends State<ClassWidget> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _dateController = TextEditingController();
+
   User? selectedUser;
+  String name = "";
+  DateTime date = DateTime.now();
+  String description = "";
+
+  void setHomework() {
+    addRequest(
+      NetworkOperation(
+        "/api/v1/classes/${widget.data.classId}/homework",
+        "POST",
+        (http.Response response) {
+          if (!validateResponse(response)) return;
+        },
+        data: {
+          "homework_name": name,
+          "due_date": date.millisecondsSinceEpoch.toString(),
+          "description": description
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      title: Text(widget.data.className),
+      title: Text(
+        "${widget.data.className} - ${widget.data.students.length} Students",
+      ),
       children: <Widget>[
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -99,7 +127,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                               ),
                             ),
                             child: const Text(
-                              "Create a class",
+                              "Add a Student",
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -197,8 +225,126 @@ class _ClassWidgetState extends State<ClassWidget> {
                 TextButton.icon(
                   icon: const Icon(Icons.add),
                   label: const Text("Create Homework"),
-                  onPressed: () {},
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Theme.of(context).dividerColor,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                            child: const Text(
+                              "Assign Homework",
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          content: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: "Homework Name",
+                                  ),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Enter a name";
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    name = value;
+                                  },
+                                  onFieldSubmitted: (String _) {
+                                    setHomework();
+                                  },
+                                ),
+                                InkWell(
+                                  onTap: () async {
+                                    final DateTime? selected =
+                                        await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime.now(),
+                                      lastDate: DateTime.now().add(
+                                        const Duration(days: 9000),
+                                      ),
+                                    );
+                                    if (selected != null) {
+                                      setState(
+                                        () {
+                                          date = selected;
+                                          _dateController.text =
+                                              DateFormat("dd-MM-yy")
+                                                  .format(selected);
+                                        },
+                                      );
+                                    }
+                                  },
+                                  child: TextFormField(
+                                    enabled: false,
+                                    controller: _dateController,
+                                    decoration: const InputDecoration(
+                                      label: Text("Date Due"),
+                                    ),
+                                  ),
+                                ),
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: "Description (Optional)",
+                                  ),
+                                  maxLines: 5,
+                                  keyboardType: TextInputType.multiline,
+                                  onChanged: (value) {
+                                    description = value;
+                                  },
+                                  onFieldSubmitted: (String _) {
+                                    setHomework();
+                                  },
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      addRequest(
+                                        NetworkOperation(
+                                          "/api/v1/classes/${widget.data.classId}/homework",
+                                          "POST",
+                                          (_) {
+                                            widget.reset();
+                                          },
+                                          data: {
+                                            "homework_name": name,
+                                            "due_date": date
+                                                .millisecondsSinceEpoch
+                                                .toString(),
+                                            "description": description,
+                                          },
+                                        ),
+                                      );
+                                    },
+                                    child: const Text('Create Homework'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
                 ),
+                ...[
+                  for (HomeworkData hwData in widget.data.homework)
+                    Text(hwData.name),
+                ],
               ],
             ),
           ],
