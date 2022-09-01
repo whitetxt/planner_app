@@ -52,6 +52,12 @@ class DB:
 		cursor = db.cursor()
 		cursor.execute(f"CREATE TABLE IF NOT EXISTS {table} ({ddl})")
 		db.commit()
+	
+	def _create_raw(self, ddl: str) -> None:
+		db = sqlite3.connect(self.path)
+		cursor = db.cursor()
+		cursor.execute(ddl + ";")
+		db.commit()
 
 class UsersDB(DB):
 	"""
@@ -61,6 +67,17 @@ class UsersDB(DB):
 	"""
 	def __init__(self, path):
 		super().__init__(path)
+		DDL = """CREATE TABLE IF NOT EXISTS "users" (
+	"uid"	INTEGER NOT NULL,
+	"username"	TEXT NOT NULL UNIQUE,
+	"password"	TEXT NOT NULL,
+	"salt"	TEXT NOT NULL,
+	"created_at"	INTEGER NOT NULL,
+	"permissions"	INTEGER NOT NULL,
+	"session"	TEXT,
+	PRIMARY KEY("uid" AUTOINCREMENT)
+)"""
+		self._create_raw(DDL)
 
 	def convert_result_to_user(self, user_data: dict) -> User:
 		return User(
@@ -134,6 +151,14 @@ class SubjectsDB(DB):
 	"""
 	def __init__(self, path):
 		super().__init__(path)
+		DDL = """CREATE TABLE IF NOT EXISTS "subjects" (
+	"subject_id"	INTEGER NOT NULL,
+	"name"	TEXT NOT NULL,
+	"teacher"	TEXT NOT NULL,
+	"room"	TEXT NOT NULL,
+	PRIMARY KEY("subject_id" AUTOINCREMENT)
+)"""
+		self._create_raw(DDL)
 
 	def convert_result_to_subject(self, subject):
 		return Subject(
@@ -192,6 +217,16 @@ class SubjectsDB(DB):
 class UserSubjectDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
+		DDL = """CREATE TABLE IF NOT EXISTS "users-subjects" (
+	"user_id"	INTEGER NOT NULL,
+	"subject_id"	INTEGER NOT NULL,
+	"day"	INTEGER NOT NULL,
+	"period"	INTEGER NOT NULL,
+	PRIMARY KEY("user_id","period","day"),
+	FOREIGN KEY("user_id") REFERENCES "users"("uid"),
+	FOREIGN KEY("subject_id") REFERENCES "subjects"("subject_id")
+)"""
+		self._create_raw(DDL)
 	
 	def get_subject_by_period(self, user_id: int, day: int, period: int) -> UserSubjectJoin:
 		result = self._get("subject_id", "`users-subjects`", where="user_id = ? AND day = ? AND period = ?", args=(user_id, day, period))
@@ -240,6 +275,15 @@ class UserSubjectDB(DB):
 class ClassDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
+		DDL = """CREATE TABLE IF NOT EXISTS "classes" (
+	"class_id"	INTEGER NOT NULL,
+	"teacher_id"	INTEGER NOT NULL,
+	"class_name"	TEXT NOT NULL,
+	"students"	TEXT,
+	FOREIGN KEY("teacher_id") REFERENCES "users"("uid"),
+	PRIMARY KEY("class_id" AUTOINCREMENT)
+)"""
+		self._create_raw(DDL)
 
 	def convert_result_to_class(self, result) -> Class:
 		return Class(class_id=result[0], teacher_id=result[1], class_name=result[2])
@@ -262,6 +306,14 @@ class ClassDB(DB):
 class ClassStudentDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
+		DDL = """CREATE TABLE IF NOT EXISTS "class-student" (
+	"student_id"	INTEGER NOT NULL,
+	"class_id"	INTEGER NOT NULL,
+	PRIMARY KEY("student_id","class_id"),
+	FOREIGN KEY("class_id") REFERENCES "classes"("class_id"),
+	FOREIGN KEY("student_id") REFERENCES "users"("uid")
+)"""
+		self._create_raw(DDL)
 
 	def get_classes_for_student(self, student_id: int) -> List[Class]:
 		classes = self._get("class_id", "`class-student`", where="student_id = ?", args=(student_id, ))
@@ -280,6 +332,18 @@ class ClassStudentDB(DB):
 class HomeworkDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
+		DDL = """CREATE TABLE IF NOT EXISTS "homework" (
+	"homework_id"	INTEGER NOT NULL,
+	"name"	TEXT NOT NULL,
+	"class_id"	INTEGER DEFAULT NULL,
+	"user_id"	INTEGER DEFAULT NULL,
+	"due_date"	INTEGER NOT NULL,
+	"completed"	INTEGER,
+	PRIMARY KEY("homework_id" AUTOINCREMENT),
+	FOREIGN KEY("user_id") REFERENCES "users"("uid"),
+	FOREIGN KEY("class_id") REFERENCES "classes"("class_id")
+)"""
+		self._create_raw(DDL)
 
 	def convert_result_to_homework(self, result) -> Homework:
 		return Homework(homework_id=result[0], name=result[1], class_id=result[2], user_id=result[3], due_date=result[4], completed=result[5] != None)
@@ -322,6 +386,17 @@ class HomeworkDB(DB):
 class EventDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
+		DDL = """CREATE TABLE IF NOT EXISTS "events" (
+	"event_id"	INTEGER NOT NULL,
+	"user_id"	INTEGER NOT NULL,
+	"name"	TEXT NOT NULL,
+	"time"	INTEGER NOT NULL,
+	"description"	TEXT,
+	"private"	INTEGER,
+	FOREIGN KEY("user_id") REFERENCES "users"("uid"),
+	PRIMARY KEY("event_id" AUTOINCREMENT)
+)"""
+		self._create_raw(DDL)
 
 	def convert_result_to_event(self, result) -> Event:
 		return Event(event_id=result[0], user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None)
@@ -354,6 +429,14 @@ class EventDB(DB):
 class UserEventDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
+		DDL = """CREATE TABLE IF NOT EXISTS "user-events" (
+	"user_id"	INTEGER NOT NULL,
+	"event_id"	INTEGER NOT NULL,
+	PRIMARY KEY("user_id","event_id"),
+	FOREIGN KEY("event_id") REFERENCES "events"("event_id"),
+	FOREIGN KEY("user_id") REFERENCES "users"("uid")
+)"""
+		self._create_raw(DDL)
 	
 	def get_users_for_event(self, event_id: int) -> List[int]:
 		results = self._get("user_id", "`user-events`", where="event_id = ?", args=(event_id, ))
@@ -376,6 +459,16 @@ class UserEventDB(DB):
 class MarkDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
+		DDL = """CREATE TABLE IF NOT EXISTS "marks" (
+	"mark_id"	INTEGER NOT NULL,
+	"user_id"	INTEGER NOT NULL,
+	"test_name"	TEXT NOT NULL,
+	"mark"	INTEGER NOT NULL,
+	"grade"	TEXT,
+	PRIMARY KEY("mark_id" AUTOINCREMENT),
+	FOREIGN KEY("user_id") REFERENCES "users"("uid")
+)"""
+		self._create_raw(DDL)
 	
 	def convert_result_to_mark(self, result) -> Mark:
 		return Mark(mark_id=result[0], user_id=result[1], test_name=result[2], mark=result[3], grade=result[4])
@@ -407,6 +500,12 @@ class MarkDB(DB):
 class RegistrationCodeDB(DB):
 	def __init__(self, path):
 		super().__init__(path)
+		DDL = """CREATE TABLE IF NOT EXISTS "registration_codes" (
+	"code"	TEXT NOT NULL,
+	"permissions"	INTEGER NOT NULL,
+	PRIMARY KEY("code")
+)"""
+		self._create_raw(DDL)
 	
 	def get_permissions(self, code: str) -> Permissions:
 		result = self._get("*", "registration_codes", where="code = ?", args=(code, ))

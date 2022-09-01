@@ -53,4 +53,4 @@ void addNotif(String text, {bool error = true}) {
   );
 }
 
-String apiUrl = "http://127.0.0.1:8000";
+String apiUrl = "https://planner-app.duckdns.org";
