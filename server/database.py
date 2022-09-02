@@ -354,12 +354,17 @@ class HomeworkDB(DB):
 	def get_homework_for_class(self, class_id: int) -> List[Homework]:
 		results = self._get("*", "homework", where="class_id = ?", order="due_date ASC", args=(class_id, ))
 		output = [] # I am removing duplicate pieces of homework.
-		# This is because there will be the same piece of homework for each user, and the only difference is the user_id.
+		# This is because there will be the same piece of homework for each user, and the only difference is the user_id and homework_id.
 		# I only want each one once, and so this removes duplicates after I make all the user_ids the same.
 		for homework in results:
 			homework = self.convert_result_to_homework(homework)
 			homework.user_id = 0
-			if homework not in output:
+			found = False
+			for hw in output:
+				if hw.name == homework.name and hw.due_date == homework.due_date and hw.description == homework.description:
+					found = True
+					break
+			if not found:
 				output.append(homework)
 		return output
 
