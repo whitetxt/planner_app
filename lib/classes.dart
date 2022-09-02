@@ -11,6 +11,8 @@ import 'globals.dart';
 import 'network.dart';
 
 class AppClass {
+  // AppClass represents a class in the server's database.
+  // Because class is a keyword, I could not call this "Class".
   AppClass(
     this.classId,
     this.teacherId,
@@ -19,6 +21,7 @@ class AppClass {
     this.students,
   );
 
+  // Again, these are marked as final to ensure they aren't changed.
   final int classId;
   final int teacherId;
   final String className;
@@ -26,10 +29,13 @@ class AppClass {
   final List<User> students;
 
   factory AppClass.fromJson(Map<String, dynamic> data) {
+    // This converts the server's response into this object.
     return AppClass(
       data["class_id"],
       data["teacher_id"],
       data["class_name"],
+      // Since the server returns json for each piece of homework or user,
+      // We use their respective classes and functions to convert them.
       [
         for (dynamic homework in data["homework"])
           HomeworkData.fromJson(homework)
@@ -72,12 +78,13 @@ class _ClassWidgetState extends State<ClassWidget> {
   String description = "";
 
   void setHomework() {
+    // This sets a new piece of homework and refreshes the parent widget.
     addRequest(
       NetworkOperation(
         "/api/v1/classes/${widget.data.classId}/homework",
         "POST",
         (http.Response response) {
-          if (!validateResponse(response)) return;
+          widget.reset();
         },
         data: {
           "homework_name": name,
@@ -90,6 +97,7 @@ class _ClassWidgetState extends State<ClassWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // I am using an ExpansionTile here, to allow the user to see which information they want.
     return ExpansionTile(
       title: Text(
         "${widget.data.className} - ${widget.data.students.length} Students",
@@ -133,10 +141,14 @@ class _ClassWidgetState extends State<ClassWidget> {
                           content: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
+                              // As the user will most likely not know the precise username
+                              // of the student they want to add, this gets search
+                              // options from the server and then displays it.
                               Autocomplete<User>(
                                 optionsBuilder:
                                     (TextEditingValue textEditingValue) {
                                   if (textEditingValue.text.isEmpty) {
+                                    // If nothing has been typed in, don't recommend anyone.
                                     return const Iterable<User>.empty();
                                   }
                                   return processNetworkRequest(
@@ -148,6 +160,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                                   ).then(
                                     (http.Response resp) {
                                       if (!validateResponse(resp)) {
+                                        // If the response is invalid, don't recommend anyone.
                                         return const Iterable<User>.empty();
                                       }
                                       Map<String, dynamic> data =
@@ -170,8 +183,11 @@ class _ClassWidgetState extends State<ClassWidget> {
                                     },
                                   );
                                 },
+                                // When someone is selected, set them as the selected user.
                                 onSelected: (User option) =>
                                     selectedUser = option,
+                                // We should display their username in the autocomplete
+                                // box.
                                 displayStringForOption: (User option) =>
                                     option.name,
                               ),
@@ -180,6 +196,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                                 child: ElevatedButton(
                                   onPressed: () {
                                     if (selectedUser == null) {
+                                      // If no user has been selected, then don't continue.
                                       return;
                                     }
                                     addRequest(
@@ -190,6 +207,9 @@ class _ClassWidgetState extends State<ClassWidget> {
                                           widget.reset();
                                         },
                                         data: {
+                                          // Even though there is no way selectedUser
+                                          // can be null here, flutter still forces
+                                          // me to use the ! operator.
                                           "student_id":
                                               selectedUser!.uid.toString(),
                                         },
@@ -207,6 +227,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                   },
                 ),
                 ...[
+                  // Simply display the names of all the students.
                   for (User student in widget.data.students) Text(student.name)
                 ]
               ],
@@ -312,22 +333,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                                   padding: const EdgeInsets.only(top: 8),
                                   child: ElevatedButton(
                                     onPressed: () {
-                                      addRequest(
-                                        NetworkOperation(
-                                          "/api/v1/classes/${widget.data.classId}/homework",
-                                          "POST",
-                                          (_) {
-                                            widget.reset();
-                                          },
-                                          data: {
-                                            "homework_name": name,
-                                            "due_date": date
-                                                .millisecondsSinceEpoch
-                                                .toString(),
-                                            "description": description,
-                                          },
-                                        ),
-                                      );
+                                      setHomework();
                                     },
                                     child: const Text('Create Homework'),
                                   ),
@@ -342,16 +348,20 @@ class _ClassWidgetState extends State<ClassWidget> {
                 ),
                 ...[
                   for (HomeworkData hwData in widget.data.homework)
+                    // For each piece of homework that has been set, we want to
                     TextButton(
                       onPressed: () {
                         showDialog(
                           context: context,
                           builder: (BuildContext context) {
+                            // This FutureBuilder ensures that the UI feels responsive,
+                            // even while a network operation is happening.
                             return FutureBuilder(
                               future: processNetworkRequest(
                                 NetworkOperation(
                                   "$apiUrl/api/v1/classes/${widget.data.classId}/homework/${hwData.id}",
                                   "GET",
+                                  // Since we are doing this manually, don't add a callback.
                                   (_) {},
                                 ),
                               ),
@@ -359,6 +369,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                                   AsyncSnapshot<http.Response> snapshot) {
                                 if (snapshot.hasData &&
                                     validateResponse(snapshot.data!)) {
+                                  // If we have data and it is valid, then display it to the user.
                                   Map<String, dynamic> data =
                                       json.decode(snapshot.data!.body)["data"];
                                   return AlertDialog(
@@ -390,6 +401,8 @@ class _ClassWidgetState extends State<ClassWidget> {
                                     ),
                                   );
                                 } else {
+                                  // If we don't have any data back from the API yet,
+                                  // show a dialog with a loading symbol.
                                   return AlertDialog(
                                     title: Container(
                                       decoration: BoxDecoration(
@@ -465,6 +478,7 @@ class _ClassPageState extends State<ClassPage> {
   }
 
   void createClass() {
+    // This adds a class to the API, and then forces this page to redraw.
     addRequest(
       NetworkOperation(
         "/api/v1/classes",
@@ -487,6 +501,8 @@ class _ClassPageState extends State<ClassPage> {
 
   @override
   Widget build(BuildContext context) {
+    // As with the events page, we don't want to let the user manage classes while offline
+    // as their stored data may be out of date.
     if (!onlineMode) {
       return Scaffold(
         appBar: PLAppBar("Classes", context),
@@ -607,7 +623,9 @@ class _ClassPageState extends State<ClassPage> {
               ClassWidget(
                 cls,
                 () {
+                  // This is the function called to rebuild this widget.
                   refreshClasses();
+                  // This closes all current open dialogs.
                   Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
                 },
               ),

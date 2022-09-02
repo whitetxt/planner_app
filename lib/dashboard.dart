@@ -13,11 +13,13 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+  // The dashboard is very simple. It just gets all of the widgets from other files.
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PLAppBar("Dashboard", context),
       backgroundColor: Theme.of(context).backgroundColor,
+      // All this code is just to center the widgets in the middle of the screen.
       body: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[

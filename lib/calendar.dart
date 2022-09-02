@@ -11,6 +11,7 @@ import 'network.dart';
 import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
 
 class Event {
+  // This class represents an event stored in the server's database.
   const Event(
     this.eventId,
     this.userId,
@@ -19,6 +20,7 @@ class Event {
     this.description,
   );
 
+  // All of the fields are marked as final, which means they cannot be modified after instantiation.
   final int eventId;
   final int userId;
   final String name;
@@ -26,6 +28,7 @@ class Event {
   final String? description;
 
   factory Event.fromJson(Map<String, dynamic> json) {
+    // This function lets me easily convert a response from the server into this object.
     return Event(
       json["event_id"],
       json["user_id"],
@@ -48,6 +51,10 @@ class EventsMini extends StatefulWidget {
 class _EventsMiniState extends State<EventsMini> {
   @override
   void initState() {
+    // We call initState first, just in the rare case that the request returns
+    // quicker than we can initState, and it attempts to setState on something
+    // that has not been init'd.
+    super.initState();
     addRequest(
       NetworkOperation(
         "/api/v1/events",
@@ -70,17 +77,12 @@ class _EventsMiniState extends State<EventsMini> {
         },
       ),
     );
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    bool upcoming = false;
-    for (DateTime date in events.events.keys) {
-      if (upcoming || date.isBefore(DateTime.now())) continue;
-      upcoming = true;
-      break;
-    }
+    // If we are offline, there's no point allowing the user to see events since
+    // their local version will be outdated and new events will be hidden from them.
     if (!onlineMode) {
       return SizedBox(
         width: 15 * MediaQuery.of(context).size.width / 16,
@@ -102,8 +104,15 @@ class _EventsMiniState extends State<EventsMini> {
         ),
       );
     }
+    bool upcoming = false;
+    for (DateTime date in events.events.keys) {
+      if (upcoming || date.isBefore(DateTime.now())) continue;
+      upcoming = true;
+      break;
+    }
+    // If there's no events in the future, we should just show that instead of an
+    // empty menu.
     if (!upcoming) {
-      // If there arent any events in the future.
       return SizedBox(
         width: 15 * MediaQuery.of(context).size.width / 16,
         height: MediaQuery.of(context).size.height / 4,
@@ -129,53 +138,63 @@ class _EventsMiniState extends State<EventsMini> {
       height: MediaQuery.of(context).size.height / 4,
       child: Card(
         elevation: 4,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            const AutoSizeText(
-              "Upcoming Events",
-              style: TextStyle(fontSize: 18),
-              maxLines: 1,
-              minFontSize: 12,
-            ),
-            const Divider(
-              indent: 4,
-              endIndent: 4,
-            ),
-            ...[
-              for (DateTime date in events.events.keys)
-                if (date.isAfter(DateTime.now()) ||
-                    date.difference(DateTime.now()).inDays == 0)
-                  for (Event event in events.events[date]!)
-                    if (event.time.isAfter(DateTime.now()))
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            AutoSizeText(
-                              "${event.name} - ${DateFormat('HH:mm').format(event.time)}",
-                              style: const TextStyle(fontSize: 16),
-                              maxLines: 1,
-                              minFontSize: 8,
-                            ),
-                            AutoSizeText(
-                              event.time.difference(DateTime.now()) >=
-                                      const Duration(days: 1, hours: 12)
-                                  ? "In ${event.time.difference(DateTime.now()).inDays} days and ${event.time.difference(DateTime.now()).inHours - event.time.difference(DateTime.now()).inDays * 24} hours"
-                                  : event.time.difference(DateTime.now()) >=
-                                          const Duration(hours: 12)
-                                      ? "In ${event.time.difference(DateTime.now()).inHours} hours"
-                                      : "In ${event.time.difference(DateTime.now()).toString().substring(0, 4)}",
-                              style: const TextStyle(fontSize: 16),
-                              maxLines: 1,
-                              minFontSize: 8,
-                            ),
-                          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              const AutoSizeText(
+                "Upcoming Events",
+                style: TextStyle(fontSize: 18),
+                maxLines: 1,
+                minFontSize: 12,
+              ),
+              const Divider(
+                indent: 4,
+                endIndent: 4,
+              ),
+              ...[
+                for (DateTime date in events.events.keys)
+                  // For each of the days that there are events, we should check
+                  // if its today, or after today since we don't want to show
+                  // previous events.
+                  if (date.isAfter(DateTime.now()) ||
+                      date.difference(DateTime.now()).inDays == 0)
+                    for (Event event in events.events[date]!)
+                      // As we only checked for the day previously, we must now
+                      // check that it is after the current time.
+                      if (event.time.isAfter(DateTime.now()))
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              AutoSizeText(
+                                "${event.name} - ${DateFormat('HH:mm').format(event.time)}",
+                                style: const TextStyle(fontSize: 16),
+                                maxLines: 1,
+                                minFontSize: 8,
+                              ),
+                              AutoSizeText(
+                                // The ? : operator is called the ternary operator.
+                                // It allows me to easily put IF-ELSE statements such as this into code
+                                // without having to write it explicitly.
+                                event.time.difference(DateTime.now()) >=
+                                        const Duration(days: 1, hours: 12)
+                                    ? "In ${event.time.difference(DateTime.now()).inDays} days and ${event.time.difference(DateTime.now()).inHours - event.time.difference(DateTime.now()).inDays * 24} hours"
+                                    : event.time.difference(DateTime.now()) >=
+                                            const Duration(hours: 12)
+                                        ? "In ${event.time.difference(DateTime.now()).inHours} hours"
+                                        : "In ${event.time.difference(DateTime.now()).toString().substring(0, 4)}",
+                                style: const TextStyle(fontSize: 16),
+                                maxLines: 1,
+                                minFontSize: 8,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-            ]
-          ],
+              ]
+            ],
+          ),
         ),
       ),
     );
@@ -198,7 +217,13 @@ void gotEvents(http.Response response, {bool add = false}) {
     for (dynamic rawEvent in data["data"]) {
       Event event = Event.fromJson(rawEvent);
       events.add(
-        DateTime(event.time.year, event.time.month, event.time.day),
+        DateTime(
+          // Since the DateTime provided is too precise and not specifically a day,
+          // It must be recreated using the fields in order to just specify a day.
+          event.time.year,
+          event.time.month,
+          event.time.day,
+        ),
         event,
       );
     }
@@ -272,11 +297,14 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
+    // Again, we refesh after initState to prevent calling setState on an invalid state.
     refreshCalendar();
   }
 
   @override
   Widget build(BuildContext context) {
+    // If we are offline, again, we do not want to allow the user to modify events.
+    // As the server would not see these changes.
     if (!onlineMode) {
       return Scaffold(
         appBar: PLAppBar("Calendar", context),
@@ -354,6 +382,8 @@ class _CalendarPageState extends State<CalendarPage> {
                           ),
                         ),
                         content: Form(
+                          // Adding the key here, allows me to check if this form is
+                          // valid later on in the code.
                           key: _formKey,
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
@@ -403,6 +433,8 @@ class _CalendarPageState extends State<CalendarPage> {
                                             ),
                                           );
                                         }
+                                        // We want to show that this was successful,
+                                        // and so we set the text of the text field.
                                         _dateController.text =
                                             DateFormat("dd-MM-yy HH:mm")
                                                 .format(time);
@@ -411,6 +443,8 @@ class _CalendarPageState extends State<CalendarPage> {
                                   }
                                 },
                                 child: TextFormField(
+                                  // This form is disabled, as the code inside the
+                                  // InkWell will control its text.
                                   enabled: false,
                                   controller: _dateController,
                                   decoration: const InputDecoration(
@@ -430,6 +464,10 @@ class _CalendarPageState extends State<CalendarPage> {
                                   createEvent();
                                 },
                               ),
+                              // We have 2 different buttons for private and public
+                              // events, as this makes it easier to see whats going on.
+                              // Both call the same function, they just change a bool
+                              // to be correct before they call createEvent.
                               Padding(
                                 padding: const EdgeInsets.only(top: 8),
                                 child: ElevatedButton(
@@ -501,6 +539,9 @@ class _CalendarPageState extends State<CalendarPage> {
                   children: <ListTile>[
                     ListTile(
                       title: Text(
+                        // As the time until should be formatted nicely, this
+                        // long statement is used to format it into different
+                        // formats depending on how far away it is.
                         event.time.isBefore(DateTime.now())
                             ? "Event has happened."
                             : event.time.difference(DateTime.now()) >=
