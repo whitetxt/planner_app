@@ -404,10 +404,10 @@ class EventDB(DB):
 		self._create_raw(DDL)
 
 	def convert_result_to_event(self, result) -> Event:
-		return Event(event_id=result[0], user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] != None)
+		return Event(event_id=result[0], user_id=result[1], name=result[2], time=result[3], description=result[4], private=result[5] == 1)
 
 	def get_events(self) -> List[Event]:
-		public_results = self._get("*", "events", where="private = ?", args=(None, ))
+		public_results = self._get("*", "events", where="private = ?", args=(0, ))
 		return [self.convert_result_to_event(result) for result in public_results]
 
 	def get_event(self, event_id: int, user_id: int) -> Event:
