@@ -6,10 +6,13 @@ class PLAppBar extends PreferredSize {
   PLAppBar(this.text, this.context, {Key? key})
       : super(
           key: key,
+          // Lock the height of the appbar to 48 pixels.
           preferredSize: const Size.fromHeight(48),
           child: AppBar(
             automaticallyImplyLeading: false,
             title: Flex(
+              // Since we want to have both the button and text on the appbar,
+              // I use a Flex to include space between them.
               direction: Axis.horizontal,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
@@ -27,6 +30,8 @@ class PLAppBar extends PreferredSize {
                     color: Color(0xFF000000),
                   ),
                   onPressed: () => Navigator.push(
+                    // While normally I would user Navigator.pushNamed, here I
+                    // wanted to have an animation, which pushNamed does not allow.
                     context,
                     PageRouteBuilder(
                       pageBuilder: (context, animation, secondaryAnimation) =>

@@ -216,16 +216,29 @@ void gotEvents(http.Response response, {bool add = false}) {
   if (data["data"] != null) {
     for (dynamic rawEvent in data["data"]) {
       Event event = Event.fromJson(rawEvent);
-      events.add(
-        DateTime(
-          // Since the DateTime provided is too precise and not specifically a day,
-          // It must be recreated using the fields in order to just specify a day.
-          event.time.year,
-          event.time.month,
-          event.time.day,
-        ),
-        event,
-      );
+      if (events
+          .get(
+        DateTime(event.time.year, event.time.month, event.time.day),
+      )
+          .every((Event e) {
+        return e.name != event.name &&
+            e.eventId != event.eventId &&
+            e.description != event.description &&
+            e.time != event.time;
+      })) {
+        // Since public events will show up in both responses for the owners,
+        // If this event already exists we don't want to add it again.
+        events.add(
+          DateTime(
+            // Since the DateTime provided is too precise and not specifically a day,
+            // It must be recreated using the fields in order to just specify a day.
+            event.time.year,
+            event.time.month,
+            event.time.day,
+          ),
+          event,
+        );
+      }
     }
   }
 }

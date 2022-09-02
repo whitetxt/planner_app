@@ -65,15 +65,18 @@ class PlannerApp extends StatelessWidget {
         color: Colors.blueGrey.shade700,
         elevation: 8,
       ),
+      // I chose this background colour, as it is a slightly darker white which is nicer for the eyes.
       backgroundColor: const Color.fromRGBO(200, 200, 200, 1),
-      textTheme: GoogleFonts.poppinsTextTheme(),
+      // This gets the montserrat font from Google, and uses it as the main font for the app.
+      textTheme: GoogleFonts.montserratTextTheme(),
       dividerColor: Colors.black,
     );
-    GoogleFonts.montserratTextTheme(theme.textTheme);
     return MaterialApp(
       title: 'Planner',
       theme: theme,
       navigatorKey: navigatorKey,
+      // I create routes here, which allows me to change the page by pushing the route's name
+      // instead of using the class.
       routes: {
         "/": (context) => const LoginPage(),
         "/dash": (context) => const MainPage(),
@@ -116,24 +119,19 @@ class _MainPageState extends State<MainPage>
   Widget build(BuildContext context) {
     return Scaffold(
       key: scaffoldKey,
-      body: Stack(
-        children: <Widget>[
-          TabBarView(
-            controller: _tabController,
-            physics: const BouncingScrollPhysics(),
-            dragStartBehavior: DragStartBehavior.down,
-            children: [
-              const TimetablePage(),
-              const HomeworkPage(),
-              const Dashboard(),
-              const CalendarPage(),
-              me!.permissions == Permissions.user
-                  ? const ExamPage()
-                  : const ClassPage(), // We switch out the marks page with a page
-              // For managing classes for teacher accounts.
-            ],
-          ),
-          //...popups
+      body: TabBarView(
+        controller: _tabController,
+        physics: const BouncingScrollPhysics(),
+        dragStartBehavior: DragStartBehavior.down,
+        children: [
+          const TimetablePage(),
+          const HomeworkPage(),
+          const Dashboard(),
+          const CalendarPage(),
+          me!.permissions == Permissions.user
+              ? const ExamPage()
+              : const ClassPage(), // We switch out the marks page with a page
+          // For managing classes for teacher accounts.
         ],
       ),
       bottomNavigationBar: BottomAppBar(
@@ -141,12 +139,14 @@ class _MainPageState extends State<MainPage>
           controller: _tabController,
           unselectedLabelColor: const Color(0xFFBBBBBB),
           unselectedLabelStyle: const TextStyle(
+            // Since some browsers don't like a font size of 0, I have used
+            // 0.01 to hide the text when it's not selected.
             fontSize: 0.01,
           ),
           labelColor: const Color(0xFFFFFFFF),
           indicatorColor: Colors.purple.shade300,
           indicatorSize: TabBarIndicatorSize.label,
-          enableFeedback: true,
+          // These tabs correspond to the pages in the TabBarView
           tabs: <Widget>[
             const Tooltip(
               message: "Timetable",
