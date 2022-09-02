@@ -523,7 +523,7 @@ class _CalendarPageState extends State<CalendarPage> {
                       ListTile(
                         title: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            primary: Colors.red.shade400,
+                            backgroundColor: Colors.red.shade400,
                           ),
                           child: const Text("Delete"),
                           onPressed: () {

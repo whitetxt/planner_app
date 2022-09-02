@@ -42,6 +42,7 @@ class Homework(BaseModel):
 	homework_id: int = None
 	name: str
 	class_id: int = None
+	completed_by: int = None
 	user_id: int = None
 	due_date: int
 	description: str = None

@@ -17,7 +17,7 @@ class PLAppBar extends PreferredSize {
                 ElevatedButton(
                   clipBehavior: Clip.antiAlias,
                   style: ElevatedButton.styleFrom(
-                    primary: Theme.of(context).highlightColor,
+                    backgroundColor: Theme.of(context).highlightColor,
                     shape: const CircleBorder(
                       side: BorderSide(width: 2),
                     ),

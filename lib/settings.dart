@@ -92,8 +92,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   label: const Text(
                     "Reset Data",
                   ),
-                  style:
-                      ElevatedButton.styleFrom(primary: Colors.amber.shade900),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.amber.shade900),
                   onPressed: () {
                     showDialog(
                       context: context,
@@ -184,7 +184,8 @@ class _SettingsPageState extends State<SettingsPage> {
                   label: const Text(
                     "Delete Account",
                   ),
-                  style: ElevatedButton.styleFrom(primary: Colors.red.shade900),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade900),
                   onPressed: () {
                     showDialog(
                       context: context,

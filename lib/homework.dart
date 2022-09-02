@@ -19,14 +19,16 @@ class HomeworkData {
     this.classId,
     this.description,
     this.completed,
+    this.completedBy,
   );
 
   final int id;
-  final DateTime timeDue;
   final String name;
   final int? classId;
-  final String? description;
+  final int? completedBy;
   bool completed;
+  final DateTime timeDue;
+  final String? description;
 
   factory HomeworkData.fromJson(dynamic jsonData) {
     return HomeworkData(
@@ -36,6 +38,7 @@ class HomeworkData {
       jsonData["class_id"],
       jsonData["description"],
       jsonData["completed"],
+      jsonData["completed_by"],
     );
   }
 
@@ -47,6 +50,7 @@ class HomeworkData {
       "class_id": classId,
       "description": description,
       "completed": completed,
+      "completed_by": completedBy
     };
   }
 }
@@ -356,7 +360,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
       for (dynamic hw in data) {
         homework.add(HomeworkData.fromJson(hw));
       }
-      homework.add(HomeworkData(0, date, name, 0, "", false));
+      homework.add(HomeworkData(0, date, name, 0, "", false, 0));
       await prefs.setString(
         "homework",
         json.encode([for (HomeworkData hw in homework) hw.toJson()]),

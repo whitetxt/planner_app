@@ -570,6 +570,16 @@ async def get_classes(user: User = Depends(get_current_user)):
 		for student in students:
 			classes[idx].students.append(Users_DB.get_user_from_uid(student).remove("password", "salt", "session"))
 		classes[idx].homework = Homework_DB.get_homework_for_class(thisClass.class_id)
+		for homework in classes[idx].homework:
+			homework.completed_by = 0
+			for student in classes[idx].students:
+				student = student.uid
+				allHomework = Homework_DB.get_homework_for_user(student)
+				selected = [hw for hw in allHomework if hw.description == homework.description and hw.name == homework.name and hw.due_date == homework.due_date]
+				if len(selected) < 1 or not selected[0].completed:
+					homework.completed_by += 0
+				else:
+					homework.completed_by += 1
 	return {"status": "success", "data": classes}
 
 @app.get("/api/v1/classes/{class_id}", tags=["Classes"])
@@ -584,8 +594,18 @@ async def get_class(class_id: int, user: User = Depends(get_current_user)):
 		return {"status": "error", "message": "Class doesn't exist."}
 	students = User_Class_DB.get_students_in_class(thisClass.class_id)
 	thisClass.students = [Users_DB.get_user_from_uid(student).remove("password", "salt", "session") for student in students]
-	homework = Homework_DB.get_homework_for_class(thisClass.class_id)
-	thisClass.homework = homework
+	homeworkSet = Homework_DB.get_homework_for_class(thisClass.class_id)
+	for homework in homeworkSet:
+		homework.completed_by = 0
+		for student in thisClass.students:
+			student = student.uid
+			allHomework = Homework_DB.get_homework_for_user(student)
+			selected = [hw for hw in allHomework if hw.description == homework.description and hw.name == homework.name and hw.due_date == homework.due_date]
+			if len(selected) < 1 or not selected[0].completed:
+				homework.completed_by += 0
+			else:
+				homework.completed_by += 1
+	thisClass.homework = homeworkSet
 	return {"status": "success", "data": thisClass}
 
 @app.post("/api/v1/classes", tags=["Classes"])
@@ -625,7 +645,7 @@ async def get_class_homework(class_id: int, user: User = Depends(get_current_use
 	"""
 	thisClass = Classes_DB.get_class(class_id)
 	if thisClass.teacher_id != user.uid:
-		return {"status": "error", "message": "You may only set homework for your own class."}
+		return {"status": "error", "message": "You may only get homework for your own class."}
 	homeworkSet = Homework_DB.get_homework_for_class(class_id)
 	return {"status": "success", "data": homeworkSet}
 
@@ -641,8 +661,31 @@ async def set_class_homework(class_id: int, homework_name: str = Form(...), due_
 		return {"status": "error", "message": "You may only set homework for your own class."}
 	studentsInClass = User_Class_DB.get_students_in_class(class_id)
 	for student in studentsInClass:
-		Homework_DB.create_homework_for_class(class_id, student, homework_name, due_date, description)
+		Homework_DB.create_homework_for_class(student, class_id, homework_name, due_date, description)
 	return {"status": "success"}
+
+@app.get("/api/v1/classes/{class_id}/homework/{homework_id}", tags=["Classes"])
+async def get_completed_homework(class_id: int, homework_id: int, user: User = Depends(get_current_user)):
+	"""
+	Gets if each user in a class has completed a specified piece of homework.
+	
+	Class **MUST** belong to the current user.
+	"""
+	thisClass = Classes_DB.get_class(class_id)
+	if thisClass.teacher_id != user.uid:
+		return {"status": "error", "message": "You may only get stats for homework for your own class."}
+	studentsInClass = User_Class_DB.get_students_in_class(class_id)
+	homework = Homework_DB.get_homework(homework_id)
+	students = {"completed": [], "incomplete": []}
+	for student in studentsInClass:
+		user = Users_DB.get_user_from_uid(student)
+		allHomework = Homework_DB.get_homework_for_user(student)
+		selected = [hw for hw in allHomework if hw.description == homework.description and hw.name == homework.name and hw.due_date == homework.due_date]
+		if len(selected) < 1 or not selected[0].completed:
+			students["incomplete"].append(user.username)
+		else:
+			students["completed"].append(user.username)
+	return {"status": "success", "data": students}
 
 if __name__ == "__main__":
 	uvicorn.run("main:app", port=8000, debug=True, reload=True, workers=4)

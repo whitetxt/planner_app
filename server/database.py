@@ -353,14 +353,15 @@ class HomeworkDB(DB):
 
 	def get_homework_for_class(self, class_id: int) -> List[Homework]:
 		results = self._get("*", "homework", where="class_id = ?", order="due_date ASC", args=(class_id, ))
-		output = set() # I am using a set here to remove duplicate pieces of homework.
+		output = [] # I am removing duplicate pieces of homework.
 		# This is because there will be the same piece of homework for each user, and the only difference is the user_id.
 		# I only want each one once, and so this removes duplicates after I make all the user_ids the same.
 		for homework in results:
-			result = self.convert_result_to_homework(homework)
-			result.user_id = 0
-			output.add(result)
-		return list(output)
+			homework = self.convert_result_to_homework(homework)
+			homework.user_id = 0
+			if homework not in output:
+				output.append(homework)
+		return output
 
 	def get_homework(self, homework_id: int) -> Homework:
 		result = self._get("*", "homework", where="homework_id = ?", order="due_date ASC", args=(homework_id, ))
@@ -372,7 +373,7 @@ class HomeworkDB(DB):
 	def create_homework(self, user_id: int, name: str, due_date: int, description: str) -> None:
 		self._insert("homework", "name, user_id, due_date, completed, description", (name, user_id, due_date, None, description))
 	
-	def create_homework_for_class(self, user_id: int, class_id: int, name: str, due_date: int, description) -> None:
+	def create_homework_for_class(self, user_id: int, class_id: int, name: str, due_date: int, description: str) -> None:
 		self._insert("homework", "name, class_id, user_id, due_date, completed, description", (name, class_id, user_id, due_date, None, description))
 	
 	def update_homework(self, homework: Homework) -> None:

@@ -46,7 +46,6 @@ List<AppClass> classes = [];
 void gotClasses(http.Response response) {
   if (!validateResponse(response)) return;
   Map<String, dynamic> data = json.decode(response.body);
-  print(data);
   classes = [];
   for (dynamic cls in data["data"]) {
     classes.add(AppClass.fromJson(cls));
@@ -343,7 +342,91 @@ class _ClassWidgetState extends State<ClassWidget> {
                 ),
                 ...[
                   for (HomeworkData hwData in widget.data.homework)
-                    Text(hwData.name),
+                    TextButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return FutureBuilder(
+                              future: processNetworkRequest(
+                                NetworkOperation(
+                                  "$apiUrl/api/v1/classes/${widget.data.classId}/homework/${hwData.id}",
+                                  "GET",
+                                  (_) {},
+                                ),
+                              ),
+                              builder: (BuildContext context,
+                                  AsyncSnapshot<http.Response> snapshot) {
+                                if (snapshot.hasData &&
+                                    validateResponse(snapshot.data!)) {
+                                  Map<String, dynamic> data =
+                                      json.decode(snapshot.data!.body)["data"];
+                                  return AlertDialog(
+                                    title: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color:
+                                                Theme.of(context).dividerColor,
+                                            width: 2,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        hwData.name,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: <Widget>[
+                                        const Text("Incomplete by:"),
+                                        ...[
+                                          for (dynamic user
+                                              in data["incomplete"])
+                                            Text(user),
+                                        ],
+                                      ],
+                                    ),
+                                  );
+                                } else {
+                                  return AlertDialog(
+                                    title: Container(
+                                      decoration: BoxDecoration(
+                                        border: Border(
+                                          bottom: BorderSide(
+                                            color:
+                                                Theme.of(context).dividerColor,
+                                            width: 2,
+                                          ),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        hwData.name,
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: const <Widget>[
+                                        Text("Incomplete by:"),
+                                        Text("Loading..."),
+                                        CircularProgressIndicator(),
+                                      ],
+                                    ),
+                                  );
+                                }
+                              },
+                            );
+                          },
+                        );
+                      },
+                      child: Tooltip(
+                        message:
+                            "Completed by ${hwData.completedBy}/${widget.data.students.length}",
+                        child: Text(hwData.name),
+                      ),
+                    ),
                 ],
               ],
             ),
