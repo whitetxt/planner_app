@@ -31,6 +31,7 @@ class HomeworkData {
   final String? description;
 
   factory HomeworkData.fromJson(dynamic jsonData) {
+    // Converts the server's response into a HomeworkData object.
     return HomeworkData(
       jsonData["homework_id"],
       DateTime.fromMillisecondsSinceEpoch(jsonData["due_date"]),
@@ -43,6 +44,9 @@ class HomeworkData {
   }
 
   Map<String, dynamic> toJson() {
+    // Convert this object back into JSON, to be used elsewhere.
+    // The Map<String, dynamic> type is the definition of JSON used in most places,
+    // as Strings are commonly used as keys, and anything can be a value.
     return {
       "homework_id": id,
       "due_date": timeDue.millisecondsSinceEpoch,
@@ -65,6 +69,8 @@ class HomeworkWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
+      // This changes the background colour of the card depending on
+      // when this is due.
       color: data.completed
           ? Colors.green.shade200
           : data.timeDue.isBefore(DateTime.now())
@@ -116,6 +122,8 @@ class HomeworkWidget extends StatelessWidget {
                           ? "Due in ${data.timeDue.difference(DateTime.now()).inHours} hours"
                           : "Due in ${data.timeDue.difference(DateTime.now()).toString().substring(0, 4)}",
               style: TextStyle(
+                // If the homework is past due, then increase the size and weight of the font
+                // so that it is easily visible to the user.
                 fontWeight: data.timeDue.isBefore(DateTime.now())
                     ? FontWeight.w900
                     : FontWeight.normal,
@@ -125,6 +133,7 @@ class HomeworkWidget extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Text(
+                // If there isn't a description, display "No Description" instead of nothing.
                 data.description != null && data.description!.isNotEmpty
                     ? data.description!
                     : "No Description",
@@ -135,6 +144,8 @@ class HomeworkWidget extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 8),
               child: ElevatedButton(
                 child: Text(
+                  // The text must change if it's already completed, as it would
+                  // look stupid to mark homework as complete when it's already complete.
                   data.completed ? "Mark as Incomplete" : "Mark as Complete",
                   style: const TextStyle(
                     fontSize: 14,
@@ -149,7 +160,6 @@ class HomeworkWidget extends StatelessWidget {
                       [for (HomeworkData hw in homework) hw.toJson()],
                     ),
                   );
-                  reset();
                   addRequest(
                     NetworkOperation(
                       "/api/v1/homework",
@@ -181,6 +191,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
   bool any = false;
 
   Future<void> load() async {
+    // We should load everything from our local store before trying to get stuff from the server.
     final prefs = await SharedPreferences.getInstance();
     String? storedHomework = prefs.getString("homework");
     if (storedHomework != null) {
@@ -214,6 +225,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
     if (homework.every(
       (element) => element.completed,
     )) {
+      // If all homework is completed, then tell the user there is nothing left.
       return SizedBox(
         width: 15 * MediaQuery.of(context).size.width / 16,
         height: MediaQuery.of(context).size.height / 4,
@@ -250,13 +262,8 @@ class _HomeworkMiniState extends State<HomeworkMini> {
             Expanded(
               child: ListView(
                 children: [
-                  for (int idx = 0;
-                      idx <
-                          homework
-                              .where((element) => !element
-                                  .completed) // This filters the list of homework to only ones that have not been completed.
-                              .length;
-                      idx++)
+                  for (HomeworkData hw
+                      in homework.where((element) => !element.completed))
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 4,
@@ -265,13 +272,11 @@ class _HomeworkMiniState extends State<HomeworkMini> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
+                          // Display the time due and name of the
                           Text(
-                            "${homework.where((element) => !element.completed).toList()[idx].timeDue.day}/${homework[idx].timeDue.month}/${homework[idx].timeDue.year}",
+                            "${hw.timeDue.day}/${hw.timeDue.month}/${hw.timeDue.year}",
                           ),
-                          Text(homework
-                              .where((element) => !element.completed)
-                              .toList()[idx]
-                              .name),
+                          Text(hw.name),
                         ],
                       ),
                     ),
@@ -300,6 +305,7 @@ Future<void> gotHomework(http.Response response) async {
       homework.add(HomeworkData.fromJson(hw));
     }
   }
+  // Once we have gotten everything on the server, save the data to the device.
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString("homework", json.encode(data["data"]));
 }
@@ -321,6 +327,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   String description = "";
 
   Future<void> refreshHomework() async {
+    // First we get everything from the local save.
     final prefs = await SharedPreferences.getInstance();
     String? storedHomework = prefs.getString("homework");
     if (storedHomework != null) {
@@ -352,6 +359,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   }
 
   Future<void> addHomework() async {
+    // First, add it to the local copy and render that.
     final prefs = await SharedPreferences.getInstance();
     String? storedHomework = prefs.getString("homework");
     if (storedHomework != null) {
@@ -368,7 +376,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
       removePopups();
       setState(() {});
     }
-    // This adds a piece of homework to the server, and then refreshes the page.
+    // Then, add it to the server and refresh.
     addRequest(
       NetworkOperation(
         "/api/v1/homework",
@@ -455,13 +463,16 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                   ),
                                   InkWell(
                                     onTap: () async {
+                                      // Using a DatePicker like this makes the UX better
+                                      // as the user does not have to enter the date manually.
                                       final DateTime? selected =
                                           await showDatePicker(
                                         context: context,
                                         initialDate: DateTime.now(),
                                         firstDate: DateTime.now(),
                                         lastDate: DateTime.now().add(
-                                          const Duration(days: 9000),
+                                          // Allow the user to create homework for the next year.
+                                          const Duration(days: 365),
                                         ),
                                       );
                                       if (selected != null) {
@@ -476,6 +487,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                       }
                                     },
                                     child: TextFormField(
+                                      // This is disabled as the code above controls it.
                                       enabled: false,
                                       controller: _dateController,
                                       decoration: const InputDecoration(
@@ -534,6 +546,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                           value: showCompleted,
                           onChanged: (value) {
                             setState(() {
+                              // Just flip the bool.
                               showCompleted = value!;
                             });
                           },
@@ -551,8 +564,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
           Expanded(
             child: ListView(
               children: [
-                if (homework
-                        .isEmpty || // We need this OR, otherwise if everything is completed and hidden then the page will be empty.
+                // We need this OR, otherwise if everything is completed and hidden then the page will be empty.
+                if (homework.isEmpty ||
                     (homework.every((element) => element.completed) &&
                         !showCompleted))
                   const Text(

@@ -19,6 +19,7 @@ class ExamMark {
   final String? grade;
 
   Map<String, dynamic> toJson() {
+    // Convert this object back into JSON.
     return {"mark_id": id, "test_name": name, "mark": mark, "grade": grade};
   }
 }
@@ -151,6 +152,7 @@ class _ExamPageState extends State<ExamPage> {
   String grade = "";
 
   Future<void> load() async {
+    // Load our local copy first.
     final prefs = await SharedPreferences.getInstance();
     String? storedMarks = prefs.getString("marks");
     if (storedMarks != null) {
@@ -238,6 +240,7 @@ class _ExamPageState extends State<ExamPage> {
 
   @override
   Widget build(BuildContext context) {
+    // This code is very similar to the homework page.
     return Scaffold(
       appBar: PLAppBar("Exam Marks", context),
       backgroundColor: Theme.of(context).backgroundColor,
@@ -312,6 +315,7 @@ class _ExamPageState extends State<ExamPage> {
                                       return null;
                                     },
                                     onChanged: (value) {
+                                      // If we try and parse it, this returns null if its not an integer.
                                       int? result = int.tryParse(value);
                                       if (result != null) {
                                         mark = result;
@@ -370,6 +374,7 @@ class _ExamPageState extends State<ExamPage> {
             child: ListView(
               children: [
                 if (marks.isEmpty)
+                  // If there is nothing to show, display this message.
                   const Text(
                     "No marks",
                     textAlign: TextAlign.center,

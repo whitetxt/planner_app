@@ -9,12 +9,6 @@ import "package:flutter/material.dart";
 import "globals.dart";
 import 'network.dart';
 
-class MainPageArgs {
-  final String token;
-
-  MainPageArgs(this.token);
-}
-
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
@@ -44,6 +38,8 @@ class _LoginPageState extends State<LoginPage> {
     await showDialog(
       context: context,
       builder: (BuildContext context) {
+        // If the user was given a registration code (such as for a teacher account)
+        // ask them to enter it here.
         return AlertDialog(
           title: Container(
             decoration: BoxDecoration(
@@ -80,6 +76,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: ElevatedButton(
                         child: const Text("Cancel"),
                         onPressed: () {
+                          // If they cancelled it, then don't proceed after closing.
                           proceed = false;
                           Navigator.of(context)
                               .popUntil(ModalRoute.withName("/"));
@@ -103,6 +100,7 @@ class _LoginPageState extends State<LoginPage> {
       },
     );
 
+    // If the user cancelled:
     if (!proceed) return "Cancelled by user";
     // POSTs to the server the user's desired details and waits for a response.
     final response = await http.post(
@@ -162,22 +160,15 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> validateRegistration() async {
+    // Only register if the form is valid.
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Registering as $user",
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-          backgroundColor: Theme.of(context).cardColor,
-          duration: const Duration(seconds: 5),
-        ),
-      );
+      addNotif("Registering as $user", error: false);
       String reason = await register(user, pass);
       ScaffoldMessenger.of(context).clearSnackBars();
       if (reason.startsWith("Bearer")) {
         token = reason;
+        // This waits for the server to provide information on the user we logged in as.
+        // This is done to get important information on the user such as their permissions.
         http.Response resp = await processNetworkRequest(
             NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
         if (!validateResponse(resp)) return;
@@ -194,39 +185,22 @@ class _LoginPageState extends State<LoginPage> {
           (_) => false,
         );
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Registration failed: $reason",
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            backgroundColor: Theme.of(context).errorColor,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        // If it fails, show this to the user.
+        addNotif("Registration failed: $reason");
       }
     }
     return;
   }
 
   Future<void> validateLogin() async {
+    // Only login if the form is valid.
     if (_formKey.currentState!.validate()) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "Logging in as $user",
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-          backgroundColor: Colors.indigo.shade300,
-          duration: const Duration(seconds: 5),
-        ),
-      );
+      addNotif("Logging in as $user", error: false);
       String reason = await login(user, pass);
       ScaffoldMessenger.of(context).clearSnackBars();
       if (reason.startsWith("Bearer")) {
         token = reason;
+        // Wait to recieve user data from the server.
         http.Response resp = await processNetworkRequest(
             NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
         if (!validateResponse(resp)) return;
@@ -239,17 +213,7 @@ class _LoginPageState extends State<LoginPage> {
         );
         Navigator.pushNamedAndRemoveUntil(context, "/dash", (_) => false);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              "Login failed: $reason",
-              style: Theme.of(context).textTheme.bodyMedium,
-              textAlign: TextAlign.center,
-            ),
-            backgroundColor: Colors.red.shade600,
-            duration: const Duration(seconds: 3),
-          ),
-        );
+        addNotif("Login failed: $reason");
       }
     }
   }

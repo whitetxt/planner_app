@@ -15,6 +15,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 void onLogoutResponse(http.Response _) {
+  // When we logout, we don't care if it failed or succeeded,
+  // just throw away our token and go back to the login screen.
   token = "";
   navigatorKey.currentState!.pushNamedAndRemoveUntil("/", (_) => false);
 }
@@ -36,6 +38,7 @@ void onDeleteResponse(http.Response response) {
   if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
   if (data["status"] != "success") {
+    // If it failed, then don't logout since the account may not be fully deleted.
     addNotif(data["message"], error: true);
     return;
   }
@@ -70,6 +73,7 @@ class _SettingsPageState extends State<SettingsPage> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: ElevatedButton.icon(
+                  // Use an icon with text next to it for the button.
                   icon: const Icon(Icons.logout),
                   label: const Text("Logout"),
                   onPressed: () {
@@ -98,6 +102,8 @@ class _SettingsPageState extends State<SettingsPage> {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
+                        // Since this is an important action, I show this dialog to warn the user
+                        // that this cannot be undone, and is dangerous.
                         return AlertDialog(
                           backgroundColor: Colors.red.shade400,
                           title: Container(

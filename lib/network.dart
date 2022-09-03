@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import "package:http/http.dart" as http;
@@ -23,23 +22,19 @@ class NetworkOperation {
       callback; // The function to call with the data retrieved.
 }
 
-class PortData {
-  const PortData({this.send, this.data, this.operation});
-
-  final SendPort? send;
-  final String? data;
-  final NetworkOperation? operation;
-}
-
 void addRequest(NetworkOperation request) {
   request.url = apiUrl + request.url;
   while (token.isEmpty) {
     sleep(const Duration(milliseconds: 100));
   }
   if (onlineMode) {
+    // If we are online, then process this request normally.
     processNetworkRequest(request).then(
       (value) {
         if (value.statusCode == 999) {
+          // Status code 999 is not used by HTTP, and so I use it to show a connection error.
+          // If this occurs, then stop sending requests and start checking for whenever we
+          // come back online.
           pending.add(request);
           onlineMode = false;
           createOnlineTest();
@@ -49,6 +44,8 @@ void addRequest(NetworkOperation request) {
       },
     );
   } else {
+    // If we are offline, then add it to the requests to be processed and start checking
+    // for when we come back online.
     pending.add(request);
     createOnlineTest();
   }
@@ -56,6 +53,7 @@ void addRequest(NetworkOperation request) {
 
 void createOnlineTest() {
   onlineTest ??= Timer.periodic(
+    // Every 10 seconds, send a request to check if we are online.
     const Duration(seconds: 10),
     (timer) {
       processNetworkRequest(
@@ -63,6 +61,7 @@ void createOnlineTest() {
           .then(
         (http.Response resp) {
           if (validateResponse(resp)) {
+            // If the server responds, then we are online and everything is good.
             onlineMode = true;
             for (var request in pending) {
               // We must rate-limit ourselves since the server has just started back up,
@@ -79,9 +78,14 @@ void createOnlineTest() {
             }
             pending = [];
             addNotif("Back online!", error: false);
+            // Cancel this timer so that it doesnt keep checking for online status.
             timer.cancel();
+            // Also reset onlineTest back so that any new requests will go through normally.
             onlineTest = null;
             Timer(
+              // Since we just sent many requests, the callbacks will most likely create many
+              // notifs and therefore we should clear all of them so they don't spam
+              // the screen for ages.
               const Duration(seconds: 1),
               () => ScaffoldMessenger.of(
                 scaffoldKey.currentContext!,
@@ -95,12 +99,16 @@ void createOnlineTest() {
 }
 
 bool validateResponse(http.Response response) {
+  // If the status code is not OK
   if (response.statusCode != 200) {
     if (response.statusCode == 500) {
+      // If it's 500, the server didn't get a chance to return a proper error message.
       addNotif("Internal Server Error");
       return false;
     }
     if (response.statusCode > 900) {
+      // HTTP doesn't use status codes over 900, so they are used internally to
+      // communicate custom errors.
       return false;
     }
     addNotif(response.body);
@@ -108,6 +116,8 @@ bool validateResponse(http.Response response) {
   }
   Map<String, dynamic> data = json.decode(response.body);
   if (data["status"] != "success") {
+    // If it wasn't successful then the server will have returned the reason why
+    // in the JSON so we display that to the user.
     addNotif(data["message"]);
     return false;
   }
@@ -117,6 +127,7 @@ bool validateResponse(http.Response response) {
 Future<http.Response> processNetworkRequest(NetworkOperation task) async {
   http.Response? response;
   switch (task.method) {
+    // This switch statement converts the text method into the HTTP function.
     case "GET":
       response = await performRequest(
         http.get,
@@ -153,6 +164,7 @@ Future<http.Response> processNetworkRequest(NetworkOperation task) async {
       );
       break;
     default:
+      // If we don't know what it is, just throw an Exception to exit.
       throw Exception("Unknown method type: ${task.method}");
   }
   return response;
@@ -164,6 +176,7 @@ Future<http.Response> performRequest(
   Map<String, dynamic>? body,
 ) async {
   if (token.isEmpty) {
+    // Status code 998 is used to show that the token is empty.
     return http.Response("", 998);
   }
   if (body != null) {
@@ -177,6 +190,8 @@ Future<http.Response> performRequest(
           ScaffoldMessenger.of(
             scaffoldKey.currentContext!,
           ).clearSnackBars();
+          // This message is too long to show in one notification, so just display it
+          // in two.
           addNotif(
             "Connection Error. Running in offline mode.",
           );
@@ -185,6 +200,7 @@ Future<http.Response> performRequest(
           );
           onlineMode = false;
         }
+        // Status code 999 is used to show that there was an error connecting to the server.
         return http.Response("", 999);
       },
     );

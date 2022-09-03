@@ -19,12 +19,13 @@ enum Permissions {
 class User {
   User(this.uid, this.name, this.createdAt, this.permissions);
 
-  final int uid;
+  final int? uid;
   final String name;
   final DateTime createdAt;
   final Permissions permissions;
 
   factory User.fromJson(Map<String, dynamic> data) {
+    // Converts server's json data into a User object.
     return User(
       data["uid"],
       data["username"],
