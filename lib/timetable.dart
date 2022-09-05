@@ -109,7 +109,8 @@ class _TimetableSlotState extends State<TimetableSlot> {
             return;
           }
           for (var subject in data["data"]) {
-            if (subject["room"] == room && subject["teacher"] == teacher) {
+            if (subject["room"].toLowerCase() == room.toLowerCase() &&
+                subject["teacher"].toLowerCase() == teacher.toLowerCase()) {
               addRequest(
                 NetworkOperation(
                   "/api/v1/timetable",
@@ -196,7 +197,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
               data: {
                 "name": name,
                 "teacher": teacher.isEmpty ? "None" : teacher,
-                "room": room.isEmpty ? "None" : teacher,
+                "room": room.isEmpty ? "None" : room,
               },
             ),
           );
