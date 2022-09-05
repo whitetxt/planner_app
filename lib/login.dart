@@ -193,34 +193,33 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> validateLogin() async {
-    // Only login if the form is valid.
-    if (_formKey.currentState!.validate()) {
-      addNotif("Logging in as $user", error: false);
-      String reason = await login(user, pass);
-      ScaffoldMessenger.of(context).clearSnackBars();
-      if (reason.startsWith("Bearer")) {
-        token = reason;
-        // Wait to recieve user data from the server.
-        http.Response resp = await processNetworkRequest(
-            NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
-        if (!validateResponse(resp)) return;
-        dynamic data = json.decode(resp.body)["data"];
-        me = User(
-          data["uid"],
-          data["username"],
-          DateTime.fromMillisecondsSinceEpoch(data["created_at"]),
-          Permissions.values[data["permissions"]],
-        );
-        Navigator.pushNamedAndRemoveUntil(context, "/dash", (_) => false);
-      } else {
-        addNotif("Login failed: $reason");
-      }
+    // Login doesn't need to be validated.
+    addNotif("Logging in as $user", error: false);
+    String reason = await login(user, pass);
+    ScaffoldMessenger.of(context).clearSnackBars();
+    if (reason.startsWith("Bearer")) {
+      token = reason;
+      // Wait to recieve user data from the server.
+      http.Response resp = await processNetworkRequest(
+          NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
+      if (!validateResponse(resp)) return;
+      dynamic data = json.decode(resp.body)["data"];
+      me = User(
+        data["uid"],
+        data["username"],
+        DateTime.fromMillisecondsSinceEpoch(data["created_at"]),
+        Permissions.values[data["permissions"]],
+      );
+      Navigator.pushNamedAndRemoveUntil(context, "/dash", (_) => false);
+    } else {
+      addNotif("Login failed: $reason");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(48),
         child: AppBar(
@@ -292,8 +291,14 @@ class _LoginPageState extends State<LoginPage> {
                           return "Enter a password";
                         }
                         if (value.length < 8) {
-                          return "Password must be more than 8 characters";
+                          return "Password must be at least 8 characters";
                         }
+                        /*if (value.characters
+                            .where((String character) =>
+                                "1234567890".contains(character))
+                            .isEmpty) {
+                          return "Password must contain a number.";
+                        }*/
                         return null;
                       },
                       onChanged: (value) {

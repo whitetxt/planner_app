@@ -42,6 +42,10 @@ User? me; // Keep a version of us on hand, for whenever we might need it.
 
 void addNotif(String text, {bool error = true}) {
   // This function is used to display something to the user.
+  if (scaffoldKey.currentContext == null) {
+    // This shouldn't ever be null but it could be.
+    return;
+  }
   ScaffoldMessenger.of(scaffoldKey.currentContext!).showSnackBar(
     SnackBar(
       content: Text(
