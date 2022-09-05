@@ -268,7 +268,10 @@ class _TimetableSlotState extends State<TimetableSlot> {
                                     decoration: const InputDecoration(
                                       labelText: "Subject Name",
                                     ),
-                                    initialValue: widget.data.name,
+                                    initialValue:
+                                        widget.data.name.toLowerCase() == "none"
+                                            ? ""
+                                            : widget.data.name,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return "Enter a name";
@@ -286,7 +289,11 @@ class _TimetableSlotState extends State<TimetableSlot> {
                                     decoration: const InputDecoration(
                                       labelText: "Teacher",
                                     ),
-                                    initialValue: widget.data.teacher,
+                                    initialValue:
+                                        widget.data.teacher.toLowerCase() ==
+                                                "none"
+                                            ? ""
+                                            : widget.data.teacher,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return "Enter a teacher";
@@ -304,7 +311,10 @@ class _TimetableSlotState extends State<TimetableSlot> {
                                     decoration: const InputDecoration(
                                       labelText: "Room",
                                     ),
-                                    initialValue: widget.data.room,
+                                    initialValue:
+                                        widget.data.room.toLowerCase() == "none"
+                                            ? ""
+                                            : widget.data.room,
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return "Enter a room";
