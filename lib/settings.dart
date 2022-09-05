@@ -119,7 +119,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: const [
                                 Icon(
-                                  Icons.warning_rounded,
+                                  Icons.warning,
                                 ),
                                 Text(
                                   "WARNING!",
@@ -185,7 +185,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 padding: const EdgeInsets.all(8),
                 child: ElevatedButton.icon(
                   icon: const Icon(
-                    Icons.delete_forever_rounded,
+                    Icons.delete_forever,
                   ),
                   label: const Text(
                     "Delete Account",
@@ -211,7 +211,7 @@ class _SettingsPageState extends State<SettingsPage> {
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: const [
                                 Icon(
-                                  Icons.warning_rounded,
+                                  Icons.warning,
                                 ),
                                 Text(
                                   "WARNING!",

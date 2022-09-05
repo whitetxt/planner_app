@@ -152,7 +152,7 @@ class _MainPageState extends State<MainPage>
               message: "Timetable",
               child: Tab(
                 icon: Icon(
-                  Icons.calendar_today_outlined,
+                  Icons.calendar_today,
                   semanticLabel: "Timetable",
                 ),
                 child: AutoSizeText(
@@ -167,7 +167,7 @@ class _MainPageState extends State<MainPage>
               message: "Homework",
               child: Tab(
                 icon: Icon(
-                  Icons.book_outlined,
+                  Icons.book,
                   semanticLabel: "Homework",
                 ),
                 child: AutoSizeText(
@@ -182,7 +182,7 @@ class _MainPageState extends State<MainPage>
               message: "Dashboard",
               child: Tab(
                 icon: Icon(
-                  Icons.home_outlined,
+                  Icons.home,
                   semanticLabel: "Dashboard",
                 ),
                 child: AutoSizeText(
@@ -197,7 +197,7 @@ class _MainPageState extends State<MainPage>
               message: "Calendar",
               child: Tab(
                 icon: Icon(
-                  Icons.calendar_month_outlined,
+                  Icons.calendar_month,
                   semanticLabel: "Calendar",
                 ),
                 child: AutoSizeText(
@@ -213,7 +213,7 @@ class _MainPageState extends State<MainPage>
                     message: "Exams",
                     child: Tab(
                       icon: Icon(
-                        Icons.check_circle_outline_outlined,
+                        Icons.check_circle_outline,
                         semanticLabel: "Exams",
                       ),
                       child: AutoSizeText(

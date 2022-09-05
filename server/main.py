@@ -1,7 +1,9 @@
-import random, uvicorn, os
+import random, uvicorn, os, fastapi
 from time import time
 from fastapi import FastAPI, Form, HTTPException, Depends, status, Request
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
+from fastapi.routing import Mount
 from hashlib import sha512, sha256, sha384
 
 from database import *
@@ -56,11 +58,17 @@ tags_metadata = [
 app = FastAPI(title="Planner App API",
 			description="API used for the backend of the planner app.",
 			version="0.4.2_beta",
-			tags_metadata=tags_metadata)
+			tags_metadata=tags_metadata,
+			routes=[Mount("/web", app=StaticFiles(directory="web"), name="Web")]
+		)
 
 oauth2_scheme = OAuth2PasswordBearer(
 	tokenUrl="/api/v1/auth/login"
 )
+
+@app.get("/")
+async def redirect_to_web_build():
+	return fastapi.responses.RedirectResponse("/web/index.html")
 
 @app.get("/onlineCheck")
 async def online_check():

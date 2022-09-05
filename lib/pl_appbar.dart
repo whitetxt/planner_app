@@ -26,7 +26,7 @@ class PLAppBar extends PreferredSize {
                     ),
                   ),
                   child: const Icon(
-                    Icons.settings_outlined,
+                    Icons.settings,
                     color: Color(0xFF000000),
                   ),
                   onPressed: () => Navigator.push(
