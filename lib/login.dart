@@ -218,8 +218,9 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    currentScaffoldKey = loginScaffoldKey;
     return Scaffold(
-      key: scaffoldKey,
+      key: loginScaffoldKey,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(48),
         child: AppBar(
@@ -293,12 +294,12 @@ class _LoginPageState extends State<LoginPage> {
                         if (value.length < 8) {
                           return "Password must be at least 8 characters";
                         }
-                        /*if (value.characters
+                        if (value.characters
                             .where((String character) =>
                                 "1234567890".contains(character))
                             .isEmpty) {
                           return "Password must contain a number.";
-                        }*/
+                        }
                         return null;
                       },
                       onChanged: (value) {
@@ -313,14 +314,12 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         ElevatedButton(
                           onPressed: () async {
-                            // Validate the form (returns true if all is ok)
                             validateRegistration();
                           },
                           child: const Text('Register'),
                         ),
                         ElevatedButton(
                           onPressed: () async {
-                            // Validate the form (returns true if all is ok)
                             validateLogin();
                           },
                           child: const Text('Login'),

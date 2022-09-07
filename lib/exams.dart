@@ -24,11 +24,104 @@ class ExamMark {
   }
 }
 
+// Stop dart linter complaining that some fields aren't final.
+// ignore: must_be_immutable
 class MarkWidget extends StatelessWidget {
-  const MarkWidget(this.data, this.reset, {Key? key}) : super(key: key);
+  MarkWidget(this.data, this.reset, {Key? key}) : super(key: key);
+
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final ExamMark data;
   final Function reset;
+
+  String newName = "";
+  int newMark = 0;
+  String newGrade = "";
+
+  void updateMark() {
+    addRequest(
+      NetworkOperation(
+        "/api/v1/marks",
+        "PUT",
+        (http.Response response) {
+          if (!validateResponse(response)) return;
+        },
+        data: {
+          "mark_id": data.id,
+          "name": data.name,
+          "mark": data.mark.toString(),
+          "grade": data.grade
+        },
+      ),
+    );
+  }
+
+  void showTapDialog(context) {
+    showDialog(
+      context: navigatorKey.currentContext!,
+      builder: (BuildContext context) => AlertDialog(
+        title: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).dividerColor,
+                width: 2,
+              ),
+            ),
+          ),
+          child: const Text(
+            "Change Mark",
+            textAlign: TextAlign.center,
+          ),
+        ),
+        content: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: "Name",
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Enter a name";
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: "Mark",
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Enter a mark";
+                  }
+                  return null;
+                },
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: "Grade",
+                ),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Enter a grade";
+                  }
+                  return null;
+                },
+              ),
+              ElevatedButton(
+                onPressed: () async {},
+                child: const Text('Submit'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +165,88 @@ class MarkWidget extends StatelessWidget {
                   ),
                   itemBuilder: (context) => [
                     PopupMenuItem(
-                      onTap: () {},
+                      /*onTap: () {
+                        print("Called");
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Container(
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: Theme.of(context).dividerColor,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                                child: const Text(
+                                  "Create an Event",
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              content: Form(
+                                // Adding the key here, allows me to check if this form is
+                                // valid later on in the code.
+                                key: _formKey,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    TextFormField(
+                                      decoration: const InputDecoration(
+                                        labelText: "Name",
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return "Enter a name";
+                                        }
+                                        return null;
+                                      },
+                                      initialValue: data.name,
+                                      onChanged: (value) {
+                                        newName = value;
+                                      },
+                                      onFieldSubmitted: (String _) {
+                                        updateMark();
+                                      },
+                                    ),
+                                    TextFormField(
+                                      decoration: const InputDecoration(
+                                        labelText: "Mark",
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      initialValue: data.mark.toString(),
+                                      onChanged: (value) {
+                                        if (int.tryParse(value) != null) {
+                                          newMark = int.parse(value);
+                                        }
+                                      },
+                                      onFieldSubmitted: (String _) {
+                                        updateMark();
+                                      },
+                                    ),
+                                    // Create a button which updates the mark.
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          // Validate the form (returns true if all is ok)
+                                          if (_formKey.currentState!
+                                              .validate()) {
+                                            updateMark();
+                                          }
+                                        },
+                                        child: const Text('Update Mark'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },*/
+                      onTap: () => showTapDialog(context),
                       child: const Text(
                         "Modify Mark",
                         style: TextStyle(

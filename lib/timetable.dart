@@ -452,7 +452,12 @@ class _TodayTimetableState extends State<TodayTimetable> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            const Text("Today's Timetable"),
+            const Text(
+              "Today's Timetable",
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
             const Divider(
               indent: 4,
               endIndent: 4,

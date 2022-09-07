@@ -42,7 +42,7 @@ void onDeleteResponse(http.Response response) {
     addNotif(data["message"], error: true);
     return;
   }
-  ScaffoldMessenger.of(scaffoldKey.currentContext!).clearSnackBars();
+  ScaffoldMessenger.of(currentScaffoldKey.currentContext!).clearSnackBars();
   addNotif(
     "Successfully deleted account!",
     error: false,

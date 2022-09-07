@@ -39,7 +39,7 @@ Future<User?> getMe() async {
   if (!validateResponse(resp)) {
     return null;
   }
-  dynamic data = json.decode(resp.body);
+  dynamic data = json.decode(resp.body)["data"];
   return User.fromJson(data);
 }
 
@@ -117,8 +117,9 @@ class _MainPageState extends State<MainPage>
 
   @override
   Widget build(BuildContext context) {
+    currentScaffoldKey = mainScaffoldKey;
     return Scaffold(
-      key: scaffoldKey,
+      key: mainScaffoldKey,
       body: TabBarView(
         controller: _tabController,
         physics: const BouncingScrollPhysics(),

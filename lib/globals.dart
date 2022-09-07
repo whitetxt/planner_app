@@ -4,7 +4,9 @@ import "package:flutter/material.dart";
 // The navigator key is used to close dialogs without needing the BuildContext.
 // The scaffold key is used to get the current context without needing the BuildContext.
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
+final GlobalKey<ScaffoldState> loginScaffoldKey = GlobalKey<ScaffoldState>();
+final GlobalKey<ScaffoldState> mainScaffoldKey = GlobalKey<ScaffoldState>();
+GlobalKey<ScaffoldState> currentScaffoldKey = loginScaffoldKey;
 
 enum Permissions {
   // We create an enum here to hold user's permissions.
@@ -42,26 +44,28 @@ User? me; // Keep a version of us on hand, for whenever we might need it.
 
 void addNotif(String text, {bool error = true}) {
   // This function is used to display something to the user.
-  if (scaffoldKey.currentContext == null) {
+  if (currentScaffoldKey.currentContext == null) {
     // This shouldn't ever be null but it could be.
     return;
   }
-  ScaffoldMessenger.of(scaffoldKey.currentContext!).showSnackBar(
+  ScaffoldMessenger.of(currentScaffoldKey.currentContext!).showSnackBar(
     SnackBar(
       content: Text(
         text,
-        style:
-            Theme.of(scaffoldKey.currentContext!).textTheme.bodyMedium!.apply(
-                  // Change the text colour based on if the background is red or blue.
-                  // This is to increase contrast and make the text easier to read.
-                  color: error ? Colors.white : Colors.black,
-                ),
+        style: Theme.of(currentScaffoldKey.currentContext!)
+            .textTheme
+            .bodyMedium!
+            .apply(
+              // Change the text colour based on if the background is red or blue.
+              // This is to increase contrast and make the text easier to read.
+              color: error ? Colors.white : Colors.black,
+            ),
         textAlign: TextAlign.center,
       ),
       backgroundColor: error
           // We change the background colour if this message is an error.
-          ? Theme.of(scaffoldKey.currentContext!).errorColor
-          : Theme.of(scaffoldKey.currentContext!).highlightColor,
+          ? Theme.of(currentScaffoldKey.currentContext!).errorColor
+          : Theme.of(currentScaffoldKey.currentContext!).highlightColor,
       duration: const Duration(seconds: 3),
     ),
   );

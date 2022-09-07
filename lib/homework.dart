@@ -236,7 +236,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: const <Text>[
               Text(
-                "No Due Homework!",
+                "No due homework!",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 32,

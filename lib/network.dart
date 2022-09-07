@@ -88,7 +88,7 @@ void createOnlineTest() {
               // the screen for ages.
               const Duration(seconds: 1),
               () => ScaffoldMessenger.of(
-                scaffoldKey.currentContext!,
+                currentScaffoldKey.currentContext!,
               ).clearSnackBars(),
             );
           }
@@ -188,7 +188,7 @@ Future<http.Response> performRequest(
       (error, stackTrace) {
         if (url != "$apiUrl/onlineCheck") {
           ScaffoldMessenger.of(
-            scaffoldKey.currentContext!,
+            currentScaffoldKey.currentContext!,
           ).clearSnackBars();
           // This message is too long to show in one notification, so just display it
           // in two.
@@ -212,7 +212,7 @@ Future<http.Response> performRequest(
     (error, stackTrace) {
       if (url != "$apiUrl/onlineCheck") {
         ScaffoldMessenger.of(
-          scaffoldKey.currentContext!,
+          currentScaffoldKey.currentContext!,
         ).clearSnackBars();
         addNotif(
           "Connection Error. Running in offline mode.",
