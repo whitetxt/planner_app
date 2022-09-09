@@ -532,7 +532,7 @@ async def create_event(name: str = Form(...), time: int = Form(...), description
 	This event can be marked as private or public. Public events require a teacher account.
 	"""
 	if user.permissions < Permissions.Teacher and not private:
-		return HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized to create public events.")
+		raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized to create public events.")
 	Events_DB.create_event(user.uid, name, time, description, private)
 	return {"status": "success"}
 
@@ -636,6 +636,8 @@ async def add_student_to_class(class_id: int, student_id: int = Form(...), user:
 	Class **MUST** be owned by current user.
 	"""
 	thisClass = Classes_DB.get_class(class_id)
+	if thisClass is None:
+		return {"status": "error", "message": "Class doesn't exist."}
 	if thisClass.teacher_id != user.uid:
 		return {"status": "error", "message": "You can only add to your own class."}
 	student = Users_DB.get_user_from_uid(student_id)
@@ -652,6 +654,8 @@ async def get_class_homework(class_id: int, user: User = Depends(get_current_use
 	Class **MUST** belong to the current user.
 	"""
 	thisClass = Classes_DB.get_class(class_id)
+	if thisClass is None:
+		return {"status": "error", "message": "Class doesn't exist."}
 	if thisClass.teacher_id != user.uid:
 		return {"status": "error", "message": "You may only get homework for your own class."}
 	homeworkSet = Homework_DB.get_homework_for_class(class_id)
@@ -665,6 +669,8 @@ async def set_class_homework(class_id: int, homework_name: str = Form(...), due_
 	Class **MUST** belong to the current user.
 	"""
 	thisClass = Classes_DB.get_class(class_id)
+	if thisClass is None:
+		return {"status": "error", "message": "Class doesn't exist."}
 	if thisClass.teacher_id != user.uid:
 		return {"status": "error", "message": "You may only set homework for your own class."}
 	studentsInClass = User_Class_DB.get_students_in_class(class_id)
@@ -680,6 +686,8 @@ async def get_completed_homework(class_id: int, homework_id: int, user: User = D
 	Class **MUST** belong to the current user.
 	"""
 	thisClass = Classes_DB.get_class(class_id)
+	if thisClass is None:
+		return {"status": "error", "message": "Class doesn't exist."}
 	if thisClass.teacher_id != user.uid:
 		return {"status": "error", "message": "You may only get stats for homework for your own class."}
 	studentsInClass = User_Class_DB.get_students_in_class(class_id)

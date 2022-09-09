@@ -469,7 +469,8 @@ class _CalendarPageState extends State<CalendarPage> {
                                 decoration: const InputDecoration(
                                   labelText: "Description",
                                 ),
-                                keyboardType: TextInputType.number,
+                                keyboardType: TextInputType.multiline,
+                                maxLines: 5,
                                 onChanged: (value) {
                                   description = value;
                                 },
@@ -494,19 +495,21 @@ class _CalendarPageState extends State<CalendarPage> {
                                   child: const Text('Create Private Event'),
                                 ),
                               ),
-                              Padding(
-                                padding: const EdgeInsets.only(top: 8),
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    // Validate the form (returns true if all is ok)
-                                    if (_formKey.currentState!.validate()) {
-                                      private = false;
-                                      createEvent();
-                                    }
-                                  },
-                                  child: const Text('Create Public Event'),
+                              if (me != null &&
+                                  me!.permissions == Permissions.teacher)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      // Validate the form (returns true if all is ok)
+                                      if (_formKey.currentState!.validate()) {
+                                        private = false;
+                                        createEvent();
+                                      }
+                                    },
+                                    child: const Text('Create Public Event'),
+                                  ),
                                 ),
-                              ),
                             ],
                           ),
                         ),
