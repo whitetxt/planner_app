@@ -485,6 +485,7 @@ class _ClassPageState extends State<ClassPage> {
         "POST",
         (http.Response response) {
           refreshClasses();
+          Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
         },
         data: {
           "name": name,
