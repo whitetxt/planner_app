@@ -483,7 +483,7 @@ class MarkDB(DB):
 		if not result:
 			return None
 		result = result[0]
-		return self.convert_result_to_mark(mark_id, result)
+		return self.convert_result_to_mark(result)
 
 	def get_marks_for_user(self, user_id: int) -> List[Mark]:
 		results = self._get("*", "marks", where="user_id = ?", args=(user_id, ))

@@ -70,6 +70,7 @@ class MarkWidget extends StatelessWidget {
               Expanded(
                 flex: 1,
                 child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
                       "${data.mark}",
@@ -385,101 +386,100 @@ class _ExamPageState extends State<ExamPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              SizedBox(
-                width: 80,
-                height: 32,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: TextButton.icon(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Theme.of(context).highlightColor,
-                      side: const BorderSide(color: Colors.black),
-                    ),
-                    icon: const Icon(Icons.add, color: Colors.black),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Theme.of(context).dividerColor,
-                                    width: 2,
-                                  ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).highlightColor,
+                    side: const BorderSide(color: Colors.black),
+                  ),
+                  icon: const Icon(Icons.add, color: Colors.black),
+                  onPressed: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Theme.of(context).dividerColor,
+                                  width: 2,
                                 ),
                               ),
-                              child: const Text(
-                                "Add a mark",
-                                textAlign: TextAlign.center,
-                              ),
                             ),
-                            content: Form(
-                              key: _formKey,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: "Test Name",
-                                    ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Enter a name";
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      name = value;
-                                    },
-                                    onFieldSubmitted: (String _) {
-                                      addMark();
-                                    },
+                            child: const Text(
+                              "Add a mark",
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          content: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: "Test Name",
                                   ),
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: "Mark",
-                                    ),
-                                    keyboardType: TextInputType.number,
-                                    validator: (value) {
-                                      if (value == null ||
-                                          value.isEmpty ||
-                                          int.tryParse(value) == null) {
-                                        return "Enter a valid mark";
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      // If we try and parse it, this returns null if its not an integer.
-                                      int? result = int.tryParse(value);
-                                      if (result != null) {
-                                        mark = result;
-                                      }
-                                    },
-                                    onFieldSubmitted: (String _) {
-                                      addMark();
-                                    },
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Enter a name";
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    name = value;
+                                  },
+                                  onFieldSubmitted: (String _) {
+                                    addMark();
+                                  },
+                                ),
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: "Mark",
                                   ),
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: "Grade",
-                                    ),
-                                    keyboardType: TextInputType.number,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Enter a grade";
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      grade = value;
-                                    },
-                                    onFieldSubmitted: (String _) {
-                                      addMark();
-                                    },
+                                  keyboardType: TextInputType.number,
+                                  validator: (value) {
+                                    if (value == null ||
+                                        value.isEmpty ||
+                                        int.tryParse(value) == null) {
+                                      return "Enter a valid mark";
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    // If we try and parse it, this returns null if its not an integer.
+                                    int? result = int.tryParse(value);
+                                    if (result != null) {
+                                      mark = result;
+                                    }
+                                  },
+                                  onFieldSubmitted: (String _) {
+                                    addMark();
+                                  },
+                                ),
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: "Grade",
                                   ),
-                                  ElevatedButton(
+                                  keyboardType: TextInputType.number,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Enter a grade";
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    grade = value;
+                                  },
+                                  onFieldSubmitted: (String _) {
+                                    addMark();
+                                  },
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: ElevatedButton(
                                     onPressed: () {
                                       // Validate the form (returns true if all is ok)
                                       if (_formKey.currentState!.validate()) {
@@ -488,18 +488,18 @@ class _ExamPageState extends State<ExamPage> {
                                     },
                                     child: const Text('Submit'),
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                      );
-                    },
-                    label: const Text(
-                      "New",
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  label: const Text(
+                    "New",
+                    style: TextStyle(
+                      color: Colors.black,
                     ),
                   ),
                 ),

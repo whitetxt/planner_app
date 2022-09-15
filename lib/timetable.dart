@@ -352,38 +352,41 @@ class _TimetableSlotState extends State<TimetableSlot> {
           },
         );
       },
-      child: Material(
-        elevation: 2,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).highlightColor,
-            border: Border.all(
-              color: Theme.of(context).bottomAppBarTheme.color!,
-              width: widget.borderWidth,
+      child: Padding(
+        padding: const EdgeInsets.all(4),
+        child: Material(
+          elevation: 2,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).highlightColor,
+              border: Border.all(
+                color: Theme.of(context).bottomAppBarTheme.color!,
+                width: widget.borderWidth,
+              ),
+              borderRadius: BorderRadius.circular(widget.borderWidth / 2),
             ),
-            borderRadius: BorderRadius.circular(widget.borderWidth / 2),
-          ),
-          child: SizedBox(
-            width: widget.width,
-            height: widget.height,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Expanded(
-                  child: Center(
-                    child: AutoSizeText(
-                      widget.data.name,
-                      textAlign: TextAlign.center,
-                      minFontSize: 5,
-                      maxFontSize: 16,
-                      stepGranularity: 0.1,
-                      maxLines: 3,
-                      semanticsLabel: widget.data.name,
-                      wrapWords: false,
+            child: SizedBox(
+              width: widget.width,
+              height: widget.height,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  Expanded(
+                    child: Center(
+                      child: AutoSizeText(
+                        widget.data.name,
+                        textAlign: TextAlign.center,
+                        minFontSize: 5,
+                        maxFontSize: 16,
+                        stepGranularity: 0.1,
+                        maxLines: 3,
+                        semanticsLabel: widget.data.name,
+                        wrapWords: false,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -596,127 +599,142 @@ class _TimetablePageState extends State<TimetablePage> {
                     double height =
                         constraints.maxHeight / (timetable[0].length + 4) -
                             (borderWidth * 2 + borderWidth);
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    height *= 1.25;
+                    return ListView(
                       children: [
-                        ...[
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              TimetableSlot(
-                                0,
-                                -1,
-                                const TimetableData("Monday", "", ""),
-                                width: width,
-                                height: height,
-                                borderWidth: borderWidth * 2,
-                                clickable: false,
-                              ),
-                              TimetableSlot(
-                                1,
-                                -1,
-                                const TimetableData("Tuesday", "", ""),
-                                width: width,
-                                height: height,
-                                borderWidth: borderWidth * 2,
-                                clickable: false,
-                              ),
-                              TimetableSlot(
-                                2,
-                                -1,
-                                const TimetableData("Wednesday", "", ""),
-                                width: width,
-                                height: height,
-                                borderWidth: borderWidth * 2,
-                                clickable: false,
-                              ),
-                              TimetableSlot(
-                                3,
-                                -1,
-                                const TimetableData("Thursday", "", ""),
-                                width: width,
-                                height: height,
-                                borderWidth: borderWidth * 2,
-                                clickable: false,
-                              ),
-                              TimetableSlot(
-                                4,
-                                -1,
-                                const TimetableData("Friday", "", ""),
-                                width: width,
-                                height: height,
-                                borderWidth: borderWidth * 2,
-                                clickable: false,
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            ...[
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: <Widget>[
+                                  TimetableSlot(
+                                    0,
+                                    -1,
+                                    const TimetableData("Monday", "", ""),
+                                    width: width,
+                                    height: height,
+                                    borderWidth: borderWidth * 2,
+                                    clickable: false,
+                                  ),
+                                  TimetableSlot(
+                                    1,
+                                    -1,
+                                    const TimetableData("Tuesday", "", ""),
+                                    width: width,
+                                    height: height,
+                                    borderWidth: borderWidth * 2,
+                                    clickable: false,
+                                  ),
+                                  TimetableSlot(
+                                    2,
+                                    -1,
+                                    const TimetableData("Wednesday", "", ""),
+                                    width: width,
+                                    height: height,
+                                    borderWidth: borderWidth * 2,
+                                    clickable: false,
+                                  ),
+                                  TimetableSlot(
+                                    3,
+                                    -1,
+                                    const TimetableData("Thursday", "", ""),
+                                    width: width,
+                                    height: height,
+                                    borderWidth: borderWidth * 2,
+                                    clickable: false,
+                                  ),
+                                  TimetableSlot(
+                                    4,
+                                    -1,
+                                    const TimetableData("Friday", "", ""),
+                                    width: width,
+                                    height: height,
+                                    borderWidth: borderWidth * 2,
+                                    clickable: false,
+                                  ),
+                                ],
                               ),
                             ],
-                          ),
-                        ],
-                        const Divider(
-                          indent: 8,
-                          endIndent: 8,
+                            const Divider(
+                              indent: 8,
+                              endIndent: 8,
+                            ),
+                            for (int period = 0;
+                                period < timetable[0].length && period < 4;
+                                period++)
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: <Widget>[
+                                  for (int day = 0;
+                                      day < timetable.length;
+                                      day++)
+                                    TimetableSlot(
+                                      day,
+                                      period,
+                                      timetable[day][period],
+                                      width: width,
+                                      height: height,
+                                      borderWidth: borderWidth,
+                                      reset: getTimetable,
+                                    ),
+                                ],
+                              ),
+                            const Divider(
+                              indent: 8,
+                              endIndent: 8,
+                            ),
+                            for (int period = 4;
+                                period < timetable[0].length && period < 6;
+                                period++)
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: <Widget>[
+                                  for (int day = 0;
+                                      day < timetable.length;
+                                      day++)
+                                    TimetableSlot(
+                                      day,
+                                      period,
+                                      timetable[day][period],
+                                      width: width,
+                                      height: height,
+                                      borderWidth: borderWidth,
+                                      reset: getTimetable,
+                                    ),
+                                ],
+                              ),
+                            const Divider(
+                              indent: 8,
+                              endIndent: 8,
+                            ),
+                            for (int period = 6;
+                                period < timetable[0].length;
+                                period++)
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: <Widget>[
+                                  for (int day = 0;
+                                      day < timetable.length;
+                                      day++)
+                                    TimetableSlot(
+                                      day,
+                                      period,
+                                      timetable[day][period],
+                                      width: width,
+                                      height: height,
+                                      borderWidth: borderWidth,
+                                      reset: getTimetable,
+                                    ),
+                                ],
+                              ),
+                          ],
                         ),
-                        for (int period = 0;
-                            period < timetable[0].length && period < 4;
-                            period++)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              for (int day = 0; day < timetable.length; day++)
-                                TimetableSlot(
-                                  day,
-                                  period,
-                                  timetable[day][period],
-                                  width: width,
-                                  height: height,
-                                  borderWidth: borderWidth,
-                                  reset: getTimetable,
-                                ),
-                            ],
-                          ),
-                        const Divider(
-                          indent: 8,
-                          endIndent: 8,
-                        ),
-                        for (int period = 4;
-                            period < timetable[0].length && period < 6;
-                            period++)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              for (int day = 0; day < timetable.length; day++)
-                                TimetableSlot(
-                                  day,
-                                  period,
-                                  timetable[day][period],
-                                  width: width,
-                                  height: height,
-                                  borderWidth: borderWidth,
-                                  reset: getTimetable,
-                                ),
-                            ],
-                          ),
-                        const Divider(
-                          indent: 8,
-                          endIndent: 8,
-                        ),
-                        for (int period = 6;
-                            period < timetable[0].length;
-                            period++)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: <Widget>[
-                              for (int day = 0; day < timetable.length; day++)
-                                TimetableSlot(
-                                  day,
-                                  period,
-                                  timetable[day][period],
-                                  width: width,
-                                  height: height,
-                                  borderWidth: borderWidth,
-                                  reset: getTimetable,
-                                ),
-                            ],
-                          ),
                       ],
                     );
                   },

@@ -87,7 +87,7 @@ class HomeworkWidget extends StatelessWidget {
             direction: Axis.horizontal,
             children: <Widget>[
               Expanded(
-                flex: 1,
+                flex: 2,
                 child: Text(
                   "${data.timeDue.day}/${data.timeDue.month}/${data.timeDue.year}",
                   textAlign: TextAlign.center,
@@ -409,155 +409,157 @@ class _HomeworkPageState extends State<HomeworkPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              SizedBox(
-                width: 80,
-                height: 32,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: TextButton.icon(
-                    style: TextButton.styleFrom(
-                      backgroundColor: Theme.of(context).highlightColor,
-                      side: const BorderSide(color: Colors.black),
-                    ),
-                    icon: const Icon(Icons.add, color: Colors.black),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Theme.of(context).dividerColor,
-                                    width: 2,
-                                  ),
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).highlightColor,
+                    side: const BorderSide(color: Colors.black),
+                  ),
+                  icon: const Icon(
+                    Icons.add,
+                    color: Colors.black,
+                    size: 24,
+                  ),
+                  onPressed: () {
+                    name = "";
+                    date = DateTime.now();
+                    description = "";
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Container(
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Theme.of(context).dividerColor,
+                                  width: 2,
                                 ),
                               ),
-                              child: const Text(
-                                "Add homework",
-                                textAlign: TextAlign.center,
-                              ),
                             ),
-                            content: Form(
-                              key: _formKey,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: "Homework Name",
-                                    ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Enter a name";
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      name = value;
-                                    },
-                                    onFieldSubmitted: (String _) {
-                                      addHomework();
-                                    },
+                            child: const Text(
+                              "Add homework",
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                          content: Form(
+                            key: _formKey,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: "Homework Name",
                                   ),
-                                  InkWell(
-                                    onTap: () async {
-                                      // Using a DatePicker like this makes the UX better
-                                      // as the user does not have to enter the date manually.
-                                      final DateTime? selected =
-                                          await showDatePicker(
-                                        context: context,
-                                        initialDate: DateTime.now(),
-                                        firstDate: DateTime.now(),
-                                        lastDate: DateTime.now().add(
-                                          // Allow the user to create homework for the next year.
-                                          const Duration(days: 365),
-                                        ),
-                                      );
-                                      if (selected != null) {
-                                        setState(
-                                          () {
-                                            date = selected;
-                                            _dateController.text =
-                                                DateFormat("dd-MM-yy")
-                                                    .format(selected);
-                                          },
-                                        );
-                                      }
-                                    },
-                                    child: TextFormField(
-                                      // This is disabled as the code above controls it.
-                                      enabled: false,
-                                      controller: _dateController,
-                                      decoration: const InputDecoration(
-                                        label: Text("Date Due"),
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return "Enter a name";
+                                    }
+                                    return null;
+                                  },
+                                  onChanged: (value) {
+                                    name = value;
+                                  },
+                                  onFieldSubmitted: (String _) {
+                                    addHomework();
+                                  },
+                                ),
+                                InkWell(
+                                  onTap: () async {
+                                    // Using a DatePicker like this makes the UX better
+                                    // as the user does not have to enter the date manually.
+                                    final DateTime? selected =
+                                        await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime.now(),
+                                      lastDate: DateTime.now().add(
+                                        // Allow the user to create homework for the next year.
+                                        const Duration(days: 365),
                                       ),
-                                    ),
-                                  ),
-                                  TextFormField(
+                                    );
+                                    if (selected != null) {
+                                      setState(
+                                        () {
+                                          date = selected;
+                                          _dateController.text =
+                                              DateFormat("dd-MM-yy")
+                                                  .format(selected);
+                                        },
+                                      );
+                                    }
+                                  },
+                                  child: TextFormField(
+                                    // This is disabled as the code above controls it.
+                                    enabled: false,
+                                    controller: _dateController,
                                     decoration: const InputDecoration(
-                                      labelText: "Description (Optional)",
-                                    ),
-                                    maxLines: 5,
-                                    keyboardType: TextInputType.multiline,
-                                    onChanged: (value) {
-                                      description = value;
-                                    },
-                                    onFieldSubmitted: (String _) {
-                                      addHomework();
-                                    },
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 8),
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        // Validate the form (returns true if all is ok)
-                                        if (_formKey.currentState!.validate()) {
-                                          addHomework();
-                                        }
-                                      },
-                                      child: const Text('Submit'),
+                                      label: Text("Date Due"),
                                     ),
                                   ),
-                                ],
-                              ),
+                                ),
+                                TextFormField(
+                                  decoration: const InputDecoration(
+                                    labelText: "Description (Optional)",
+                                  ),
+                                  maxLines: 5,
+                                  keyboardType: TextInputType.multiline,
+                                  onChanged: (value) {
+                                    description = value;
+                                  },
+                                  onFieldSubmitted: (String _) {
+                                    addHomework();
+                                  },
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      // Validate the form (returns true if all is ok)
+                                      if (_formKey.currentState!.validate()) {
+                                        addHomework();
+                                      }
+                                    },
+                                    child: const Text('Submit'),
+                                  ),
+                                ),
+                              ],
                             ),
-                          );
-                        },
-                      );
-                    },
-                    label: const Text(
-                      "New",
-                      style: TextStyle(
-                        color: Colors.black,
-                      ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  label: const Text(
+                    "New",
+                    style: TextStyle(
+                      color: Colors.black,
                     ),
                   ),
                 ),
               ),
-              SizedBox(
-                height: 32,
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: showCompleted,
-                          onChanged: (value) {
-                            setState(() {
-                              // Just flip the bool.
-                              showCompleted = value!;
-                            });
-                          },
-                        ),
-                        const Text(
-                          "Show Completed?",
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Checkbox(
+                        value: showCompleted,
+                        onChanged: (value) {
+                          setState(() {
+                            // Just flip the bool.
+                            showCompleted = value!;
+                          });
+                        },
+                      ),
+                      const Text(
+                        "Show Completed?",
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ],
           ),
