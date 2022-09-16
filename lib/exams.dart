@@ -117,7 +117,7 @@ class MarkWidget extends StatelessWidget {
                                     ),
                                   ),
                                   child: const Text(
-                                    "Create an Event",
+                                    "Changing Mark",
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -463,7 +463,6 @@ class _ExamPageState extends State<ExamPage> {
                                   decoration: const InputDecoration(
                                     labelText: "Grade",
                                   ),
-                                  keyboardType: TextInputType.number,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return "Enter a grade";

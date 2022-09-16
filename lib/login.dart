@@ -236,22 +236,22 @@ class _LoginPageState extends State<LoginPage> {
             Center(
               child: Container(
                 constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width / 1.5,
+                  maxWidth: MediaQuery.of(context).size.width / 1.25,
                   maxHeight: MediaQuery.of(context).size.height / 2,
                 ),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: Theme.of(context).shadowColor,
-                    width: 2,
+                    width: 1,
                   ),
                   boxShadow: const [
                     BoxShadow(
                       color: Colors.black,
-                      offset: Offset(2.0, 2.0),
-                      blurRadius: 10.0,
+                      offset: Offset(1.5, 1.5),
+                      blurRadius: 5.0,
                     ),
                   ],
                 ),
