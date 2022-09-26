@@ -310,8 +310,17 @@ async def get_subjects(user: User = Depends(get_current_user)):
 	sjs = Subjects_DB.get_subjects()
 	return {"status": "success", "data": sjs}
 
+@app.get("/api/v1/subjects/@me", tags=["Subjects"])
+async def get_user_subjects(user: User = Depends(get_current_user)):
+	"""
+	Gets all subjects created by the current user.
+	"""
+	sjs = Subjects_DB.get_subjects_by_user(user.uid)
+	sjs = [s for s in sjs ]
+	return {"status": "success", "data": sjs}
+
 @app.post("/api/v1/subjects", tags=["Subjects"])
-async def create_subject(name: str = Form(...), teacher: str = Form("None"), room: str = Form("None"), user: User = Depends(get_current_user)):
+async def create_subject(name: str = Form(...), teacher: str = Form("None"), room: str = Form("None"), colour: str = Form("#000000"), user: User = Depends(get_current_user)):
 	"""
 	This allows for a user to create a subject.
 
@@ -333,7 +342,8 @@ async def create_subject(name: str = Form(...), teacher: str = Form("None"), roo
 		user_id=user.uid,
 		name=name,
 		teacher=teacher,
-		room=room
+		room=room,
+		colour=colour
 	))
 	return {"status": "success", "id": Subjects_DB.get_next_id() - 1}
 

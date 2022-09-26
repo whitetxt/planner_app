@@ -190,7 +190,7 @@ class SubjectsDB(DB):
 	
 	def get_subjects(self) -> list:
 		subjects = self._get("*", "subjects")
-		[self.convert_result_to_subject(subject) for subject in subjects]
+		return [self.convert_result_to_subject(subject) for subject in subjects]
 
 	def update_subject(self, subject: Subject) -> bool:
 		self._update(
@@ -210,7 +210,11 @@ class SubjectsDB(DB):
 			(subject.subject_id, subject.user_id, subject.name.title(), subject.teacher.title(), subject.room.upper())
 		)
 		return True
-	
+
+	def get_subjects_by_user(self, user_id: int) -> List[Subject]:
+		subject_data = self._get("*", "subjects", where="user_id = ?", args=(user_id,))
+		return [self.convert_result_to_subject(subject) for subject in subject_data]
+
 	def get_next_id(self) -> int:
 		latest_id = self._get("subject_id", "subjects", order="subject_id DESC")
 		return 1 if len(latest_id) == 0 else latest_id[0][0] + 1
