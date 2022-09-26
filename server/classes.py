@@ -27,9 +27,11 @@ class User(BaseModel):
 
 class Subject(BaseModel):
 	subject_id: int = None
+	user_id: int
 	name: str
 	teacher: str
 	room: str
+	colour: str = "NONE"
 
 class Mark(BaseModel):
 	mark_id: int = None

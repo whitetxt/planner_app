@@ -215,7 +215,7 @@ async def get_user(user_id: int, user: User = Depends(get_current_user)):
 	raise HTTPException(status_code=404, detail="User not found")
 
 @app.post("/api/v1/users/reset", tags=["Users"])
-async def reset_me(request: Request, current_user: User = Depends(get_current_user)):
+async def reset_me(current_user: User = Depends(get_current_user)):
 	"""
 	Deletes all of the current user's data, but keeps their account.
 
@@ -257,7 +257,7 @@ async def reset_me(request: Request, current_user: User = Depends(get_current_us
 	return {"status": "success"}
 
 @app.delete("/api/v1/users/@me", tags=["Users"])
-async def delete_me(request: Request, current_user: User = Depends(get_current_user)):
+async def delete_me(current_user: User = Depends(get_current_user)):
 	"""
 	Deletes all of the current user's data, and completely removes their account.
 
@@ -330,6 +330,7 @@ async def create_subject(name: str = Form(...), teacher: str = Form("None"), roo
 				# We lie and say that we created it, but return the old id instead of a new one.
 				return {"status": "success", "id": subject.id}
 	Subjects_DB.add_subject(Subject(
+		user_id=user.uid,
 		name=name,
 		teacher=teacher,
 		room=room
@@ -381,6 +382,8 @@ async def add_timetable_subject(subject_id: int = Form(...), day: int = Form(...
 	subject = Subjects_DB.get_subject_by_id(subject_id)
 	if subject is None:
 		return {"status": "error", "message": "Subject does not exist."}
+	if subject.user_id != user.uid:
+		return {"status": "error", "message": "Not your subject."}
 	result = User_Subjects_DB.create_connection(user.uid, subject_id, day, period)
 	if result:
 		return {"status": "success"}

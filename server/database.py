@@ -163,9 +163,10 @@ class SubjectsDB(DB):
 	def convert_result_to_subject(self, subject):
 		return Subject(
 				subject_id=subject[0],
-				name=subject[1],
-				teacher=subject[2],
-				room=subject[3]
+				user_id=subject[1],
+				name=subject[2],
+				teacher=subject[3],
+				room=subject[4]
 			)
 
 	def get_subject_by_id(self, id: int) -> Subject:
@@ -175,21 +176,21 @@ class SubjectsDB(DB):
 		subject_data = subject_data[0]
 		return self.convert_result_to_subject(subject_data)
 	
-	def get_subjects_by_name(self, name: str) -> List[Subject]:
-		subject_data = self._get("*", "subjects", where="name = ?", args=(name,))
+	def get_subjects_by_name(self, name: str, user_id: int) -> List[Subject]:
+		subject_data = self._get("*", "subjects", where="name = ? AND user_id = ?", args=(name,user_id))
 		return [self.convert_result_to_subject(subject) for subject in subject_data]
 	
-	def get_subjects_by_teacher(self, name: str) -> List[Subject]:
-		subject_data = self._get("*", "subjects", where="teacher = ?", args=(name,))
+	def get_subjects_by_teacher(self, name: str, user_id: int) -> List[Subject]:
+		subject_data = self._get("*", "subjects", where="teacher = ? AND user_id = ?", args=(name,user_id))
 		return [self.convert_result_to_subject(subject) for subject in subject_data]
 
-	def get_subjects_by_room(self, room: str) -> List[Subject]:
-		subject_data = self._get("*", "subjects", where="room = ?", args=(room,))
+	def get_subjects_by_room(self, room: str, user_id: int) -> List[Subject]:
+		subject_data = self._get("*", "subjects", where="room = ? AND user_id = ?", args=(room,user_id))
 		return [self.convert_result_to_subject(subject) for subject in subject_data]
 	
 	def get_subjects(self) -> list:
 		subjects = self._get("*", "subjects")
-		[self.new_method(subject) for subject in subjects]
+		[self.convert_result_to_subject(subject) for subject in subjects]
 
 	def update_subject(self, subject: Subject) -> bool:
 		self._update(
@@ -205,8 +206,8 @@ class SubjectsDB(DB):
 			subject.subject_id = self.get_next_id()
 		self._insert(
 			"subjects",
-			"subject_id, name, teacher, room",
-			(subject.subject_id, subject.name.title(), subject.teacher.title(), subject.room.upper())
+			"subject_id, user_id, name, teacher, room",
+			(subject.subject_id, subject.user_id, subject.name.title(), subject.teacher.title(), subject.room.upper())
 		)
 		return True
 	
@@ -336,8 +337,8 @@ class HomeworkDB(DB):
 	"class_id"	INTEGER DEFAULT NULL,
 	"user_id"	INTEGER DEFAULT NULL,
 	"due_date"	INTEGER NOT NULL,
-	"decription" TEXT,
 	"completed"	INTEGER,
+	"decription" TEXT,
 	PRIMARY KEY("homework_id" AUTOINCREMENT),
 	FOREIGN KEY("user_id") REFERENCES "users"("uid"),
 	FOREIGN KEY("class_id") REFERENCES "classes"("class_id")
