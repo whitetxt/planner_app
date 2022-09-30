@@ -360,12 +360,28 @@ async def get_subject_by_name(subject_name: str, user: User = Depends(get_curren
 	return {"status": "success", "data": sjs}
 
 @app.get("/api/v1/subjects/id/{subject_id}", tags=["Subjects"])
-async def get_subject_by_id(id: int, user: User = Depends(get_current_user)):
+async def get_subject_by_id(subject_id: int, user: User = Depends(get_current_user)):
 	"""
 	Gets the subject with a specific ID.
 	"""
-	sjs = Subjects_DB.get_subject_by_id(id)
+	sjs = Subjects_DB.get_subject_by_id(subject_id)
 	return {"status": "success", "data": sjs}
+
+@app.patch("/api/v1/subjects/{subject_id}")
+async def update_subject(subject_id: int, colour: str = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Changes the colour of a specific subject.
+	
+	This subject **MUST** belong to the current user.
+	"""
+	sj = Subjects_DB.get_subject_by_id(subject_id)
+	if sj is None:
+		return {"status": "error", "message": "Subject doesn't exist."}
+	if sj.user_id != user.uid:
+		return {"status": "error", "message": "Subject doesn't belong to the current user."}
+	sj.colour = colour
+	Subjects_DB.update_subject(sj)
+	return {"status": "success"}
 
 
 # ------------------

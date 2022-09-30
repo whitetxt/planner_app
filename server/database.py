@@ -196,9 +196,9 @@ class SubjectsDB(DB):
 	def update_subject(self, subject: Subject) -> bool:
 		self._update(
 			"subjects",
-			"name = ?, teacher = ?, room = ?",
+			"name = ?, teacher = ?, room = ?, colour = ?",
 			"subject_id = ?",
-			(subject.name.title(), subject.teacher.title(), subject.room.upper(), subject.subject_id)
+			(subject.name.title(), subject.teacher.title(), subject.room.upper(), subject.colour.upper(), subject.subject_id)
 		)
 		return True
 

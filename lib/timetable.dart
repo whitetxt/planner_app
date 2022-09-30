@@ -13,8 +13,9 @@ import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the scre
 import "network.dart"; // Allows network requests on this page.
 
 class TimetableData {
-  const TimetableData(this.name, this.teacher, this.room, this.colour);
+  const TimetableData(this.id, this.name, this.teacher, this.room, this.colour);
 
+  final int id;
   final String name;
   final String teacher;
   final String room;
@@ -30,7 +31,9 @@ class TimetableSlot extends StatefulWidget {
   const TimetableSlot(
     this.day,
     this.period,
-    this.data, {
+    this.data,
+    this.settingSubject,
+    this.toSetTo, {
     Key? key,
     this.width = 128,
     this.height = 32,
@@ -41,6 +44,8 @@ class TimetableSlot extends StatefulWidget {
 
   final int day;
   final int period;
+  final bool settingSubject;
+  final TimetableData? toSetTo;
 
   final TimetableData data;
   final double width;
@@ -65,41 +70,68 @@ class _TimetableSlotState extends State<TimetableSlot> {
 
   @override
   Widget build(BuildContext context) {
+    Color bg = Color(
+      int.parse(widget.data.colour.substring(1, 7), radix: 16) + 0xFF000000,
+    );
     return GestureDetector(
       onTap: () {
         if (!widget.clickable) return;
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Theme.of(context).dividerColor,
-                      width: 2,
+        if (widget.settingSubject) {
+          if (widget.toSetTo == null) return;
+          addRequest(
+            NetworkOperation(
+              "/api/v1/timetable",
+              "POST",
+              (http.Response resp) {
+                addRequest(
+                  NetworkOperation(
+                    "/api/v1/timetable",
+                    "GET",
+                    (http.Response resp) => gotTimetable(resp),
+                  ),
+                );
+              },
+              data: {
+                "subject_id": widget.toSetTo!.id.toString(),
+                "day": widget.day.toString(),
+                "period": widget.period.toString(),
+              },
+            ),
+          );
+        } else {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Theme.of(context).dividerColor,
+                        width: 2,
+                      ),
                     ),
                   ),
-                ),
-                child: Text(
-                  widget.data.name,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    "Room: ${widget.data.room.isEmpty ? 'None' : widget.data.room}",
+                  child: Text(
+                    widget.data.name,
+                    textAlign: TextAlign.center,
                   ),
-                  Text(
-                    "Teacher: ${widget.data.teacher.isEmpty ? 'None' : widget.data.teacher}",
-                  ),
-                ],
-              ),
-            );
-          },
-        );
+                ),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      "Room: ${widget.data.room.isEmpty ? 'None' : widget.data.room}",
+                    ),
+                    Text(
+                      "Teacher: ${widget.data.teacher.isEmpty ? 'None' : widget.data.teacher}",
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        }
       },
       child: Padding(
         padding: const EdgeInsets.all(4),
@@ -107,10 +139,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
           elevation: 2,
           child: Container(
             decoration: BoxDecoration(
-              color: Color(
-                int.parse(widget.data.colour.substring(1, 7), radix: 16) +
-                    0xFF000000,
-              ),
+              color: bg,
               border: Border.all(
                 color: Theme.of(context).bottomAppBarTheme.color!,
                 width: widget.borderWidth,
@@ -134,6 +163,10 @@ class _TimetableSlotState extends State<TimetableSlot> {
                         maxLines: 3,
                         semanticsLabel: widget.data.name,
                         wrapWords: false,
+                        style: TextStyle(
+                            color: bg.computeLuminance() > 0.5
+                                ? Colors.black
+                                : Colors.white),
                       ),
                     ),
                   ),
@@ -161,7 +194,14 @@ class _TodayTimetableState extends State<TodayTimetable> {
       for (var i = 0; i < 5; i++) {
         for (var j = 0; j < 9; j++) {
           timetable[i].add(
-              const TimetableData("Loading", "Loading", "Loading", "#ffffff"));
+            const TimetableData(
+              -1,
+              "Loading",
+              "Loading",
+              "Loading",
+              "#ffffff",
+            ),
+          );
         }
       }
     }
@@ -250,6 +290,7 @@ Future<void> gotTimetable(http.Response response) async {
       var period = today[j];
       if (period == null) {
         timetable[i][j] = const TimetableData(
+          -1,
           "None",
           "None",
           "None",
@@ -257,6 +298,7 @@ Future<void> gotTimetable(http.Response response) async {
         );
       } else {
         timetable[i][j] = TimetableData(
+          period["subject_id"],
           period["name"],
           period["teacher"],
           period["room"],
@@ -277,6 +319,7 @@ Future<void> gotSubjects(http.Response response) async {
     var subject = data["data"][i];
     subjects.add(
       TimetableData(
+        subject["subject_id"],
         subject["name"],
         subject["teacher"],
         subject["room"],
@@ -289,19 +332,52 @@ Future<void> gotSubjects(http.Response response) async {
 }
 
 class SubjectWidget extends StatelessWidget {
-  const SubjectWidget(this.subject, this.settingTimetable, {Key? key})
+  const SubjectWidget(this.subject, this.settingTimetable, this.getSubjects,
+      {Key? key})
       : super(key: key);
 
   final TimetableData subject;
-  final Function settingTimetable;
+  final Function(TimetableData) settingTimetable;
+  final Function getSubjects;
+
+  void modifySubject(Color colour) {
+    var red = colour.red < 16
+        ? "0${colour.red.toRadixString(16)}"
+        : colour.red.toRadixString(16);
+    var green = colour.green < 16
+        ? "0${colour.green.toRadixString(16)}"
+        : colour.green.toRadixString(16);
+    var blue = colour.blue < 16
+        ? "0${colour.blue.toRadixString(16)}"
+        : colour.blue.toRadixString(16);
+
+    addRequest(
+      NetworkOperation(
+        "/api/v1/subjects/${subject.id}",
+        "PATCH",
+        (http.Response response) {
+          getSubjects();
+          Navigator.of(navigatorKey.currentContext!).pop();
+        },
+        data: {
+          "colour": "#$red$green$blue",
+        },
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     Color backgroundColour = Color(
       int.parse(subject.colour.substring(1, 7), radix: 16) + 0xFF000000,
     );
+
+    // Automatically change the text colour based on what will be easiest to see.
     Color textColour =
         backgroundColour.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+
+    // Variable to store the new colour once it is updated.
+    Color changedTo = backgroundColour;
     return PopupMenuButton(
       itemBuilder: (BuildContext context) => [
         PopupMenuItem(
@@ -318,7 +394,7 @@ class SubjectWidget extends StatelessWidget {
       onSelected: (int value) {
         switch (value) {
           case 1:
-            settingTimetable();
+            settingTimetable(subject);
             break;
           case 2:
             showDialog(
@@ -335,84 +411,41 @@ class SubjectWidget extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      "Assign Homework",
+                      "Change Subject Colour",
                       textAlign: TextAlign.center,
                     ),
                   ),
-                  content: Form(
-                    key: _formKey,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: "Homework Name",
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return "Enter a name";
-                            }
-                            return null;
-                          },
-                          onChanged: (value) {
-                            name = value;
-                          },
-                          onFieldSubmitted: (String _) {
-                            setHomework();
-                          },
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: ColorPicker(
+                          enableAlpha: false,
+                          hexInputBar: true,
+                          pickerColor: changedTo,
+                          onColorChanged: (value) => changedTo = value,
                         ),
-                        InkWell(
-                          onTap: () async {
-                            final DateTime? selected = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime.now(),
-                              lastDate: DateTime.now().add(
-                                const Duration(days: 365),
-                              ),
-                            );
-                            if (selected != null) {
-                              setState(
-                                () {
-                                  date = selected;
-                                  _dateController.text =
-                                      DateFormat("dd-MM-yy").format(selected);
-                                },
-                              );
-                            }
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            modifySubject(changedTo);
                           },
-                          child: TextFormField(
-                            enabled: false,
-                            controller: _dateController,
-                            decoration: const InputDecoration(
-                              label: Text("Date Due"),
-                            ),
-                          ),
+                          child: const Text('Update'),
                         ),
-                        TextFormField(
-                          decoration: const InputDecoration(
-                            labelText: "Description (Optional)",
-                          ),
-                          maxLines: 5,
-                          keyboardType: TextInputType.multiline,
-                          onChanged: (value) {
-                            description = value;
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
                           },
-                          onFieldSubmitted: (String _) {
-                            setHomework();
-                          },
+                          child: const Text('Cancel'),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setHomework();
-                            },
-                            child: const Text('Create Homework'),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 );
               },
@@ -481,6 +514,9 @@ class _TimetablePageState extends State<TimetablePage> {
   String name = "";
   Color colour = const Color.fromARGB(255, 255, 255, 255);
 
+  bool settingTimetable = false;
+  TimetableData? toSetTo;
+
   void getTimetable() async {
     final prefs = await SharedPreferences.getInstance();
     String? storedTimetable = prefs.getString("timetable");
@@ -491,10 +527,16 @@ class _TimetablePageState extends State<TimetablePage> {
         for (var j = 0; j < today.length; j++) {
           var period = today[j];
           if (period == null) {
-            timetable[i][j] =
-                const TimetableData("None", "None", "None", "#FFFFFF");
+            timetable[i][j] = const TimetableData(
+              -1,
+              "None",
+              "None",
+              "None",
+              "#FFFFFF",
+            );
           } else {
             timetable[i][j] = TimetableData(
+              period["subject_id"],
               period["name"],
               period["teacher"],
               period["room"],
@@ -550,6 +592,7 @@ class _TimetablePageState extends State<TimetablePage> {
         var subject = data[i];
         subjects.add(
           TimetableData(
+            subject["subject_id"],
             subject["name"],
             subject["teacher"],
             subject["room"],
@@ -572,10 +615,16 @@ class _TimetablePageState extends State<TimetablePage> {
           "teacher": teacher,
           "room": room,
           "colour":
-              "#${colour.red.toRadixString(16)}${colour.blue.toRadixString(16)}${colour.green.toRadixString(16)}",
+              "#${colour.red.toRadixString(16)}${colour.green.toRadixString(16)}${colour.blue.toRadixString(16)}",
         },
       ),
     );
+  }
+
+  void toggleSetting(TimetableData subject) {
+    settingTimetable = !settingTimetable;
+    toSetTo = subject;
+    setState(() {});
   }
 
   @override
@@ -584,7 +633,14 @@ class _TimetablePageState extends State<TimetablePage> {
       for (var i = 0; i < 5; i++) {
         for (var j = 0; j < 9; j++) {
           timetable[i].add(
-              const TimetableData("Loading", "Loading", "Loading", "#FFFFFF"));
+            const TimetableData(
+              -1,
+              "Loading",
+              "Loading",
+              "Loading",
+              "#FFFFFF",
+            ),
+          );
         }
       }
     }
@@ -623,108 +679,112 @@ class _TimetablePageState extends State<TimetablePage> {
                   ),
                   icon: const Icon(Icons.add, color: Colors.black),
                   onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: Container(
-                            decoration: BoxDecoration(
-                              border: Border(
-                                bottom: BorderSide(
-                                  color: Theme.of(context).dividerColor,
-                                  width: 2,
+                    if (settingTimetable) {
+                      settingTimetable = false;
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 2,
+                                  ),
                                 ),
                               ),
+                              child: const Text(
+                                "Creating Subject",
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                            child: const Text(
-                              "Creating Subject",
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          content: Form(
-                            key: _formKey,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: <Widget>[
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: "Subject Name",
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return "Enter a name";
-                                    }
-                                    return null;
-                                  },
-                                  onChanged: (value) {
-                                    name = value;
-                                  },
-                                  onFieldSubmitted: (String _) {
-                                    createSubject();
-                                  },
-                                ),
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: "Teacher",
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return "Enter a teacher";
-                                    }
-                                    return null;
-                                  },
-                                  onChanged: (value) {
-                                    teacher = value;
-                                  },
-                                  onFieldSubmitted: (String _) {
-                                    createSubject();
-                                  },
-                                ),
-                                TextFormField(
-                                  decoration: const InputDecoration(
-                                    labelText: "Room",
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return "Enter a room";
-                                    }
-                                    return null;
-                                  },
-                                  onChanged: (value) {
-                                    room = value;
-                                  },
-                                  onFieldSubmitted: (String _) {
-                                    createSubject();
-                                  },
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(8),
-                                  child: ColorPicker(
-                                    enableAlpha: false,
-                                    hexInputBar: true,
-                                    pickerColor: colour,
-                                    onColorChanged: onColourChanged,
-                                  ),
-                                ),
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    // Validate the form (returns true if all is ok)
-                                    if (_formKey.currentState!.validate()) {
+                            content: Form(
+                              key: _formKey,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Subject Name",
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Enter a name";
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      name = value;
+                                    },
+                                    onFieldSubmitted: (String _) {
                                       createSubject();
-                                    }
-                                  },
-                                  child: const Text('Create'),
-                                ),
-                              ],
+                                    },
+                                  ),
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Teacher",
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Enter a teacher";
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      teacher = value;
+                                    },
+                                    onFieldSubmitted: (String _) {
+                                      createSubject();
+                                    },
+                                  ),
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Room",
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Enter a room";
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      room = value;
+                                    },
+                                    onFieldSubmitted: (String _) {
+                                      createSubject();
+                                    },
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: ColorPicker(
+                                      enableAlpha: false,
+                                      hexInputBar: true,
+                                      pickerColor: colour,
+                                      onColorChanged: onColourChanged,
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      // Validate the form (returns true if all is ok)
+                                      if (_formKey.currentState!.validate()) {
+                                        createSubject();
+                                      }
+                                    },
+                                    child: const Text('Create'),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    );
+                          );
+                        },
+                      );
+                    }
                   },
-                  label: const Text(
-                    "New",
-                    style: TextStyle(
+                  label: Text(
+                    settingTimetable ? "Stop Setting" : "New",
+                    style: const TextStyle(
                       color: Colors.black,
                     ),
                   ),
@@ -737,7 +797,7 @@ class _TimetablePageState extends State<TimetablePage> {
                     scrollDirection: Axis.horizontal,
                     children: [
                       for (TimetableData subject in subjects)
-                        SubjectWidget(subject),
+                        SubjectWidget(subject, toggleSetting, getSubjects),
                     ],
                   ),
                 ),
@@ -751,11 +811,14 @@ class _TimetablePageState extends State<TimetablePage> {
                 0,
                 -1,
                 TimetableData(
+                  -1,
                   "Monday",
                   "",
                   "",
                   baseColour,
                 ),
+                settingTimetable,
+                toSetTo,
                 width: width,
                 height: height,
                 borderWidth: borderWidth * 2,
@@ -765,11 +828,14 @@ class _TimetablePageState extends State<TimetablePage> {
                 1,
                 -1,
                 TimetableData(
+                  -1,
                   "Tuesday",
                   "",
                   "",
                   baseColour,
                 ),
+                settingTimetable,
+                toSetTo,
                 width: width,
                 height: height,
                 borderWidth: borderWidth * 2,
@@ -779,11 +845,14 @@ class _TimetablePageState extends State<TimetablePage> {
                 2,
                 -1,
                 TimetableData(
+                  -1,
                   "Wednesday",
                   "",
                   "",
                   baseColour,
                 ),
+                settingTimetable,
+                toSetTo,
                 width: width,
                 height: height,
                 borderWidth: borderWidth * 2,
@@ -793,11 +862,14 @@ class _TimetablePageState extends State<TimetablePage> {
                 3,
                 -1,
                 TimetableData(
+                  -1,
                   "Thursday",
                   "",
                   "",
                   baseColour,
                 ),
+                settingTimetable,
+                toSetTo,
                 width: width,
                 height: height,
                 borderWidth: borderWidth * 2,
@@ -807,11 +879,14 @@ class _TimetablePageState extends State<TimetablePage> {
                 4,
                 -1,
                 TimetableData(
+                  -1,
                   "Friday",
                   "",
                   "",
                   baseColour,
                 ),
+                settingTimetable,
+                toSetTo,
                 width: width,
                 height: height,
                 borderWidth: borderWidth * 2,
@@ -842,6 +917,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                   day,
                                   period,
                                   timetable[day][period],
+                                  settingTimetable,
+                                  toSetTo,
                                   width: width,
                                   height: height,
                                   borderWidth: borderWidth,
@@ -864,6 +941,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                   day,
                                   period,
                                   timetable[day][period],
+                                  settingTimetable,
+                                  toSetTo,
                                   width: width,
                                   height: height,
                                   borderWidth: borderWidth,
@@ -886,6 +965,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                   day,
                                   period,
                                   timetable[day][period],
+                                  settingTimetable,
+                                  toSetTo,
                                   width: width,
                                   height: height,
                                   borderWidth: borderWidth,
