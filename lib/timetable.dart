@@ -56,14 +56,6 @@ class TimetableSlot extends StatefulWidget {
 }
 
 class _TimetableSlotState extends State<TimetableSlot> {
-  final _formKey = GlobalKey<FormState>();
-
-  String teacher = "";
-  String room = "";
-  String name = "";
-  String colour = "#ffffff";
-  Color realColour = const Color(0xFFFFFFFF);
-
   void resetStates() {
     Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
     if (widget.reset != null) {
@@ -115,7 +107,10 @@ class _TimetableSlotState extends State<TimetableSlot> {
           elevation: 2,
           child: Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).highlightColor,
+              color: Color(
+                int.parse(widget.data.colour.substring(1, 7), radix: 16) +
+                    0xFF000000,
+              ),
               border: Border.all(
                 color: Theme.of(context).bottomAppBarTheme.color!,
                 width: widget.borderWidth,
@@ -254,7 +249,12 @@ Future<void> gotTimetable(http.Response response) async {
     for (var j = 0; j < today.length; j++) {
       var period = today[j];
       if (period == null) {
-        timetable[i][j] = const TimetableData("None", "None", "None", "None");
+        timetable[i][j] = const TimetableData(
+          "None",
+          "None",
+          "None",
+          "#FFFFFF",
+        );
       } else {
         timetable[i][j] = TimetableData(
           period["name"],
@@ -267,6 +267,24 @@ Future<void> gotTimetable(http.Response response) async {
   }
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString("timetable", json.encode(data["data"]));
+}
+
+Future<void> gotSubjects(http.Response response) async {
+  if (response.statusCode != 200) return;
+  Map<String, dynamic> data = json.decode(response.body);
+  for (var i = 0; i < data["data"].length; i++) {
+    var subject = data["data"][i];
+    subjects.add(
+      TimetableData(
+        subject["name"],
+        subject["teacher"],
+        subject["room"],
+        subject["colour"],
+      ),
+    );
+  }
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString("subjects", json.encode(data["data"]));
 }
 
 class SubjectWidget extends StatelessWidget {
@@ -352,18 +370,54 @@ class _TimetablePageState extends State<TimetablePage> {
         "/api/v1/subjects",
         "POST",
         (http.Response response) async {
-          await gotTimetable(response);
+          await getSubjects();
           setState(() {});
         },
         data: {
           "name": name,
           "teacher": teacher,
           "room": room,
-          "colour": colour.value.toRadixString(16),
+          "colour": "#${(colour.value & 0x00FFFFFF).toRadixString(16)}",
         },
       ),
     );
-    Navigator.of(context).pop();
+    Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+  }
+
+  Future<void> getSubjects() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedSubjects = prefs.getString("subjects");
+    if (storedSubjects != null) {
+      List<dynamic> data = json.decode(storedSubjects);
+      for (var i = 0; i < data.length; i++) {
+        var subject = data[i];
+        subjects.add(
+          TimetableData(
+            subject["name"],
+            subject["teacher"],
+            subject["room"],
+            subject["colour"],
+          ),
+        );
+      }
+      setState(() {});
+    }
+    addRequest(
+      NetworkOperation(
+        "/api/v1/subjects/@me",
+        "GET",
+        (http.Response response) {
+          gotSubjects(response);
+          setState(() {});
+        },
+        data: {
+          "name": name,
+          "teacher": teacher,
+          "room": room,
+          "colour": "#${(colour.value & 0x00FFFFFF).toRadixString(16)}",
+        },
+      ),
+    );
   }
 
   @override
@@ -382,6 +436,8 @@ class _TimetablePageState extends State<TimetablePage> {
 
   @override
   Widget build(BuildContext context) {
+    String baseColour =
+        "#${(Theme.of(context).highlightColor.value & 0x00FFFFFF).toRadixString(16)}";
     double borderWidth = 1;
     double width =
         MediaQuery.of(context).size.width / 6 - (borderWidth * 2 + borderWidth);
@@ -528,7 +584,7 @@ class _TimetablePageState extends State<TimetablePage> {
                   "Monday",
                   "",
                   "",
-                  "#${Theme.of(context).highlightColor.value.toRadixString(16)}",
+                  baseColour,
                 ),
                 width: width,
                 height: height,
@@ -542,7 +598,7 @@ class _TimetablePageState extends State<TimetablePage> {
                   "Tuesday",
                   "",
                   "",
-                  "#${Theme.of(context).highlightColor.value.toRadixString(16)}",
+                  baseColour,
                 ),
                 width: width,
                 height: height,
@@ -556,7 +612,7 @@ class _TimetablePageState extends State<TimetablePage> {
                   "Wednesday",
                   "",
                   "",
-                  "#${Theme.of(context).highlightColor.value.toRadixString(16)}",
+                  baseColour,
                 ),
                 width: width,
                 height: height,
@@ -570,7 +626,7 @@ class _TimetablePageState extends State<TimetablePage> {
                   "Thursday",
                   "",
                   "",
-                  "#${Theme.of(context).highlightColor.value.toRadixString(16)}",
+                  baseColour,
                 ),
                 width: width,
                 height: height,
@@ -584,7 +640,7 @@ class _TimetablePageState extends State<TimetablePage> {
                   "Friday",
                   "",
                   "",
-                  "#${Theme.of(context).highlightColor.value.toRadixString(16)}",
+                  baseColour,
                 ),
                 width: width,
                 height: height,

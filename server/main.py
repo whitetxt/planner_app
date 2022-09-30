@@ -306,7 +306,11 @@ async def delete_me(current_user: User = Depends(get_current_user)):
 async def get_subjects(user: User = Depends(get_current_user)):
 	"""
 	Gets all subjects avaliable in the database.
+
+	Account **must** be a teacher account.
 	"""
+	if (user.permissions < Permissions.Teacher):
+		return {"status": "error", "message": "Account must be a teacher account."}
 	sjs = Subjects_DB.get_subjects()
 	return {"status": "success", "data": sjs}
 
@@ -316,7 +320,6 @@ async def get_user_subjects(user: User = Depends(get_current_user)):
 	Gets all subjects created by the current user.
 	"""
 	sjs = Subjects_DB.get_subjects_by_user(user.uid)
-	sjs = [s for s in sjs ]
 	return {"status": "success", "data": sjs}
 
 @app.post("/api/v1/subjects", tags=["Subjects"])
@@ -331,10 +334,10 @@ async def create_subject(name: str = Form(...), teacher: str = Form("None"), roo
 	name = name.title()
 	teacher = teacher.title()
 	room = room.upper()
-	exists = Subjects_DB.get_subjects_by_name(name)
+	exists = Subjects_DB.get_subjects_by_name(name, user.uid)
 	if not exists:
 		for subject in exists:
-			if subject.teacher == teacher and subject.room == room:
+			if subject.teacher == teacher and subject.room == room and subject.colour == colour:
 				# If we find that this specific subject already exists,
 				# We lie and say that we created it, but return the old id instead of a new one.
 				return {"status": "success", "id": subject.id}
@@ -353,7 +356,7 @@ async def get_subject_by_name(subject_name: str, user: User = Depends(get_curren
 	Gets all subjects which match a certain name.
 	"""
 	subject_name = subject_name.title()
-	sjs = Subjects_DB.get_subjects_by_name(subject_name)
+	sjs = Subjects_DB.get_subjects_by_name(subject_name, user.uid)
 	return {"status": "success", "data": sjs}
 
 @app.get("/api/v1/subjects/id/{subject_id}", tags=["Subjects"])
