@@ -166,7 +166,8 @@ class SubjectsDB(DB):
 				user_id=subject[1],
 				name=subject[2],
 				teacher=subject[3],
-				room=subject[4]
+				room=subject[4],
+				colour=subject[5]
 			)
 
 	def get_subject_by_id(self, id: int) -> Subject:
@@ -206,8 +207,8 @@ class SubjectsDB(DB):
 			subject.subject_id = self.get_next_id()
 		self._insert(
 			"subjects",
-			"subject_id, user_id, name, teacher, room",
-			(subject.subject_id, subject.user_id, subject.name.title(), subject.teacher.title(), subject.room.upper())
+			"subject_id, user_id, name, teacher, room, colour",
+			(subject.subject_id, subject.user_id, subject.name.title(), subject.teacher.title(), subject.room.upper(), subject.colour.upper())
 		)
 		return True
 

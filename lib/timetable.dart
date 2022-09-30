@@ -272,6 +272,7 @@ Future<void> gotTimetable(http.Response response) async {
 Future<void> gotSubjects(http.Response response) async {
   if (response.statusCode != 200) return;
   Map<String, dynamic> data = json.decode(response.body);
+  subjects = [];
   for (var i = 0; i < data["data"].length; i++) {
     var subject = data["data"][i];
     subjects.add(
@@ -288,22 +289,178 @@ Future<void> gotSubjects(http.Response response) async {
 }
 
 class SubjectWidget extends StatelessWidget {
-  const SubjectWidget(this.subject, {Key? key}) : super(key: key);
+  const SubjectWidget(this.subject, this.settingTimetable, {Key? key})
+      : super(key: key);
 
   final TimetableData subject;
+  final Function settingTimetable;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: Color(
-        int.parse(subject.colour.substring(1, 7), radix: 16) + 0xFF000000,
-      ),
-      child: Column(
-        children: [
-          Text(subject.name),
-          Text(subject.teacher),
-          Text(subject.room),
-        ],
+    Color backgroundColour = Color(
+      int.parse(subject.colour.substring(1, 7), radix: 16) + 0xFF000000,
+    );
+    Color textColour =
+        backgroundColour.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+    return PopupMenuButton(
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem(
+          value: 1,
+          onTap: () {},
+          child: const Text('Set timetable'),
+        ),
+        PopupMenuItem(
+          value: 2,
+          onTap: () {},
+          child: const Text('Modify'),
+        ),
+      ],
+      onSelected: (int value) {
+        switch (value) {
+          case 1:
+            settingTimetable();
+            break;
+          case 2:
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    child: const Text(
+                      "Assign Homework",
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  content: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: "Homework Name",
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return "Enter a name";
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            name = value;
+                          },
+                          onFieldSubmitted: (String _) {
+                            setHomework();
+                          },
+                        ),
+                        InkWell(
+                          onTap: () async {
+                            final DateTime? selected = await showDatePicker(
+                              context: context,
+                              initialDate: DateTime.now(),
+                              firstDate: DateTime.now(),
+                              lastDate: DateTime.now().add(
+                                const Duration(days: 365),
+                              ),
+                            );
+                            if (selected != null) {
+                              setState(
+                                () {
+                                  date = selected;
+                                  _dateController.text =
+                                      DateFormat("dd-MM-yy").format(selected);
+                                },
+                              );
+                            }
+                          },
+                          child: TextFormField(
+                            enabled: false,
+                            controller: _dateController,
+                            decoration: const InputDecoration(
+                              label: Text("Date Due"),
+                            ),
+                          ),
+                        ),
+                        TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: "Description (Optional)",
+                          ),
+                          maxLines: 5,
+                          keyboardType: TextInputType.multiline,
+                          onChanged: (value) {
+                            description = value;
+                          },
+                          onFieldSubmitted: (String _) {
+                            setHomework();
+                          },
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setHomework();
+                            },
+                            child: const Text('Create Homework'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+            break;
+          default:
+        }
+      },
+      child: Card(
+        color: backgroundColour,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+              ),
+              child: Text(
+                subject.name,
+                style: TextStyle(
+                  color: textColour,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+              ),
+              child: Text(
+                subject.teacher,
+                style: TextStyle(
+                  color: textColour,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+              ),
+              child: Text(
+                subject.room,
+                style: TextStyle(
+                  color: textColour,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -414,7 +571,8 @@ class _TimetablePageState extends State<TimetablePage> {
           "name": name,
           "teacher": teacher,
           "room": room,
-          "colour": "#${(colour.value & 0x00FFFFFF).toRadixString(16)}",
+          "colour":
+              "#${colour.red.toRadixString(16)}${colour.blue.toRadixString(16)}${colour.green.toRadixString(16)}",
         },
       ),
     );
@@ -430,6 +588,7 @@ class _TimetablePageState extends State<TimetablePage> {
         }
       }
     }
+    getSubjects();
     getTimetable();
     super.initState();
   }
@@ -541,6 +700,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                 Padding(
                                   padding: const EdgeInsets.all(8),
                                   child: ColorPicker(
+                                    enableAlpha: false,
+                                    hexInputBar: true,
                                     pickerColor: colour,
                                     onColorChanged: onColourChanged,
                                   ),
@@ -569,9 +730,18 @@ class _TimetablePageState extends State<TimetablePage> {
                   ),
                 ),
               ),
-              ...[
-                for (TimetableData subject in subjects) SubjectWidget(subject),
-              ],
+              Expanded(
+                child: SizedBox(
+                  height: 64,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      for (TimetableData subject in subjects)
+                        SubjectWidget(subject),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
           Row(

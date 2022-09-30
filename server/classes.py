@@ -31,7 +31,7 @@ class Subject(BaseModel):
 	name: str
 	teacher: str
 	room: str
-	colour: str = "NONE"
+	colour: str = "#FFFFFF"
 
 class Mark(BaseModel):
 	mark_id: int = None
