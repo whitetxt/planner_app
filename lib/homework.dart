@@ -83,6 +83,10 @@ class HomeworkWidget extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: ExpansionTile(
+          // Rather annoyingly, Flutter doesn't provide a way to programatically close
+          // an ExpansionTile, meaning that once one piece of homework is marked
+          // as completed, it will show the next tile as expanded, despite this tile
+          // being different.
           title: Flex(
             direction: Axis.horizontal,
             children: <Widget>[

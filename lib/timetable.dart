@@ -87,7 +87,10 @@ class _TimetableSlotState extends State<TimetableSlot> {
                   NetworkOperation(
                     "/api/v1/timetable",
                     "GET",
-                    (http.Response resp) => gotTimetable(resp),
+                    (http.Response resp) {
+                      gotTimetable(resp);
+                      widget.reset!();
+                    },
                   ),
                 );
               },
@@ -125,6 +128,28 @@ class _TimetableSlotState extends State<TimetableSlot> {
                     ),
                     Text(
                       "Teacher: ${widget.data.teacher.isEmpty ? 'None' : widget.data.teacher}",
+                    ),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.delete),
+                      label: const Text("Remove subject"),
+                      onPressed: () {
+                        addRequest(
+                          NetworkOperation(
+                            "/api/v1/timetable",
+                            "DELETE",
+                            (http.Response response) {
+                              widget.reset!();
+                              Navigator.of(context).popUntil(
+                                ModalRoute.withName("/dash"),
+                              );
+                            },
+                            data: {
+                              "day": widget.day.toString(),
+                              "period": widget.period.toString(),
+                            },
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -164,9 +189,10 @@ class _TimetableSlotState extends State<TimetableSlot> {
                         semanticsLabel: widget.data.name,
                         wrapWords: false,
                         style: TextStyle(
-                            color: bg.computeLuminance() > 0.5
-                                ? Colors.black
-                                : Colors.white),
+                          color: bg.computeLuminance() > 0.5
+                              ? Colors.black
+                              : Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -608,6 +634,7 @@ class _TimetablePageState extends State<TimetablePage> {
         "GET",
         (http.Response response) {
           gotSubjects(response);
+          getTimetable();
           setState(() {});
         },
         data: {
@@ -677,10 +704,13 @@ class _TimetablePageState extends State<TimetablePage> {
                     backgroundColor: Theme.of(context).highlightColor,
                     side: const BorderSide(color: Colors.black),
                   ),
-                  icon: const Icon(Icons.add, color: Colors.black),
+                  icon: Icon(
+                    settingTimetable ? Icons.stop : Icons.add,
+                    color: Colors.black,
+                  ),
                   onPressed: () {
                     if (settingTimetable) {
-                      settingTimetable = false;
+                      setState(() => settingTimetable = false);
                     } else {
                       showDialog(
                         context: context,
