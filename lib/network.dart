@@ -52,6 +52,8 @@ void addRequest(NetworkOperation request) {
 }
 
 void createOnlineTest() {
+  // The ??= operator ensures that flutter will only assign the new value if onlineTest
+  // is null. This saves me doing a manual check with an if statement.
   onlineTest ??= Timer.periodic(
     // Every 10 seconds, send a request to check if we are online.
     const Duration(seconds: 10),
@@ -67,8 +69,14 @@ void createOnlineTest() {
               // We must rate-limit ourselves since the server has just started back up,
               // it will be under quite a lot of load from other users and we don't want
               // to overload it.
-
               // This queues up all of the requests for once every 250ms (4 per second).
+
+              // This also ensures that all of the requests are processed in the correct order.
+              // While using the callbacks will sometimes produce errors, such as if setState
+              // is called in the callback (due to the widget changing since
+              // the callback was registered), these are not fatal and must all still be
+              // executed as there will be important processes going on in the callbacks
+              // that should not be missed.
               Future.delayed(
                 Duration(milliseconds: pending.indexOf(request) * 250),
                 () => processNetworkRequest(request).then(
@@ -84,8 +92,8 @@ void createOnlineTest() {
             onlineTest = null;
             Timer(
               // Since we just sent many requests, the callbacks will most likely create many
-              // notifs and therefore we should clear all of them so they don't spam
-              // the screen for ages.
+              // snackbars at the bottom of the screen and therefore we should clear all
+              // of them so they don't spam the user for ages.
               const Duration(seconds: 1),
               () => ScaffoldMessenger.of(
                 currentScaffoldKey.currentContext!,
@@ -164,7 +172,7 @@ Future<http.Response> processNetworkRequest(NetworkOperation task) async {
       );
       break;
     default:
-      // If we don't know what it is, just throw an Exception to exit.
+      // If we don't know what the method is, just throw an Exception to exit.
       throw Exception("Unknown method type: ${task.method}");
   }
   return response;
