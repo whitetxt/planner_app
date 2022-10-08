@@ -786,14 +786,11 @@ class _TimetablePageState extends State<TimetablePage> {
                                       createSubject();
                                     },
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: ColorPicker(
-                                      enableAlpha: false,
-                                      hexInputBar: true,
-                                      pickerColor: colour,
-                                      onColorChanged: onColourChanged,
-                                    ),
+                                  ColorPicker(
+                                    enableAlpha: false,
+                                    hexInputBar: true,
+                                    pickerColor: colour,
+                                    onColorChanged: onColourChanged,
                                   ),
                                   ElevatedButton(
                                     onPressed: () async {
