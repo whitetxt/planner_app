@@ -83,6 +83,10 @@ class HomeworkWidget extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: ExpansionTile(
+          // Rather annoyingly, Flutter doesn't provide a way to programatically close
+          // an ExpansionTile, meaning that once one piece of homework is marked
+          // as completed, it will show the next tile as expanded, despite this tile
+          // being different.
           title: Flex(
             direction: Axis.horizontal,
             children: <Widget>[
@@ -112,6 +116,7 @@ class HomeworkWidget extends StatelessWidget {
           ),
           children: [
             Text(
+              // This large IF statement just ensures that the time remaining is presented in a readable manor.
               data.timeDue.isBefore(DateTime.now())
                   ? "Past Due!"
                   : data.timeDue.difference(DateTime.now()) >=
@@ -144,8 +149,8 @@ class HomeworkWidget extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 8),
               child: ElevatedButton(
                 child: Text(
-                  // The text must change if it's already completed, as it would
-                  // look stupid to mark homework as complete when it's already complete.
+                  // The text must change if it's already completed, as it wouldn't
+                  // make sense to mark homework as complete when it's already complete.
                   data.completed ? "Mark as Incomplete" : "Mark as Complete",
                   style: const TextStyle(
                     fontSize: 14,
@@ -153,6 +158,7 @@ class HomeworkWidget extends StatelessWidget {
                 ),
                 onPressed: () async {
                   data.completed = !data.completed;
+                  // We should update our local copy, then push it all to the server.
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setString(
                     "homework",
@@ -202,6 +208,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
       }
       setState(() {});
     }
+    // After loading the local state, retrieve everything from the server.
     addRequest(
       NetworkOperation(
         "/api/v1/homework",

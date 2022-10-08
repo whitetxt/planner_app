@@ -7,25 +7,33 @@ import "package:http/http.dart" as http;
 import 'package:planner_app/globals.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import "package:flutter_colorpicker/flutter_colorpicker.dart";
+
 import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
 import "network.dart"; // Allows network requests on this page.
 
 class TimetableData {
-  const TimetableData(this.name, this.teacher, this.room);
+  const TimetableData(this.id, this.name, this.teacher, this.room, this.colour);
 
+  final int id;
   final String name;
   final String teacher;
   final String room;
+  final String colour;
 }
 
 List<List<TimetableData>> timetable = [[], [], [], [], []];
 DateTime lastFetchTime = DateTime.now();
 
+List<TimetableData> subjects = [];
+
 class TimetableSlot extends StatefulWidget {
   const TimetableSlot(
     this.day,
     this.period,
-    this.data, {
+    this.data,
+    this.settingSubject,
+    this.toSetTo, {
     Key? key,
     this.width = 128,
     this.height = 32,
@@ -36,6 +44,8 @@ class TimetableSlot extends StatefulWidget {
 
   final int day;
   final int period;
+  final bool settingSubject;
+  final TimetableData? toSetTo;
 
   final TimetableData data;
   final double width;
@@ -51,12 +61,6 @@ class TimetableSlot extends StatefulWidget {
 }
 
 class _TimetableSlotState extends State<TimetableSlot> {
-  final _formKey = GlobalKey<FormState>();
-
-  String teacher = "";
-  String room = "";
-  String name = "";
-
   void resetStates() {
     Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
     if (widget.reset != null) {
@@ -64,293 +68,95 @@ class _TimetableSlotState extends State<TimetableSlot> {
     }
   }
 
-  Future<void> updateTimetable() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? storedTimetable = prefs.getString("timetable");
-    if (storedTimetable != null) {
-      List<dynamic> data = json.decode(storedTimetable);
-      for (var i = 0; i < data.length; i++) {
-        var today = data[i];
-        for (var j = 0; j < today.length; j++) {
-          var period = today[j];
-          if (period == null) {
-            timetable[i][j] = const TimetableData("None", "None", "None");
-          } else {
-            timetable[i][j] = TimetableData(
-              period["name"],
-              period["teacher"],
-              period["room"],
-            );
-          }
-        }
-      }
-      timetable[widget.day][widget.period] = TimetableData(name, teacher, room);
-      data[widget.day][widget.period] = {
-        "name": name,
-        "teacher": teacher,
-        "room": room,
-      };
-      await prefs.setString("timetable", json.encode(data));
-      resetStates();
-    }
-    addRequest(
-      NetworkOperation(
-        "/api/v1/subjects/name/$name",
-        "GET",
-        (http.Response response) {
-          if (!validateResponse(response)) {
-            Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
-            return;
-          }
-          dynamic data = json.decode(response.body);
-          if (data["status"] != "success") {
-            addNotif("An error has occurred: ${data['message']}", error: true);
-            Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
-            return;
-          }
-          for (var subject in data["data"]) {
-            if (subject["room"].toLowerCase() == room.toLowerCase() &&
-                subject["teacher"].toLowerCase() == teacher.toLowerCase()) {
-              addRequest(
-                NetworkOperation(
-                  "/api/v1/timetable",
-                  "POST",
-                  (http.Response response) {
-                    if (!validateResponse(response)) {
-                      Navigator.of(context)
-                          .popUntil(ModalRoute.withName("/dash"));
-                      return;
-                    }
-                    dynamic data = json.decode(response.body);
-                    if (data["status"] != "success") {
-                      addNotif("An error has occurred: ${data['message']}",
-                          error: true);
-                      Navigator.of(context)
-                          .popUntil(ModalRoute.withName("/dash"));
-                      return;
-                    }
-                    addNotif("Successfully changed timetable.", error: false);
-                    if (widget.reset != null) {
-                      widget.reset!();
-                    }
-                  },
-                  data: {
-                    "subject_id": subject["subject_id"].toString(),
-                    "day": widget.day.toString(),
-                    "period": widget.period.toString()
-                  },
-                ),
-              );
-              Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
-              return;
-            }
-          }
+  @override
+  Widget build(BuildContext context) {
+    Color bg = Color(
+      int.parse(widget.data.colour.substring(1, 7), radix: 16) + 0xFF000000,
+    );
+    return GestureDetector(
+      onTap: () {
+        if (!widget.clickable) return;
+        if (widget.settingSubject) {
+          if (widget.toSetTo == null) return;
           addRequest(
             NetworkOperation(
-              "/api/v1/subjects",
+              "/api/v1/timetable",
               "POST",
-              (http.Response response) {
-                if (!validateResponse(response)) {
-                  Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
-                  return;
-                }
-                dynamic data = json.decode(response.body);
-                if (data["status"] != "success") {
-                  addNotif("An error has occurred: ${data['message']}",
-                      error: true);
-                  Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
-                  return;
-                }
+              (http.Response resp) {
                 addRequest(
                   NetworkOperation(
                     "/api/v1/timetable",
-                    "POST",
-                    (http.Response response) {
-                      if (!validateResponse(response)) {
-                        Navigator.of(context)
-                            .popUntil(ModalRoute.withName("/dash"));
-                        return;
-                      }
-                      dynamic data = json.decode(response.body);
-                      if (data["status"] != "success") {
-                        addNotif("An error has occurred: ${data['message']}",
-                            error: true);
-                        Navigator.of(context)
-                            .popUntil(ModalRoute.withName("/dash"));
-                        return;
-                      }
-                      addNotif("Successfully changed timetable.", error: false);
-                      if (widget.reset != null) {
-                        widget.reset!();
-                      }
-                      Navigator.of(context)
-                          .popUntil(ModalRoute.withName("/dash"));
-                    },
-                    data: {
-                      "subject_id": data["id"].toString(),
-                      "day": widget.day.toString(),
-                      "period": widget.period.toString()
+                    "GET",
+                    (http.Response resp) {
+                      gotTimetable(resp);
+                      widget.reset!();
                     },
                   ),
                 );
               },
               data: {
-                "name": name,
-                "teacher": teacher.isEmpty ? "None" : teacher,
-                "room": room.isEmpty ? "None" : room,
+                "subject_id": widget.toSetTo!.id.toString(),
+                "day": widget.day.toString(),
+                "period": widget.period.toString(),
               },
             ),
           );
-        },
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        if (!widget.clickable) return;
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Container(
-                decoration: BoxDecoration(
-                  border: Border(
-                    bottom: BorderSide(
-                      color: Theme.of(context).dividerColor,
-                      width: 2,
+        } else {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: Container(
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Theme.of(context).dividerColor,
+                        width: 2,
+                      ),
                     ),
                   ),
+                  child: Text(
+                    widget.data.name,
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                child: Text(
-                  widget.data.name,
-                  textAlign: TextAlign.center,
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: <Widget>[
+                    Text(
+                      "Room: ${widget.data.room.isEmpty ? 'None' : widget.data.room}",
+                    ),
+                    Text(
+                      "Teacher: ${widget.data.teacher.isEmpty ? 'None' : widget.data.teacher}",
+                    ),
+                    ElevatedButton.icon(
+                      icon: const Icon(Icons.delete),
+                      label: const Text("Remove subject"),
+                      onPressed: () {
+                        addRequest(
+                          NetworkOperation(
+                            "/api/v1/timetable",
+                            "DELETE",
+                            (http.Response response) {
+                              widget.reset!();
+                              Navigator.of(context).popUntil(
+                                ModalRoute.withName("/dash"),
+                              );
+                            },
+                            data: {
+                              "day": widget.day.toString(),
+                              "period": widget.period.toString(),
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    "Room: ${widget.data.room.isEmpty ? 'None' : widget.data.room}",
-                  ),
-                  Text(
-                    "Teacher: ${widget.data.teacher.isEmpty ? 'None' : widget.data.teacher}",
-                  ),
-                  const Divider(thickness: 2),
-                  TextButton(
-                    child: const Text("Change Period"),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Theme.of(context).dividerColor,
-                                    width: 2,
-                                  ),
-                                ),
-                              ),
-                              child: const Text(
-                                "Changing Timetable",
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            content: Form(
-                              key: _formKey,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: "Subject Name",
-                                    ),
-                                    initialValue:
-                                        widget.data.name.toLowerCase() == "none"
-                                            ? ""
-                                            : widget.data.name,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Enter a name";
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      name = value;
-                                    },
-                                    onFieldSubmitted: (String _) async {
-                                      await updateTimetable();
-                                    },
-                                  ),
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: "Teacher",
-                                    ),
-                                    initialValue:
-                                        widget.data.teacher.toLowerCase() ==
-                                                "none"
-                                            ? ""
-                                            : widget.data.teacher,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Enter a teacher";
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      teacher = value;
-                                    },
-                                    onFieldSubmitted: (String _) async {
-                                      await updateTimetable();
-                                    },
-                                  ),
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: "Room",
-                                    ),
-                                    initialValue:
-                                        widget.data.room.toLowerCase() == "none"
-                                            ? ""
-                                            : widget.data.room,
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return "Enter a room";
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      room = value;
-                                    },
-                                    onFieldSubmitted: (String _) async {
-                                      await updateTimetable();
-                                    },
-                                  ),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      // Validate the form (returns true if all is ok)
-                                      if (_formKey.currentState!.validate()) {
-                                        updateTimetable();
-                                      }
-                                    },
-                                    child: const Text('Submit'),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
-              ),
-            );
-          },
-        );
+              );
+            },
+          );
+        }
       },
       child: Padding(
         padding: const EdgeInsets.all(4),
@@ -358,7 +164,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
           elevation: 2,
           child: Container(
             decoration: BoxDecoration(
-              color: Theme.of(context).highlightColor,
+              color: bg,
               border: Border.all(
                 color: Theme.of(context).bottomAppBarTheme.color!,
                 width: widget.borderWidth,
@@ -382,6 +188,11 @@ class _TimetableSlotState extends State<TimetableSlot> {
                         maxLines: 3,
                         semanticsLabel: widget.data.name,
                         wrapWords: false,
+                        style: TextStyle(
+                          color: bg.computeLuminance() > 0.5
+                              ? Colors.black
+                              : Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -408,8 +219,15 @@ class _TodayTimetableState extends State<TodayTimetable> {
     if (timetable[0].length != 9) {
       for (var i = 0; i < 5; i++) {
         for (var j = 0; j < 9; j++) {
-          timetable[i]
-              .add(const TimetableData("Loading", "Loading", "Loading"));
+          timetable[i].add(
+            const TimetableData(
+              -1,
+              "Loading",
+              "Loading",
+              "Loading",
+              "#ffffff",
+            ),
+          );
         }
       }
     }
@@ -497,15 +315,214 @@ Future<void> gotTimetable(http.Response response) async {
     for (var j = 0; j < today.length; j++) {
       var period = today[j];
       if (period == null) {
-        timetable[i][j] = const TimetableData("None", "None", "None");
+        timetable[i][j] = const TimetableData(
+          -1,
+          "None",
+          "None",
+          "None",
+          "#FFFFFF",
+        );
       } else {
-        timetable[i][j] =
-            TimetableData(period["name"], period["teacher"], period["room"]);
+        timetable[i][j] = TimetableData(
+          period["subject_id"],
+          period["name"],
+          period["teacher"],
+          period["room"],
+          period["colour"],
+        );
       }
     }
   }
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString("timetable", json.encode(data["data"]));
+}
+
+Future<void> gotSubjects(http.Response response) async {
+  if (response.statusCode != 200) return;
+  Map<String, dynamic> data = json.decode(response.body);
+  subjects = [];
+  for (var i = 0; i < data["data"].length; i++) {
+    var subject = data["data"][i];
+    subjects.add(
+      TimetableData(
+        subject["subject_id"],
+        subject["name"],
+        subject["teacher"],
+        subject["room"],
+        subject["colour"],
+      ),
+    );
+  }
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString("subjects", json.encode(data["data"]));
+}
+
+class SubjectWidget extends StatelessWidget {
+  const SubjectWidget(this.subject, this.settingTimetable, this.getSubjects,
+      {Key? key})
+      : super(key: key);
+
+  final TimetableData subject;
+  final Function(TimetableData) settingTimetable;
+  final Function getSubjects;
+
+  void modifySubject(Color colour) {
+    var red = colour.red < 16
+        ? "0${colour.red.toRadixString(16)}"
+        : colour.red.toRadixString(16);
+    var green = colour.green < 16
+        ? "0${colour.green.toRadixString(16)}"
+        : colour.green.toRadixString(16);
+    var blue = colour.blue < 16
+        ? "0${colour.blue.toRadixString(16)}"
+        : colour.blue.toRadixString(16);
+
+    addRequest(
+      NetworkOperation(
+        "/api/v1/subjects/${subject.id}",
+        "PATCH",
+        (http.Response response) {
+          getSubjects();
+          Navigator.of(navigatorKey.currentContext!).pop();
+        },
+        data: {
+          "colour": "#$red$green$blue",
+        },
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Color backgroundColour = Color(
+      int.parse(subject.colour.substring(1, 7), radix: 16) + 0xFF000000,
+    );
+
+    // Automatically change the text colour based on what will be easiest to see.
+    Color textColour =
+        backgroundColour.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+
+    // Variable to store the new colour once it is updated.
+    Color changedTo = backgroundColour;
+    return PopupMenuButton(
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem(
+          value: 1,
+          onTap: () {},
+          child: const Text('Set timetable'),
+        ),
+        PopupMenuItem(
+          value: 2,
+          onTap: () {},
+          child: const Text('Modify'),
+        ),
+      ],
+      onSelected: (int value) {
+        switch (value) {
+          case 1:
+            settingTimetable(subject);
+            break;
+          case 2:
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    child: const Text(
+                      "Change Subject Colour",
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: ColorPicker(
+                          enableAlpha: false,
+                          hexInputBar: true,
+                          pickerColor: changedTo,
+                          onColorChanged: (value) => changedTo = value,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            modifySubject(changedTo);
+                          },
+                          child: const Text('Update'),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+            break;
+          default:
+        }
+      },
+      child: Card(
+        color: backgroundColour,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+              ),
+              child: Text(
+                subject.name,
+                style: TextStyle(
+                  color: textColour,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+              ),
+              child: Text(
+                subject.teacher,
+                style: TextStyle(
+                  color: textColour,
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+              ),
+              child: Text(
+                subject.room,
+                style: TextStyle(
+                  color: textColour,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class TimetablePage extends StatefulWidget {
@@ -516,6 +533,16 @@ class TimetablePage extends StatefulWidget {
 }
 
 class _TimetablePageState extends State<TimetablePage> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  String teacher = "";
+  String room = "";
+  String name = "";
+  Color colour = const Color.fromARGB(255, 255, 255, 255);
+
+  bool settingTimetable = false;
+  TimetableData? toSetTo;
+
   void getTimetable() async {
     final prefs = await SharedPreferences.getInstance();
     String? storedTimetable = prefs.getString("timetable");
@@ -526,12 +553,20 @@ class _TimetablePageState extends State<TimetablePage> {
         for (var j = 0; j < today.length; j++) {
           var period = today[j];
           if (period == null) {
-            timetable[i][j] = const TimetableData("None", "None", "None");
+            timetable[i][j] = const TimetableData(
+              -1,
+              "None",
+              "None",
+              "None",
+              "#FFFFFF",
+            );
           } else {
             timetable[i][j] = TimetableData(
+              period["subject_id"],
               period["name"],
               period["teacher"],
               period["room"],
+              period["colour"],
             );
           }
         }
@@ -550,199 +585,433 @@ class _TimetablePageState extends State<TimetablePage> {
     );
   }
 
+  void onColourChanged(Color color) {
+    colour = color.withAlpha(255);
+  }
+
+  void createSubject() {
+    addRequest(
+      NetworkOperation(
+        "/api/v1/subjects",
+        "POST",
+        (http.Response response) async {
+          await getSubjects();
+          setState(() {});
+        },
+        data: {
+          "name": name,
+          "teacher": teacher,
+          "room": room,
+          "colour": "#${(colour.value & 0x00FFFFFF).toRadixString(16)}",
+        },
+      ),
+    );
+    Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+  }
+
+  Future<void> getSubjects() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedSubjects = prefs.getString("subjects");
+    if (storedSubjects != null) {
+      List<dynamic> data = json.decode(storedSubjects);
+      for (var i = 0; i < data.length; i++) {
+        var subject = data[i];
+        subjects.add(
+          TimetableData(
+            subject["subject_id"],
+            subject["name"],
+            subject["teacher"],
+            subject["room"],
+            subject["colour"],
+          ),
+        );
+      }
+      setState(() {});
+    }
+    addRequest(
+      NetworkOperation(
+        "/api/v1/subjects/@me",
+        "GET",
+        (http.Response response) {
+          gotSubjects(response);
+          getTimetable();
+          setState(() {});
+        },
+        data: {
+          "name": name,
+          "teacher": teacher,
+          "room": room,
+          "colour":
+              "#${colour.red.toRadixString(16)}${colour.green.toRadixString(16)}${colour.blue.toRadixString(16)}",
+        },
+      ),
+    );
+  }
+
+  void toggleSetting(TimetableData subject) {
+    settingTimetable = !settingTimetable;
+    toSetTo = subject;
+    setState(() {});
+  }
+
   @override
   void initState() {
     if (timetable[0].length != 9) {
       for (var i = 0; i < 5; i++) {
         for (var j = 0; j < 9; j++) {
-          timetable[i]
-              .add(const TimetableData("Loading", "Loading", "Loading"));
+          timetable[i].add(
+            const TimetableData(
+              -1,
+              "Loading",
+              "Loading",
+              "Loading",
+              "#FFFFFF",
+            ),
+          );
         }
       }
     }
+    getSubjects();
     getTimetable();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    String baseColour =
+        "#${(Theme.of(context).highlightColor.value & 0x00FFFFFF).toRadixString(16)}";
+    double borderWidth = 1;
+    double width =
+        MediaQuery.of(context).size.width / 6 - (borderWidth * 2 + borderWidth);
+    double height =
+        MediaQuery.of(context).size.height / (timetable[0].length + 4) -
+            (borderWidth * 2 + borderWidth);
+    height *= 1.25;
+    double indent = 16;
     return Scaffold(
       appBar: PLAppBar("Timetable", context),
       backgroundColor: Theme.of(context).backgroundColor,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Material(
-              elevation: 4,
-              borderRadius: const BorderRadius.all(
-                Radius.circular(8),
-              ),
-              child: Container(
-                width: 15 * MediaQuery.of(context).size.width / 16,
-                height: 3 * MediaQuery.of(context).size.height / 4,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  border: Border.all(
-                    color: Colors.white,
-                    width: 8,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).highlightColor,
+                    side: const BorderSide(color: Colors.black),
                   ),
-                  borderRadius: const BorderRadius.all(
-                    Radius.circular(8),
+                  icon: Icon(
+                    settingTimetable ? Icons.stop : Icons.add,
+                    color: Colors.black,
                   ),
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    double borderWidth = 1;
-                    double width = constraints.maxWidth / 6 -
-                        (borderWidth * 2 + borderWidth);
-                    double height =
-                        constraints.maxHeight / (timetable[0].length + 4) -
-                            (borderWidth * 2 + borderWidth);
-                    height *= 1.25;
-                    return ListView(
-                      children: [
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            ...[
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: <Widget>[
-                                  TimetableSlot(
-                                    0,
-                                    -1,
-                                    const TimetableData("Monday", "", ""),
-                                    width: width,
-                                    height: height,
-                                    borderWidth: borderWidth * 2,
-                                    clickable: false,
+                  onPressed: () {
+                    if (settingTimetable) {
+                      setState(() => settingTimetable = false);
+                    } else {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Container(
+                              decoration: BoxDecoration(
+                                border: Border(
+                                  bottom: BorderSide(
+                                    color: Theme.of(context).dividerColor,
+                                    width: 2,
                                   ),
-                                  TimetableSlot(
-                                    1,
-                                    -1,
-                                    const TimetableData("Tuesday", "", ""),
-                                    width: width,
-                                    height: height,
-                                    borderWidth: borderWidth * 2,
-                                    clickable: false,
-                                  ),
-                                  TimetableSlot(
-                                    2,
-                                    -1,
-                                    const TimetableData("Wednesday", "", ""),
-                                    width: width,
-                                    height: height,
-                                    borderWidth: borderWidth * 2,
-                                    clickable: false,
-                                  ),
-                                  TimetableSlot(
-                                    3,
-                                    -1,
-                                    const TimetableData("Thursday", "", ""),
-                                    width: width,
-                                    height: height,
-                                    borderWidth: borderWidth * 2,
-                                    clickable: false,
-                                  ),
-                                  TimetableSlot(
-                                    4,
-                                    -1,
-                                    const TimetableData("Friday", "", ""),
-                                    width: width,
-                                    height: height,
-                                    borderWidth: borderWidth * 2,
-                                    clickable: false,
-                                  ),
-                                ],
+                                ),
                               ),
-                            ],
-                            const Divider(
-                              indent: 8,
-                              endIndent: 8,
+                              child: const Text(
+                                "Creating Subject",
+                                textAlign: TextAlign.center,
+                              ),
                             ),
-                            for (int period = 0;
-                                period < timetable[0].length && period < 4;
-                                period++)
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
+                            content: Form(
+                              key: _formKey,
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
                                 children: <Widget>[
-                                  for (int day = 0;
-                                      day < timetable.length;
-                                      day++)
-                                    TimetableSlot(
-                                      day,
-                                      period,
-                                      timetable[day][period],
-                                      width: width,
-                                      height: height,
-                                      borderWidth: borderWidth,
-                                      reset: getTimetable,
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Subject Name",
                                     ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Enter a name";
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      name = value;
+                                    },
+                                    onFieldSubmitted: (String _) {
+                                      createSubject();
+                                    },
+                                  ),
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Teacher",
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Enter a teacher";
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      teacher = value;
+                                    },
+                                    onFieldSubmitted: (String _) {
+                                      createSubject();
+                                    },
+                                  ),
+                                  TextFormField(
+                                    decoration: const InputDecoration(
+                                      labelText: "Room",
+                                    ),
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return "Enter a room";
+                                      }
+                                      return null;
+                                    },
+                                    onChanged: (value) {
+                                      room = value;
+                                    },
+                                    onFieldSubmitted: (String _) {
+                                      createSubject();
+                                    },
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: ColorPicker(
+                                      enableAlpha: false,
+                                      hexInputBar: true,
+                                      pickerColor: colour,
+                                      onColorChanged: onColourChanged,
+                                    ),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      // Validate the form (returns true if all is ok)
+                                      if (_formKey.currentState!.validate()) {
+                                        createSubject();
+                                      }
+                                    },
+                                    child: const Text('Create'),
+                                  ),
                                 ],
                               ),
-                            const Divider(
-                              indent: 8,
-                              endIndent: 8,
                             ),
-                            for (int period = 4;
-                                period < timetable[0].length && period < 6;
-                                period++)
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: <Widget>[
-                                  for (int day = 0;
-                                      day < timetable.length;
-                                      day++)
-                                    TimetableSlot(
-                                      day,
-                                      period,
-                                      timetable[day][period],
-                                      width: width,
-                                      height: height,
-                                      borderWidth: borderWidth,
-                                      reset: getTimetable,
-                                    ),
-                                ],
-                              ),
-                            const Divider(
-                              indent: 8,
-                              endIndent: 8,
-                            ),
-                            for (int period = 6;
-                                period < timetable[0].length;
-                                period++)
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: <Widget>[
-                                  for (int day = 0;
-                                      day < timetable.length;
-                                      day++)
-                                    TimetableSlot(
-                                      day,
-                                      period,
-                                      timetable[day][period],
-                                      width: width,
-                                      height: height,
-                                      borderWidth: borderWidth,
-                                      reset: getTimetable,
-                                    ),
-                                ],
-                              ),
-                          ],
-                        ),
-                      ],
-                    );
+                          );
+                        },
+                      );
+                    }
                   },
+                  label: Text(
+                    settingTimetable ? "Stop Setting" : "New",
+                    style: const TextStyle(
+                      color: Colors.black,
+                    ),
+                  ),
                 ),
               ),
+              Expanded(
+                child: SizedBox(
+                  height: 64,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    children: [
+                      for (TimetableData subject in subjects)
+                        SubjectWidget(subject, toggleSetting, getSubjects),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: <Widget>[
+              TimetableSlot(
+                0,
+                -1,
+                TimetableData(
+                  -1,
+                  "Monday",
+                  "",
+                  "",
+                  baseColour,
+                ),
+                settingTimetable,
+                toSetTo,
+                width: width,
+                height: height,
+                borderWidth: borderWidth * 2,
+                clickable: false,
+              ),
+              TimetableSlot(
+                1,
+                -1,
+                TimetableData(
+                  -1,
+                  "Tuesday",
+                  "",
+                  "",
+                  baseColour,
+                ),
+                settingTimetable,
+                toSetTo,
+                width: width,
+                height: height,
+                borderWidth: borderWidth * 2,
+                clickable: false,
+              ),
+              TimetableSlot(
+                2,
+                -1,
+                TimetableData(
+                  -1,
+                  "Wednesday",
+                  "",
+                  "",
+                  baseColour,
+                ),
+                settingTimetable,
+                toSetTo,
+                width: width,
+                height: height,
+                borderWidth: borderWidth * 2,
+                clickable: false,
+              ),
+              TimetableSlot(
+                3,
+                -1,
+                TimetableData(
+                  -1,
+                  "Thursday",
+                  "",
+                  "",
+                  baseColour,
+                ),
+                settingTimetable,
+                toSetTo,
+                width: width,
+                height: height,
+                borderWidth: borderWidth * 2,
+                clickable: false,
+              ),
+              TimetableSlot(
+                4,
+                -1,
+                TimetableData(
+                  -1,
+                  "Friday",
+                  "",
+                  "",
+                  baseColour,
+                ),
+                settingTimetable,
+                toSetTo,
+                width: width,
+                height: height,
+                borderWidth: borderWidth * 2,
+                clickable: false,
+              ),
+            ],
+          ),
+          Divider(
+            indent: indent,
+            endIndent: indent,
+          ),
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return ListView(
+                  children: [
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        for (int period = 0;
+                            period < timetable[0].length && period < 4;
+                            period++)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              for (int day = 0; day < timetable.length; day++)
+                                TimetableSlot(
+                                  day,
+                                  period,
+                                  timetable[day][period],
+                                  settingTimetable,
+                                  toSetTo,
+                                  width: width,
+                                  height: height,
+                                  borderWidth: borderWidth,
+                                  reset: getTimetable,
+                                ),
+                            ],
+                          ),
+                        Divider(
+                          indent: indent,
+                          endIndent: indent,
+                        ),
+                        for (int period = 4;
+                            period < timetable[0].length && period < 6;
+                            period++)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              for (int day = 0; day < timetable.length; day++)
+                                TimetableSlot(
+                                  day,
+                                  period,
+                                  timetable[day][period],
+                                  settingTimetable,
+                                  toSetTo,
+                                  width: width,
+                                  height: height,
+                                  borderWidth: borderWidth,
+                                  reset: getTimetable,
+                                ),
+                            ],
+                          ),
+                        Divider(
+                          indent: indent,
+                          endIndent: indent,
+                        ),
+                        for (int period = 6;
+                            period < timetable[0].length;
+                            period++)
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: <Widget>[
+                              for (int day = 0; day < timetable.length; day++)
+                                TimetableSlot(
+                                  day,
+                                  period,
+                                  timetable[day][period],
+                                  settingTimetable,
+                                  toSetTo,
+                                  width: width,
+                                  height: height,
+                                  borderWidth: borderWidth,
+                                  reset: getTimetable,
+                                ),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ],
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

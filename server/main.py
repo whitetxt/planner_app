@@ -215,7 +215,7 @@ async def get_user(user_id: int, user: User = Depends(get_current_user)):
 	raise HTTPException(status_code=404, detail="User not found")
 
 @app.post("/api/v1/users/reset", tags=["Users"])
-async def reset_me(request: Request, current_user: User = Depends(get_current_user)):
+async def reset_me(current_user: User = Depends(get_current_user)):
 	"""
 	Deletes all of the current user's data, but keeps their account.
 
@@ -257,7 +257,7 @@ async def reset_me(request: Request, current_user: User = Depends(get_current_us
 	return {"status": "success"}
 
 @app.delete("/api/v1/users/@me", tags=["Users"])
-async def delete_me(request: Request, current_user: User = Depends(get_current_user)):
+async def delete_me(current_user: User = Depends(get_current_user)):
 	"""
 	Deletes all of the current user's data, and completely removes their account.
 
@@ -306,12 +306,24 @@ async def delete_me(request: Request, current_user: User = Depends(get_current_u
 async def get_subjects(user: User = Depends(get_current_user)):
 	"""
 	Gets all subjects avaliable in the database.
+
+	Account **must** be a teacher account.
 	"""
+	if (user.permissions < Permissions.Teacher):
+		return {"status": "error", "message": "Account must be a teacher account."}
 	sjs = Subjects_DB.get_subjects()
 	return {"status": "success", "data": sjs}
 
+@app.get("/api/v1/subjects/@me", tags=["Subjects"])
+async def get_user_subjects(user: User = Depends(get_current_user)):
+	"""
+	Gets all subjects created by the current user.
+	"""
+	sjs = Subjects_DB.get_subjects_by_user(user.uid)
+	return {"status": "success", "data": sjs}
+
 @app.post("/api/v1/subjects", tags=["Subjects"])
-async def create_subject(name: str = Form(...), teacher: str = Form("None"), room: str = Form("None"), user: User = Depends(get_current_user)):
+async def create_subject(name: str = Form(...), teacher: str = Form("None"), room: str = Form("None"), colour: str = Form("#000000"), user: User = Depends(get_current_user)):
 	"""
 	This allows for a user to create a subject.
 
@@ -322,17 +334,19 @@ async def create_subject(name: str = Form(...), teacher: str = Form("None"), roo
 	name = name.title()
 	teacher = teacher.title()
 	room = room.upper()
-	exists = Subjects_DB.get_subjects_by_name(name)
+	exists = Subjects_DB.get_subjects_by_name(name, user.uid)
 	if not exists:
 		for subject in exists:
-			if subject.teacher == teacher and subject.room == room:
+			if subject.teacher == teacher and subject.room == room and subject.colour == colour:
 				# If we find that this specific subject already exists,
 				# We lie and say that we created it, but return the old id instead of a new one.
 				return {"status": "success", "id": subject.id}
 	Subjects_DB.add_subject(Subject(
+		user_id=user.uid,
 		name=name,
 		teacher=teacher,
-		room=room
+		room=room,
+		colour=colour
 	))
 	return {"status": "success", "id": Subjects_DB.get_next_id() - 1}
 
@@ -342,16 +356,32 @@ async def get_subject_by_name(subject_name: str, user: User = Depends(get_curren
 	Gets all subjects which match a certain name.
 	"""
 	subject_name = subject_name.title()
-	sjs = Subjects_DB.get_subjects_by_name(subject_name)
+	sjs = Subjects_DB.get_subjects_by_name(subject_name, user.uid)
 	return {"status": "success", "data": sjs}
 
 @app.get("/api/v1/subjects/id/{subject_id}", tags=["Subjects"])
-async def get_subject_by_id(id: int, user: User = Depends(get_current_user)):
+async def get_subject_by_id(subject_id: int, user: User = Depends(get_current_user)):
 	"""
 	Gets the subject with a specific ID.
 	"""
-	sjs = Subjects_DB.get_subject_by_id(id)
+	sjs = Subjects_DB.get_subject_by_id(subject_id)
 	return {"status": "success", "data": sjs}
+
+@app.patch("/api/v1/subjects/{subject_id}")
+async def update_subject(subject_id: int, colour: str = Form(...), user: User = Depends(get_current_user)):
+	"""
+	Changes the colour of a specific subject.
+	
+	This subject **MUST** belong to the current user.
+	"""
+	sj = Subjects_DB.get_subject_by_id(subject_id)
+	if sj is None:
+		return {"status": "error", "message": "Subject doesn't exist."}
+	if sj.user_id != user.uid:
+		return {"status": "error", "message": "Subject doesn't belong to the current user."}
+	sj.colour = colour
+	Subjects_DB.update_subject(sj)
+	return {"status": "success"}
 
 
 # ------------------
@@ -381,6 +411,8 @@ async def add_timetable_subject(subject_id: int = Form(...), day: int = Form(...
 	subject = Subjects_DB.get_subject_by_id(subject_id)
 	if subject is None:
 		return {"status": "error", "message": "Subject does not exist."}
+	if subject.user_id != user.uid:
+		return {"status": "error", "message": "Not your subject."}
 	result = User_Subjects_DB.create_connection(user.uid, subject_id, day, period)
 	if result:
 		return {"status": "success"}
