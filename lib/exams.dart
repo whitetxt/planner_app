@@ -305,6 +305,7 @@ class _ExamPageState extends State<ExamPage> {
           ),
         );
       }
+      if (!mounted) return;
       setState(() {});
     }
     // This refreshes the marks page, grabbing new data from the API.
@@ -316,6 +317,7 @@ class _ExamPageState extends State<ExamPage> {
           gotMarks(response);
           Navigator.of(context).popUntil(ModalRoute.withName(
               "/dash")); // This removes any modals or popup dialogs that are active at the current time.
+          if (!mounted) return;
           setState(
               () {}); // This then just forces the page to rebuild and redraw itself.
         },
@@ -350,6 +352,7 @@ class _ExamPageState extends State<ExamPage> {
       await prefs.setString(
           "marks", json.encode([for (ExamMark mark in marks) mark.toJson()]));
       removePopups();
+      if (!mounted) return;
       setState(() {});
     }
     // This adds a piece of homework to the server, and then refreshes the page.

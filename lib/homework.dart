@@ -206,6 +206,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
       for (dynamic hw in data) {
         homework.add(HomeworkData.fromJson(hw));
       }
+      if (!mounted) return;
       setState(() {});
     }
     // After loading the local state, retrieve everything from the server.
@@ -215,6 +216,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
         "GET",
         (http.Response response) {
           gotHomework(response);
+          if (!mounted) return;
           setState(() {});
         },
       ),
@@ -343,6 +345,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
       for (dynamic hw in data) {
         homework.add(HomeworkData.fromJson(hw));
       }
+      if (!mounted) return;
       setState(() {});
     }
     // This refreshes the homework page, grabbing new data from the API.
@@ -354,6 +357,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
           gotHomework(response);
           Navigator.of(context).popUntil(ModalRoute.withName(
               "/dash")); // This removes any modals or popup dialogs that are active at the current time.
+          if (!mounted) return;
           setState(
               () {}); // This then just forces the page to rebuild and redraw itself.
         },
@@ -381,6 +385,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
         json.encode([for (HomeworkData hw in homework) hw.toJson()]),
       );
       removePopups();
+      if (!mounted) return;
       setState(() {});
     }
     // Then, add it to the server and refresh.
@@ -487,6 +492,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                       ),
                                     );
                                     if (selected != null) {
+                                      if (!mounted) return;
                                       setState(
                                         () {
                                           date = selected;
@@ -555,6 +561,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                       Checkbox(
                         value: showCompleted,
                         onChanged: (value) {
+                          if (!mounted) return;
                           setState(() {
                             // Just flip the bool.
                             showCompleted = value!;

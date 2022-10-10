@@ -69,6 +69,7 @@ class _EventsMiniState extends State<EventsMini> {
                 gotEvents(response, add: true);
                 Navigator.of(context).popUntil(ModalRoute.withName(
                     "/dash")); // This removes any modals or popup dialogs that are active at the current time.
+                if (!mounted) return;
                 setState(
                     () {}); // This then just forces the page to rebuild and redraw itself.
               },
@@ -277,6 +278,7 @@ class _CalendarPageState extends State<CalendarPage> {
                 gotEvents(response, add: true);
                 Navigator.of(context).popUntil(ModalRoute.withName(
                     "/dash")); // This removes any modals or popup dialogs that are active at the current time.
+                if (!mounted) return;
                 setState(() {
                   _selectedEvents = events.get(time);
                 }); // This then just forces the page to rebuild and redraw itself.
@@ -361,6 +363,7 @@ class _CalendarPageState extends State<CalendarPage> {
             events: events,
             onDayPressed: (DateTime day) {
               time = day;
+              if (!mounted) return;
               setState(() {
                 _selectedEvents = events.get(day);
               });
@@ -435,6 +438,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                     initialTime: TimeOfDay.now(),
                                   );
                                   if (selected != null) {
+                                    if (!mounted) return;
                                     setState(
                                       () {
                                         time = selected;
@@ -591,6 +595,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                 (http.Response resp) {
                                   if (!validateResponse(resp)) return;
                                   refreshCalendar();
+                                  if (!mounted) return;
                                   setState(() {
                                     _selectedEvents = events.get(time);
                                   });

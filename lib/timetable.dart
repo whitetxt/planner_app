@@ -234,6 +234,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
     addRequest(
         NetworkOperation("/api/v1/timetable", "GET", (http.Response response) {
       gotTimetable(response);
+      if (!mounted) return;
       setState(() {});
     }));
     super.initState();
@@ -571,6 +572,7 @@ class _TimetablePageState extends State<TimetablePage> {
           }
         }
       }
+      if (!mounted) return;
       setState(() {});
     }
     addRequest(
@@ -579,6 +581,7 @@ class _TimetablePageState extends State<TimetablePage> {
         "GET",
         (http.Response response) async {
           await gotTimetable(response);
+          if (!mounted) return;
           setState(() {});
         },
       ),
@@ -596,6 +599,7 @@ class _TimetablePageState extends State<TimetablePage> {
         "POST",
         (http.Response response) async {
           await getSubjects();
+          if (!mounted) return;
           setState(() {});
         },
         data: {
@@ -626,6 +630,7 @@ class _TimetablePageState extends State<TimetablePage> {
           ),
         );
       }
+      if (!mounted) return;
       setState(() {});
     }
     addRequest(
@@ -635,6 +640,7 @@ class _TimetablePageState extends State<TimetablePage> {
         (http.Response response) {
           gotSubjects(response);
           getTimetable();
+          if (!mounted) return;
           setState(() {});
         },
         data: {
@@ -651,6 +657,7 @@ class _TimetablePageState extends State<TimetablePage> {
   void toggleSetting(TimetableData subject) {
     settingTimetable = !settingTimetable;
     toSetTo = subject;
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -710,6 +717,7 @@ class _TimetablePageState extends State<TimetablePage> {
                   ),
                   onPressed: () {
                     if (settingTimetable) {
+                      if (!mounted) return;
                       setState(() => settingTimetable = false);
                     } else {
                       showDialog(

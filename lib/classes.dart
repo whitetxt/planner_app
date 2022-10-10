@@ -298,6 +298,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                                       ),
                                     );
                                     if (selected != null) {
+                                      if (!mounted) return;
                                       setState(
                                         () {
                                           date = selected;
@@ -470,6 +471,7 @@ class _ClassPageState extends State<ClassPage> {
         "GET",
         (http.Response response) {
           gotClasses(response);
+          if (!mounted) return;
           setState(
               () {}); // This then just forces the page to rebuild and redraw itself.
         },
