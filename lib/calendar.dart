@@ -5,6 +5,7 @@ import "package:flutter/material.dart";
 import 'package:flutter_calendar_widget/flutter_calendar_widget.dart';
 import "package:http/http.dart" as http;
 import 'package:intl/intl.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import 'globals.dart';
 import 'network.dart';
@@ -39,7 +40,7 @@ class Event {
   }
 }
 
-EventList<Event> events = EventList(events: {});
+Map<DateTime, List<Event>> events = {};
 
 class EventsMini extends StatefulWidget {
   const EventsMini({Key? key}) : super(key: key);
@@ -106,7 +107,7 @@ class _EventsMiniState extends State<EventsMini> {
       );
     }
     bool upcoming = false;
-    for (DateTime date in events.events.keys) {
+    for (DateTime date in events.keys) {
       if (upcoming || date.isBefore(DateTime.now())) continue;
       upcoming = true;
       break;
@@ -154,13 +155,13 @@ class _EventsMiniState extends State<EventsMini> {
                 endIndent: 4,
               ),
               ...[
-                for (DateTime date in events.events.keys)
+                for (DateTime date in events.keys)
                   // For each of the days that there are events, we should check
                   // if its today, or after today since we don't want to show
                   // previous events.
                   if (date.isAfter(DateTime.now()) ||
                       date.difference(DateTime.now()).inDays == 0)
-                    for (Event event in events.events[date]!)
+                    for (Event event in events[date]!)
                       // As we only checked for the day previously, we must now
                       // check that it is after the current time.
                       if (event.time.isAfter(DateTime.now()))
@@ -212,33 +213,33 @@ void gotEvents(http.Response response, {bool add = false}) {
     return;
   }
   if (!add) {
-    events = EventList<Event>(events: {});
+    events = {};
   }
   if (data["data"] != null) {
     for (dynamic rawEvent in data["data"]) {
       Event event = Event.fromJson(rawEvent);
-      if (events
-          .get(
-        DateTime(event.time.year, event.time.month, event.time.day),
-      )
-          .every((Event e) {
-        return e.name != event.name &&
-            e.eventId != event.eventId &&
-            e.description != event.description &&
-            e.time != event.time;
-      })) {
-        // Since public events will show up in both responses for the owners,
-        // If this event already exists we don't want to add it again.
-        events.add(
-          DateTime(
-            // Since the DateTime provided is too precise and not specifically a day,
-            // It must be recreated using the fields in order to just specify a day.
-            event.time.year,
-            event.time.month,
-            event.time.day,
-          ),
-          event,
-        );
+      DateTime eventTime = DateTime(
+        // Since the DateTime provided is too precise and not specifically a day,
+        // It must be recreated using the fields in order to just specify a day.
+        event.time.year,
+        event.time.month,
+        event.time.day,
+      );
+      if (events.containsKey(eventTime)) {
+        if (events[eventTime]!.every(
+          (Event e) {
+            return e.name != event.name &&
+                e.eventId != event.eventId &&
+                e.description != event.description &&
+                e.time != event.time;
+          },
+        )) {
+          // Since public events will show up in both responses for the owners,
+          // If this event already exists we don't want to add it again.
+          events[eventTime]!.add(event);
+        }
+      } else {
+        events[eventTime] = [event];
       }
     }
   }
@@ -258,6 +259,7 @@ class _CalendarPageState extends State<CalendarPage> {
   bool? private = true;
 
   List<Event> _selectedEvents = [];
+  DateTime _selectedDay = DateTime.now();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _dateController = TextEditingController();
@@ -280,7 +282,8 @@ class _CalendarPageState extends State<CalendarPage> {
                     "/dash")); // This removes any modals or popup dialogs that are active at the current time.
                 if (!mounted) return;
                 setState(() {
-                  _selectedEvents = events.get(time);
+                  _selectedEvents =
+                      events.containsKey(time) ? events[time]! : [];
                 }); // This then just forces the page to rebuild and redraw itself.
               },
             ),
@@ -356,17 +359,41 @@ class _CalendarPageState extends State<CalendarPage> {
       backgroundColor: Theme.of(context).backgroundColor,
       body: ListView(
         children: <Widget>[
-          FlutterCalendar(
-            selectionMode: CalendarSelectionMode.single,
-            startingDayOfWeek: DayOfWeek.mon,
-            focusedDate: DateTime.now(),
-            events: events,
-            onDayPressed: (DateTime day) {
-              time = day;
-              if (!mounted) return;
+          TableCalendar(
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.now().add(
+              const Duration(days: 365),
+            ),
+            startingDayOfWeek: StartingDayOfWeek.monday,
+            focusedDay: DateTime.now(),
+            rangeSelectionMode: RangeSelectionMode.disabled,
+            selectedDayPredicate: (day) {
+              return isSameDay(_selectedDay, day);
+            },
+            onDaySelected: (selectedDay, focusedDay) {
+              time = selectedDay;
               setState(() {
-                _selectedEvents = events.get(day);
+                _selectedDay = selectedDay;
+                bool found = false;
+                for (DateTime day in events.keys) {
+                  if (isSameDay(day, _selectedDay)) {
+                    _selectedEvents = events[day]!;
+                    found = true;
+                    break;
+                  }
+                }
+                if (!found) {
+                  _selectedEvents = [];
+                }
               });
+            },
+            eventLoader: (day) {
+              for (DateTime kDay in events.keys) {
+                if (isSameDay(kDay, day)) {
+                  return events[kDay]!;
+                }
+              }
+              return [];
             },
           ),
           Row(
@@ -597,7 +624,9 @@ class _CalendarPageState extends State<CalendarPage> {
                                   refreshCalendar();
                                   if (!mounted) return;
                                   setState(() {
-                                    _selectedEvents = events.get(time);
+                                    _selectedEvents = events.containsKey(time)
+                                        ? events[time]!
+                                        : [];
                                   });
                                 },
                               ),
