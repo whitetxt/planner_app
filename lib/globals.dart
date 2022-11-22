@@ -75,7 +75,7 @@ void addNotif(String text, {bool error = true}) {
 // It will easily let me change it in the event of losing a domain.
 // DuckDNS is a service used to get free domains, which I am using here as to
 // make it easy to recognise.
-String apiUrl = "https://planner-app.duckdns.org";
+//const String apiUrl = "https://planner-app.duckdns.org";
 
 // Localhost debug server.
-//String apiUrl = "http://127.0.0.1:8000";
+const String apiUrl = "http://127.0.0.1:8000";

@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import "package:flutter/material.dart";
-import 'package:flutter_calendar_widget/flutter_calendar_widget.dart';
 import "package:http/http.dart" as http;
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';

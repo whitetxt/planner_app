@@ -292,7 +292,7 @@ class _LoginPageState extends State<LoginPage> {
                           return "Enter a password";
                         }
                         if (value.length < 8) {
-                          return "Password must be at least 8 characters";
+                          return "Password must be at least 8 characters long.";
                         }
                         if (value.characters
                             .where((String character) =>
