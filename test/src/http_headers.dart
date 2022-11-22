@@ -382,12 +382,12 @@ class MockHttpHeaders implements HttpHeaders {
     } else if (value is String) {
       contentLength = int.parse(value);
     } else {
-      throw HttpException("Unexpected type for header named $name");
+      throw HttpException('Unexpected type for header named $name');
     }
   }
 
   void _addTransferEncoding(String name, value) {
-    if (value == "chunked") {
+    if (value == 'chunked') {
       chunkedTransferEncoding = true;
     } else {
       _addValue(HttpHeaders.transferEncodingHeader, value);
@@ -400,7 +400,7 @@ class MockHttpHeaders implements HttpHeaders {
     } else if (value is String) {
       _set(HttpHeaders.dateHeader, value);
     } else {
-      throw HttpException("Unexpected type for header named $name");
+      throw HttpException('Unexpected type for header named $name');
     }
   }
 
@@ -410,7 +410,7 @@ class MockHttpHeaders implements HttpHeaders {
     } else if (value is String) {
       _set(HttpHeaders.expiresHeader, value);
     } else {
-      throw HttpException("Unexpected type for header named $name");
+      throw HttpException('Unexpected type for header named $name');
     }
   }
 
@@ -420,13 +420,13 @@ class MockHttpHeaders implements HttpHeaders {
     } else if (value is String) {
       _set(HttpHeaders.ifModifiedSinceHeader, value);
     } else {
-      throw HttpException("Unexpected type for header named $name");
+      throw HttpException('Unexpected type for header named $name');
     }
   }
 
   void _addHost(String name, value) {
     if (value is String) {
-      int pos = value.indexOf(":");
+      int pos = value.indexOf(':');
       if (pos == -1) {
         _host = value;
         _port = HttpClient.defaultHttpPort;
@@ -448,7 +448,7 @@ class MockHttpHeaders implements HttpHeaders {
       }
       _set(HttpHeaders.hostHeader, value);
     } else {
-      throw HttpException("Unexpected type for header named $name");
+      throw HttpException('Unexpected type for header named $name');
     }
   }
 
@@ -489,7 +489,7 @@ class MockHttpHeaders implements HttpHeaders {
   }
 
   void _checkMutable() {
-    if (!_mutable) throw HttpException("HTTP headers are not mutable");
+    if (!_mutable) throw HttpException('HTTP headers are not mutable');
   }
 
   void _updateHostHeader() {
@@ -789,7 +789,7 @@ class _HeaderValue implements HeaderValue {
           parameters[name] = null;
           return;
         }
-        maybeExpect("=");
+        maybeExpect('=');
         skipWS();
         if (done()) {
           parameters[name] = null;
@@ -820,22 +820,22 @@ class _HeaderValue implements HeaderValue {
 
 // ignore: unused_element
 class _ContentType extends _HeaderValue implements ContentType {
-  String _primaryType = "";
-  String _subType = "";
+  String _primaryType = '';
+  String _subType = '';
 
   _ContentType(String primaryType, String subType, String charset,
       Map<String, String> parameters)
       : _primaryType = primaryType,
         _subType = subType,
-        super("") {
-    if (_primaryType == null) _primaryType = "";
-    if (_subType == null) _subType = "";
-    _value = "$_primaryType/$_subType";
+        super('') {
+    if (_primaryType == null) _primaryType = '';
+    if (_subType == null) _subType = '';
+    _value = '$_primaryType/$_subType';
     if (parameters != null) {
       _ensureParameters();
       parameters.forEach((String key, String value) {
         String lowerCaseKey = key;
-        if (lowerCaseKey == "charset") {
+        if (lowerCaseKey == 'charset') {
           value = value;
         }
         this._parameters![lowerCaseKey] = value;
@@ -843,7 +843,7 @@ class _ContentType extends _HeaderValue implements ContentType {
     }
     if (charset != null) {
       _ensureParameters();
-      this._parameters!["charset"] = charset;
+      this._parameters!['charset'] = charset;
     }
   }
 
@@ -851,11 +851,11 @@ class _ContentType extends _HeaderValue implements ContentType {
 
   static _ContentType parse(String value) {
     var result = _ContentType._();
-    result._parse(value, ";", null, false);
-    int index = result._value.indexOf("/");
+    result._parse(value, ';', null, false);
+    int index = result._value.indexOf('/');
     if (index == -1 || index == (result._value.length - 1)) {
       result._primaryType = result._value.trim();
-      result._subType = "";
+      result._subType = '';
     } else {
       result._primaryType = result._value.substring(0, index).trim();
       result._subType = result._value.substring(index + 1).trim();
@@ -869,7 +869,7 @@ class _ContentType extends _HeaderValue implements ContentType {
 
   String get subType => _subType;
 
-  String? get charset => parameters["charset"];
+  String? get charset => parameters['charset'];
 }
 
 class _Cookie implements Cookie {
@@ -912,7 +912,7 @@ class _Cookie implements Cookie {
     String parseName() {
       var start = index;
       while (!done()) {
-        if (s[index] == "=") break;
+        if (s[index] == '=') break;
         index++;
       }
       return s.substring(start, index).trim();
@@ -921,7 +921,7 @@ class _Cookie implements Cookie {
     String parseValue() {
       var start = index;
       while (!done()) {
-        if (s[index] == ";") break;
+        if (s[index] == ';') break;
         index++;
       }
       return s.substring(start, index).trim();
@@ -940,7 +940,7 @@ class _Cookie implements Cookie {
       String parseAttributeName() {
         var start = index;
         while (!done()) {
-          if (s[index] == "=" || s[index] == ";") break;
+          if (s[index] == '=' || s[index] == ';') break;
           index++;
         }
         return s.substring(start, index).trim();
@@ -949,7 +949,7 @@ class _Cookie implements Cookie {
       String parseAttributeValue() {
         var start = index;
         while (!done()) {
-          if (s[index] == ";") break;
+          if (s[index] == ';') break;
           index++;
         }
         return s.substring(start, index).trim();
@@ -1118,7 +1118,7 @@ class _Cookie implements Cookie {
 
     var month = getMonth(monthStr!) + 1;
 
-    var timeList = timeStr!.split(":");
+    var timeList = timeStr!.split(':');
     if (timeList.length != 3) error();
     var hour = toInt(timeList[0]);
     var minute = toInt(timeList[1]);

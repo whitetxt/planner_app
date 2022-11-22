@@ -15,21 +15,21 @@ class RequestMatcher {
 
   bool match(MockHttpClientRequest request) {
     if (method.toUpperCase() != request.method.toUpperCase()) {
-      print(
+      /*print(
         "Mismatched method: ${method.toUpperCase()}, ${request.method.toUpperCase()}",
-      );
+      );*/
       return false;
     }
     if (uri._path != request.uri) {
-      print(
+      /*print(
         "Mismatched uri: ${uri._path}, ${request.uri}",
-      );
+      );*/
       return false;
     }
     if (!headers.match(request.headers)) {
-      print(
+      /*print(
         "Mismatched headers: $headers, ${request.headers}",
-      );
+      );*/
       return false;
     }
     /*

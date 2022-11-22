@@ -6,18 +6,18 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:planner_app/network.dart';
-import "package:http/http.dart" as http;
+import 'package:http/http.dart' as http;
 
-import "globals.dart";
+import 'globals.dart';
 
-import "login.dart";
-import "timetable.dart";
-import "homework.dart";
-import "dashboard.dart";
-import "calendar.dart";
-import "exams.dart";
-import "settings.dart";
-import "classes.dart";
+import 'login.dart';
+import 'timetable.dart';
+import 'homework.dart';
+import 'dashboard.dart';
+import 'calendar.dart';
+import 'exams.dart';
+import 'settings.dart';
+import 'classes.dart';
 
 void main() {
   Timer.periodic(
@@ -35,11 +35,11 @@ void main() {
 
 Future<User?> getMe() async {
   http.Response resp = await processNetworkRequest(
-      NetworkOperation("$apiUrl/api/v1/users/@me", "GET", (_) {}));
+      NetworkOperation('$apiUrl/api/v1/users/@me', 'GET', (_) {}));
   if (!validateResponse(resp)) {
     return null;
   }
-  dynamic data = json.decode(resp.body)["data"];
+  dynamic data = json.decode(resp.body)['data'];
   return User.fromJson(data);
 }
 
@@ -78,11 +78,11 @@ class PlannerApp extends StatelessWidget {
       // I create routes here, which allows me to change the page by pushing the route's name
       // instead of using the class.
       routes: {
-        "/": (context) => const LoginPage(),
-        "/dash": (context) => const MainPage(),
-        "/settings": (context) => const SettingsPage(),
+        '/': (context) => const LoginPage(),
+        '/dash': (context) => const MainPage(),
+        '/settings': (context) => const SettingsPage(),
       },
-      initialRoute: "/",
+      initialRoute: '/',
     );
   }
 }
@@ -150,14 +150,14 @@ class _MainPageState extends State<MainPage>
           // These tabs correspond to the pages in the TabBarView
           tabs: <Widget>[
             const Tooltip(
-              message: "Timetable",
+              message: 'Timetable',
               child: Tab(
                 icon: Icon(
                   Icons.calendar_today,
-                  semanticLabel: "Timetable",
+                  semanticLabel: 'Timetable',
                 ),
                 child: AutoSizeText(
-                  "Timetable",
+                  'Timetable',
                   maxLines: 1,
                   minFontSize: 0,
                   maxFontSize: 16,
@@ -165,14 +165,14 @@ class _MainPageState extends State<MainPage>
               ),
             ),
             const Tooltip(
-              message: "Homework",
+              message: 'Homework',
               child: Tab(
                 icon: Icon(
                   Icons.book,
-                  semanticLabel: "Homework",
+                  semanticLabel: 'Homework',
                 ),
                 child: AutoSizeText(
-                  "Homework",
+                  'Homework',
                   maxLines: 1,
                   minFontSize: 0,
                   maxFontSize: 16,
@@ -180,14 +180,14 @@ class _MainPageState extends State<MainPage>
               ),
             ),
             const Tooltip(
-              message: "Dashboard",
+              message: 'Dashboard',
               child: Tab(
                 icon: Icon(
                   Icons.home,
-                  semanticLabel: "Dashboard",
+                  semanticLabel: 'Dashboard',
                 ),
                 child: AutoSizeText(
-                  "Dashboard",
+                  'Dashboard',
                   maxLines: 1,
                   minFontSize: 0,
                   maxFontSize: 16,
@@ -195,14 +195,14 @@ class _MainPageState extends State<MainPage>
               ),
             ),
             const Tooltip(
-              message: "Calendar",
+              message: 'Calendar',
               child: Tab(
                 icon: Icon(
                   Icons.calendar_month,
-                  semanticLabel: "Calendar",
+                  semanticLabel: 'Calendar',
                 ),
                 child: AutoSizeText(
-                  "Calendar",
+                  'Calendar',
                   maxLines: 1,
                   minFontSize: 0,
                   maxFontSize: 16,
@@ -211,14 +211,14 @@ class _MainPageState extends State<MainPage>
             ),
             me!.permissions == Permissions.user
                 ? const Tooltip(
-                    message: "Exams",
+                    message: 'Exams',
                     child: Tab(
                       icon: Icon(
                         Icons.check_circle_outline,
-                        semanticLabel: "Exams",
+                        semanticLabel: 'Exams',
                       ),
                       child: AutoSizeText(
-                        "Exams",
+                        'Exams',
                         maxLines: 1,
                         minFontSize: 0,
                         maxFontSize: 16,
@@ -226,14 +226,14 @@ class _MainPageState extends State<MainPage>
                     ),
                   )
                 : const Tooltip(
-                    message: "Classes",
+                    message: 'Classes',
                     child: Tab(
                       icon: Icon(
                         Icons.school,
-                        semanticLabel: "Classes",
+                        semanticLabel: 'Classes',
                       ),
                       child: AutoSizeText(
-                        "Classes",
+                        'Classes',
                         maxLines: 1,
                         minFontSize: 0,
                         maxFontSize: 16,

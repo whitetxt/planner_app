@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 import 'package:planner_app/globals.dart';
 import 'package:planner_app/network.dart';
-import "package:http/http.dart" as http;
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
+import 'pl_appbar.dart'; // Provides PLAppBar for the bar at the top of the screen.
 
 List<HomeworkData> homework = [];
 
@@ -33,13 +33,13 @@ class HomeworkData {
   factory HomeworkData.fromJson(dynamic jsonData) {
     // Converts the server's response into a HomeworkData object.
     return HomeworkData(
-      jsonData["homework_id"],
-      DateTime.fromMillisecondsSinceEpoch(jsonData["due_date"]),
-      jsonData["name"],
-      jsonData["class_id"],
-      jsonData["description"],
-      jsonData["completed"],
-      jsonData["completed_by"],
+      jsonData['homework_id'],
+      DateTime.fromMillisecondsSinceEpoch(jsonData['due_date']),
+      jsonData['name'],
+      jsonData['class_id'],
+      jsonData['description'],
+      jsonData['completed'],
+      jsonData['completed_by'],
     );
   }
 
@@ -48,13 +48,13 @@ class HomeworkData {
     // The Map<String, dynamic> type is the definition of JSON used in most places,
     // as Strings are commonly used as keys, and anything can be a value.
     return {
-      "homework_id": id,
-      "due_date": timeDue.millisecondsSinceEpoch,
-      "name": name,
-      "class_id": classId,
-      "description": description,
-      "completed": completed,
-      "completed_by": completedBy
+      'homework_id': id,
+      'due_date': timeDue.millisecondsSinceEpoch,
+      'name': name,
+      'class_id': classId,
+      'description': description,
+      'completed': completed,
+      'completed_by': completedBy
     };
   }
 }
@@ -93,7 +93,7 @@ class HomeworkWidget extends StatelessWidget {
               Expanded(
                 flex: 2,
                 child: Text(
-                  "${data.timeDue.day}/${data.timeDue.month}/${data.timeDue.year}",
+                  '${data.timeDue.day}/${data.timeDue.month}/${data.timeDue.year}',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     // We should change the colours of all the elements if the homework is completed.
@@ -118,14 +118,14 @@ class HomeworkWidget extends StatelessWidget {
             Text(
               // This large IF statement just ensures that the time remaining is presented in a readable manor.
               data.timeDue.isBefore(DateTime.now())
-                  ? "Past Due!"
+                  ? 'Past Due!'
                   : data.timeDue.difference(DateTime.now()) >=
                           const Duration(days: 1, hours: 12)
-                      ? "Due in ${data.timeDue.difference(DateTime.now()).inDays} days and ${data.timeDue.difference(DateTime.now()).inHours - data.timeDue.difference(DateTime.now()).inDays * 24} hours"
+                      ? 'Due in ${data.timeDue.difference(DateTime.now()).inDays} days and ${data.timeDue.difference(DateTime.now()).inHours - data.timeDue.difference(DateTime.now()).inDays * 24} hours'
                       : data.timeDue.difference(DateTime.now()) >=
                               const Duration(hours: 12)
-                          ? "Due in ${data.timeDue.difference(DateTime.now()).inHours} hours"
-                          : "Due in ${data.timeDue.difference(DateTime.now()).toString().substring(0, 4)}",
+                          ? 'Due in ${data.timeDue.difference(DateTime.now()).inHours} hours'
+                          : 'Due in ${data.timeDue.difference(DateTime.now()).toString().substring(0, 4)}',
               style: TextStyle(
                 // If the homework is past due, then increase the size and weight of the font
                 // so that it is easily visible to the user.
@@ -141,7 +141,7 @@ class HomeworkWidget extends StatelessWidget {
                 // If there isn't a description, display "No Description" instead of nothing.
                 data.description != null && data.description!.isNotEmpty
                     ? data.description!
-                    : "No Description",
+                    : 'No Description',
                 textAlign: TextAlign.center,
               ),
             ),
@@ -151,7 +151,7 @@ class HomeworkWidget extends StatelessWidget {
                 child: Text(
                   // The text must change if it's already completed, as it wouldn't
                   // make sense to mark homework as complete when it's already complete.
-                  data.completed ? "Mark as Incomplete" : "Mark as Complete",
+                  data.completed ? 'Mark as Incomplete' : 'Mark as Complete',
                   style: const TextStyle(
                     fontSize: 14,
                   ),
@@ -161,19 +161,19 @@ class HomeworkWidget extends StatelessWidget {
                   // We should update our local copy, then push it all to the server.
                   final prefs = await SharedPreferences.getInstance();
                   await prefs.setString(
-                    "homework",
+                    'homework',
                     json.encode(
                       [for (HomeworkData hw in homework) hw.toJson()],
                     ),
                   );
                   addRequest(
                     NetworkOperation(
-                      "/api/v1/homework",
-                      "PATCH",
+                      '/api/v1/homework',
+                      'PATCH',
                       (http.Response response) {
                         reset();
                       },
-                      data: {"id": data.id.toString()},
+                      data: {'id': data.id.toString()},
                     ),
                   );
                 },
@@ -199,7 +199,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
   Future<void> load() async {
     // We should load everything from our local store before trying to get stuff from the server.
     final prefs = await SharedPreferences.getInstance();
-    String? storedHomework = prefs.getString("homework");
+    String? storedHomework = prefs.getString('homework');
     if (storedHomework != null) {
       List<dynamic> data = json.decode(storedHomework);
       homework = [];
@@ -212,8 +212,8 @@ class _HomeworkMiniState extends State<HomeworkMini> {
     // After loading the local state, retrieve everything from the server.
     addRequest(
       NetworkOperation(
-        "/api/v1/homework",
-        "GET",
+        '/api/v1/homework',
+        'GET',
         (http.Response response) {
           gotHomework(response);
           if (!mounted) return;
@@ -245,7 +245,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: const <Text>[
               Text(
-                "No due homework!",
+                'No due homework!',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 32,
@@ -263,7 +263,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
         elevation: 4,
         child: Column(
           children: <Widget>[
-            const Text("Due Homework"),
+            const Text('Due Homework'),
             const Divider(
               indent: 4,
               endIndent: 4,
@@ -283,7 +283,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
                         children: <Widget>[
                           // Display the time due and name of the
                           Text(
-                            "${hw.timeDue.day}/${hw.timeDue.month}/${hw.timeDue.year}",
+                            '${hw.timeDue.day}/${hw.timeDue.month}/${hw.timeDue.year}',
                           ),
                           Text(hw.name),
                         ],
@@ -304,19 +304,19 @@ Future<void> gotHomework(http.Response response) async {
   // We must check for an error, then notify the user of it.
   if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
-  if (data["status"] != "success") {
-    addNotif(data["message"], error: true);
+  if (data['status'] != 'success') {
+    addNotif(data['message'], error: true);
     return;
   }
   homework = [];
-  if (data["data"] != null) {
-    for (dynamic hw in data["data"]) {
+  if (data['data'] != null) {
+    for (dynamic hw in data['data']) {
       homework.add(HomeworkData.fromJson(hw));
     }
   }
   // Once we have gotten everything on the server, save the data to the device.
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString("homework", json.encode(data["data"]));
+  await prefs.setString('homework', json.encode(data['data']));
 }
 
 class HomeworkPage extends StatefulWidget {
@@ -330,15 +330,15 @@ class _HomeworkPageState extends State<HomeworkPage> {
   final TextEditingController _dateController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
-  String name = "";
+  String name = '';
   DateTime date = DateTime.now();
   bool showCompleted = false;
-  String description = "";
+  String description = '';
 
   Future<void> refreshHomework() async {
     // First we get everything from the local save.
     final prefs = await SharedPreferences.getInstance();
-    String? storedHomework = prefs.getString("homework");
+    String? storedHomework = prefs.getString('homework');
     if (storedHomework != null) {
       List<dynamic> data = json.decode(storedHomework);
       homework = [];
@@ -351,12 +351,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
     // This refreshes the homework page, grabbing new data from the API.
     addRequest(
       NetworkOperation(
-        "/api/v1/homework",
-        "GET",
+        '/api/v1/homework',
+        'GET',
         (http.Response response) {
           gotHomework(response);
           Navigator.of(context).popUntil(ModalRoute.withName(
-              "/dash")); // This removes any modals or popup dialogs that are active at the current time.
+              '/dash')); // This removes any modals or popup dialogs that are active at the current time.
           if (!mounted) return;
           setState(
               () {}); // This then just forces the page to rebuild and redraw itself.
@@ -366,22 +366,22 @@ class _HomeworkPageState extends State<HomeworkPage> {
   }
 
   void removePopups() {
-    Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+    Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
   }
 
   Future<void> addHomework() async {
     // First, add it to the local copy and render that.
     final prefs = await SharedPreferences.getInstance();
-    String? storedHomework = prefs.getString("homework");
+    String? storedHomework = prefs.getString('homework');
     if (storedHomework != null) {
       List<dynamic> data = json.decode(storedHomework);
       homework = [];
       for (dynamic hw in data) {
         homework.add(HomeworkData.fromJson(hw));
       }
-      homework.add(HomeworkData(0, date, name, 0, "", false, 0));
+      homework.add(HomeworkData(0, date, name, 0, '', false, 0));
       await prefs.setString(
-        "homework",
+        'homework',
         json.encode([for (HomeworkData hw in homework) hw.toJson()]),
       );
       removePopups();
@@ -391,15 +391,15 @@ class _HomeworkPageState extends State<HomeworkPage> {
     // Then, add it to the server and refresh.
     addRequest(
       NetworkOperation(
-        "/api/v1/homework",
-        "POST",
+        '/api/v1/homework',
+        'POST',
         (http.Response response) {
           refreshHomework();
         },
         data: {
-          "name": name,
-          "due_date": date.millisecondsSinceEpoch.toString(),
-          "description": description,
+          'name': name,
+          'due_date': date.millisecondsSinceEpoch.toString(),
+          'description': description,
         },
       ),
     );
@@ -414,7 +414,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PLAppBar("Homework", context),
+      appBar: PLAppBar('Homework', context),
       backgroundColor: Theme.of(context).backgroundColor,
       body: Column(
         children: <Widget>[
@@ -434,9 +434,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     size: 24,
                   ),
                   onPressed: () {
-                    name = "";
+                    name = '';
                     date = DateTime.now();
-                    description = "";
+                    description = '';
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
@@ -451,7 +451,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                               ),
                             ),
                             child: const Text(
-                              "Add homework",
+                              'Add homework',
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -462,11 +462,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
                               children: <Widget>[
                                 TextFormField(
                                   decoration: const InputDecoration(
-                                    labelText: "Homework Name",
+                                    labelText: 'Homework Name',
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return "Enter a name";
+                                      return 'Enter a name';
                                     }
                                     return null;
                                   },
@@ -497,7 +497,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                         () {
                                           date = selected;
                                           _dateController.text =
-                                              DateFormat("dd-MM-yy")
+                                              DateFormat('dd-MM-yy')
                                                   .format(selected);
                                         },
                                       );
@@ -508,13 +508,13 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                     enabled: false,
                                     controller: _dateController,
                                     decoration: const InputDecoration(
-                                      label: Text("Date Due"),
+                                      label: Text('Date Due'),
                                     ),
                                   ),
                                 ),
                                 TextFormField(
                                   decoration: const InputDecoration(
-                                    labelText: "Description (Optional)",
+                                    labelText: 'Description (Optional)',
                                   ),
                                   maxLines: 5,
                                   keyboardType: TextInputType.multiline,
@@ -545,7 +545,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     );
                   },
                   label: const Text(
-                    "New",
+                    'New',
                     style: TextStyle(
                       color: Colors.black,
                     ),
@@ -569,7 +569,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                         },
                       ),
                       const Text(
-                        "Show Completed?",
+                        'Show Completed?',
                       ),
                     ],
                   ),
@@ -585,7 +585,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     (homework.every((element) => element.completed) &&
                         !showCompleted))
                   const Text(
-                    "No homework!",
+                    'No homework!',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 32,

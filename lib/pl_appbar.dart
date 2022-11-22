@@ -1,6 +1,6 @@
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 
-import "settings.dart";
+import 'settings.dart';
 
 class PLAppBar extends PreferredSize {
   PLAppBar(this.text, this.context, {Key? key})

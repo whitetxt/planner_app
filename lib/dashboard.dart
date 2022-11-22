@@ -1,9 +1,9 @@
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 
-import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
-import "timetable.dart"; // Provides TodayTimetable
-import "homework.dart"; // Provides HomeworkMini
-import "calendar.dart"; // Provides EventsMini
+import 'pl_appbar.dart'; // Provides PLAppBar for the bar at the top of the screen.
+import 'timetable.dart'; // Provides TodayTimetable
+import 'homework.dart'; // Provides HomeworkMini
+import 'calendar.dart'; // Provides EventsMini
 
 class Dashboard extends StatefulWidget {
   const Dashboard({Key? key}) : super(key: key);
@@ -17,7 +17,7 @@ class _DashboardState extends State<Dashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: PLAppBar("Dashboard", context),
+      appBar: PLAppBar('Dashboard', context),
       backgroundColor: Theme.of(context).backgroundColor,
       // All this code is just to center the widgets in the middle of the screen.
       body: Row(

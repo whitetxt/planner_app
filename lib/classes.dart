@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import "package:http/http.dart" as http;
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
 import 'homework.dart';
@@ -31,17 +31,17 @@ class AppClass {
   factory AppClass.fromJson(Map<String, dynamic> data) {
     // This converts the server's response into this object.
     return AppClass(
-      data["class_id"],
-      data["teacher_id"],
-      data["class_name"],
+      data['class_id'],
+      data['teacher_id'],
+      data['class_name'],
       // Since the server returns json for each piece of homework or user,
       // We use their respective classes and functions to convert them.
       [
-        for (dynamic homework in data["homework"])
+        for (dynamic homework in data['homework'])
           HomeworkData.fromJson(homework)
       ],
       [
-        for (dynamic student in data["students"]) User.fromJson(student),
+        for (dynamic student in data['students']) User.fromJson(student),
       ],
     );
   }
@@ -53,7 +53,7 @@ void gotClasses(http.Response response) {
   if (!validateResponse(response)) return;
   Map<String, dynamic> data = json.decode(response.body);
   classes = [];
-  for (dynamic cls in data["data"]) {
+  for (dynamic cls in data['data']) {
     classes.add(AppClass.fromJson(cls));
   }
 }
@@ -73,23 +73,23 @@ class _ClassWidgetState extends State<ClassWidget> {
   final TextEditingController _dateController = TextEditingController();
 
   User? selectedUser;
-  String name = "";
+  String name = '';
   DateTime date = DateTime.now();
-  String description = "";
+  String description = '';
 
   void setHomework() {
     // This sets a new piece of homework and refreshes the parent widget.
     addRequest(
       NetworkOperation(
-        "/api/v1/classes/${widget.data.classId}/homework",
-        "POST",
+        '/api/v1/classes/${widget.data.classId}/homework',
+        'POST',
         (http.Response response) {
           widget.reset();
         },
         data: {
-          "homework_name": name,
-          "due_date": date.millisecondsSinceEpoch.toString(),
-          "description": description
+          'homework_name': name,
+          'due_date': date.millisecondsSinceEpoch.toString(),
+          'description': description
         },
       ),
     );
@@ -100,7 +100,7 @@ class _ClassWidgetState extends State<ClassWidget> {
     // I am using an ExpansionTile here, to allow the user to see which information they want.
     return ExpansionTile(
       title: Text(
-        "${widget.data.className} - ${widget.data.students.length} Students",
+        '${widget.data.className} - ${widget.data.students.length} Students',
       ),
       children: <Widget>[
         Row(
@@ -111,14 +111,14 @@ class _ClassWidgetState extends State<ClassWidget> {
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
                 const AutoSizeText(
-                  "Students",
+                  'Students',
                   style: TextStyle(
                     fontSize: 24,
                   ),
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.add),
-                  label: const Text("Add Student"),
+                  label: const Text('Add Student'),
                   onPressed: () {
                     showDialog(
                       context: context,
@@ -134,7 +134,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                               ),
                             ),
                             child: const Text(
-                              "Add a Student",
+                              'Add a Student',
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -153,8 +153,8 @@ class _ClassWidgetState extends State<ClassWidget> {
                                   }
                                   return processNetworkRequest(
                                     NetworkOperation(
-                                      "$apiUrl/api/v1/users/search/${textEditingValue.text}",
-                                      "GET",
+                                      '$apiUrl/api/v1/users/search/${textEditingValue.text}',
+                                      'GET',
                                       (_) {},
                                     ),
                                   ).then(
@@ -167,7 +167,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                                           json.decode(resp.body);
                                       List<User> users = [];
                                       for (Map<String, dynamic> user
-                                          in data["data"]) {
+                                          in data['data']) {
                                         users.add(User.fromJson(user));
                                       }
                                       List<User> finalUsers = [];
@@ -201,8 +201,8 @@ class _ClassWidgetState extends State<ClassWidget> {
                                     }
                                     addRequest(
                                       NetworkOperation(
-                                        "/api/v1/classes/${widget.data.classId}",
-                                        "PATCH",
+                                        '/api/v1/classes/${widget.data.classId}',
+                                        'PATCH',
                                         (_) {
                                           widget.reset();
                                         },
@@ -210,7 +210,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                                           // Even though there is no way selectedUser
                                           // can be null here, flutter still forces
                                           // me to use the ! operator.
-                                          "student_id":
+                                          'student_id':
                                               selectedUser!.uid.toString(),
                                         },
                                       ),
@@ -237,14 +237,14 @@ class _ClassWidgetState extends State<ClassWidget> {
               mainAxisSize: MainAxisSize.max,
               children: <Widget>[
                 const AutoSizeText(
-                  "Homework",
+                  'Homework',
                   style: TextStyle(
                     fontSize: 24,
                   ),
                 ),
                 TextButton.icon(
                   icon: const Icon(Icons.add),
-                  label: const Text("Create Homework"),
+                  label: const Text('Create Homework'),
                   onPressed: () {
                     showDialog(
                       context: context,
@@ -260,7 +260,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                               ),
                             ),
                             child: const Text(
-                              "Assign Homework",
+                              'Assign Homework',
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -271,11 +271,11 @@ class _ClassWidgetState extends State<ClassWidget> {
                               children: <Widget>[
                                 TextFormField(
                                   decoration: const InputDecoration(
-                                    labelText: "Homework Name",
+                                    labelText: 'Homework Name',
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return "Enter a name";
+                                      return 'Enter a name';
                                     }
                                     return null;
                                   },
@@ -303,7 +303,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                                         () {
                                           date = selected;
                                           _dateController.text =
-                                              DateFormat("dd-MM-yy")
+                                              DateFormat('dd-MM-yy')
                                                   .format(selected);
                                         },
                                       );
@@ -313,13 +313,13 @@ class _ClassWidgetState extends State<ClassWidget> {
                                     enabled: false,
                                     controller: _dateController,
                                     decoration: const InputDecoration(
-                                      label: Text("Date Due"),
+                                      label: Text('Date Due'),
                                     ),
                                   ),
                                 ),
                                 TextFormField(
                                   decoration: const InputDecoration(
-                                    labelText: "Description (Optional)",
+                                    labelText: 'Description (Optional)',
                                   ),
                                   maxLines: 5,
                                   keyboardType: TextInputType.multiline,
@@ -360,8 +360,8 @@ class _ClassWidgetState extends State<ClassWidget> {
                             return FutureBuilder(
                               future: processNetworkRequest(
                                 NetworkOperation(
-                                  "$apiUrl/api/v1/classes/${widget.data.classId}/homework/${hwData.id}",
-                                  "GET",
+                                  '$apiUrl/api/v1/classes/${widget.data.classId}/homework/${hwData.id}',
+                                  'GET',
                                   // Since we are doing this manually, don't add a callback.
                                   (_) {},
                                 ),
@@ -372,7 +372,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                                     validateResponse(snapshot.data!)) {
                                   // If we have data and it is valid, then display it to the user.
                                   Map<String, dynamic> data =
-                                      json.decode(snapshot.data!.body)["data"];
+                                      json.decode(snapshot.data!.body)['data'];
                                   return AlertDialog(
                                     title: Container(
                                       decoration: BoxDecoration(
@@ -392,10 +392,10 @@ class _ClassWidgetState extends State<ClassWidget> {
                                     content: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: <Widget>[
-                                        const Text("Incomplete by:"),
+                                        const Text('Incomplete by:'),
                                         ...[
                                           for (dynamic user
-                                              in data["incomplete"])
+                                              in data['incomplete'])
                                             Text(user),
                                         ],
                                       ],
@@ -423,8 +423,8 @@ class _ClassWidgetState extends State<ClassWidget> {
                                     content: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: const <Widget>[
-                                        Text("Incomplete by:"),
-                                        Text("Loading..."),
+                                        Text('Incomplete by:'),
+                                        Text('Loading...'),
                                         CircularProgressIndicator(),
                                       ],
                                     ),
@@ -437,7 +437,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                       },
                       child: Tooltip(
                         message:
-                            "Completed by ${hwData.completedBy}/${widget.data.students.length}",
+                            'Completed by ${hwData.completedBy}/${widget.data.students.length}',
                         child: Text(hwData.name),
                       ),
                     ),
@@ -461,14 +461,14 @@ class ClassPage extends StatefulWidget {
 class _ClassPageState extends State<ClassPage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  String name = "";
+  String name = '';
 
   void refreshClasses() {
     // This refreshes the class page, grabbing new data from the API.
     addRequest(
       NetworkOperation(
-        "/api/v1/classes",
-        "GET",
+        '/api/v1/classes',
+        'GET',
         (http.Response response) {
           gotClasses(response);
           if (!mounted) return;
@@ -483,14 +483,14 @@ class _ClassPageState extends State<ClassPage> {
     // This adds a class to the API, and then forces this page to redraw.
     addRequest(
       NetworkOperation(
-        "/api/v1/classes",
-        "POST",
+        '/api/v1/classes',
+        'POST',
         (http.Response response) {
           refreshClasses();
-          Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+          Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
         },
         data: {
-          "name": name,
+          'name': name,
         },
       ),
     );
@@ -508,26 +508,26 @@ class _ClassPageState extends State<ClassPage> {
     // as their stored data may be out of date.
     if (!onlineMode) {
       return Scaffold(
-        appBar: PLAppBar("Classes", context),
+        appBar: PLAppBar('Classes', context),
         backgroundColor: Theme.of(context).backgroundColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const <Widget>[
               AutoSizeText(
-                "Unfortunately, you are offline.",
+                'Unfortunately, you are offline.',
                 style: TextStyle(
                   fontSize: 24,
                 ),
               ),
               AutoSizeText(
-                "Classes cannot be managed without an internet connection.",
+                'Classes cannot be managed without an internet connection.',
                 style: TextStyle(
                   fontSize: 24,
                 ),
               ),
               AutoSizeText(
-                "Please try again later.",
+                'Please try again later.',
                 style: TextStyle(
                   fontSize: 24,
                 ),
@@ -538,7 +538,7 @@ class _ClassPageState extends State<ClassPage> {
       );
     }
     return Scaffold(
-      appBar: PLAppBar("Classes", context),
+      appBar: PLAppBar('Classes', context),
       backgroundColor: Theme.of(context).backgroundColor,
       body: ListView(
         children: [
@@ -549,7 +549,7 @@ class _ClassPageState extends State<ClassPage> {
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: TextButton.icon(
                   label: const Text(
-                    "Create Class",
+                    'Create Class',
                     style: TextStyle(color: Colors.black),
                   ),
                   onPressed: () {
@@ -567,7 +567,7 @@ class _ClassPageState extends State<ClassPage> {
                               ),
                             ),
                             child: const Text(
-                              "Create a class",
+                              'Create a class',
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -578,11 +578,11 @@ class _ClassPageState extends State<ClassPage> {
                               children: <Widget>[
                                 TextFormField(
                                   decoration: const InputDecoration(
-                                    labelText: "Class Name",
+                                    labelText: 'Class Name',
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return "Enter a name";
+                                      return 'Enter a name';
                                     }
                                     return null;
                                   },
@@ -629,7 +629,7 @@ class _ClassPageState extends State<ClassPage> {
                   // This is the function called to rebuild this widget.
                   refreshClasses();
                   // This closes all current open dialogs.
-                  Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+                  Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
                 },
               ),
           ]

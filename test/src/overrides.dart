@@ -239,7 +239,7 @@ class MockHttpClientRequest extends HttpClientRequest {
 
   @override
   void writeln([Object? obj = '']) {
-    write(obj.toString() + '\n');
+    write('$obj\n');
   }
 }
 

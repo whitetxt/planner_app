@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import "package:http/http.dart" as http;
+import 'package:http/http.dart' as http;
 
-import "globals.dart";
+import 'globals.dart';
 
 bool onlineMode = true;
 Timer? onlineTest;
@@ -59,7 +59,7 @@ void createOnlineTest() {
     const Duration(seconds: 10),
     (timer) {
       processNetworkRequest(
-              NetworkOperation("$apiUrl/onlineCheck", "GET", (_) {}))
+              NetworkOperation('$apiUrl/onlineCheck', 'GET', (_) {}))
           .then(
         (http.Response resp) {
           if (validateResponse(resp)) {
@@ -85,7 +85,7 @@ void createOnlineTest() {
               );
             }
             pending = [];
-            addNotif("Back online!", error: false);
+            addNotif('Back online!', error: false);
             // Cancel this timer so that it doesnt keep checking for online status.
             timer.cancel();
             // Also reset onlineTest back so that any new requests will go through normally.
@@ -111,7 +111,7 @@ bool validateResponse(http.Response response) {
   if (response.statusCode != 200) {
     if (response.statusCode == 500) {
       // If it's 500, the server didn't get a chance to return a proper error message.
-      addNotif("Internal Server Error");
+      addNotif('Internal Server Error');
       return false;
     }
     if (response.statusCode > 900) {
@@ -123,10 +123,10 @@ bool validateResponse(http.Response response) {
     return false;
   }
   Map<String, dynamic> data = json.decode(response.body);
-  if (data["status"] != "success") {
+  if (data['status'] != 'success') {
     // If it wasn't successful then the server will have returned the reason why
     // in the JSON so we display that to the user.
-    addNotif(data["message"]);
+    addNotif(data['message']);
     return false;
   }
   return true;
@@ -136,35 +136,35 @@ Future<http.Response> processNetworkRequest(NetworkOperation task) async {
   http.Response? response;
   switch (task.method) {
     // This switch statement converts the text method into the HTTP function.
-    case "GET":
+    case 'GET':
       response = await performRequest(
         http.get,
         task.url,
         null,
       );
       break;
-    case "POST":
+    case 'POST':
       response = await performRequest(
         http.post,
         task.url,
         task.data,
       );
       break;
-    case "DELETE":
+    case 'DELETE':
       response = await performRequest(
         http.delete,
         task.url,
         task.data,
       );
       break;
-    case "PUT":
+    case 'PUT':
       response = await performRequest(
         http.put,
         task.url,
         task.data,
       );
       break;
-    case "PATCH":
+    case 'PATCH':
       response = await performRequest(
         http.patch,
         task.url,
@@ -173,7 +173,7 @@ Future<http.Response> processNetworkRequest(NetworkOperation task) async {
       break;
     default:
       // If we don't know what the method is, just throw an Exception to exit.
-      throw Exception("Unknown method type: ${task.method}");
+      throw Exception('Unknown method type: ${task.method}');
   }
   return response;
 }
@@ -185,52 +185,52 @@ Future<http.Response> performRequest(
 ) async {
   if (token.isEmpty) {
     // Status code 998 is used to show that the token is empty.
-    return http.Response("", 998);
+    return http.Response('', 998);
   }
   if (body != null) {
     return await method(
       Uri.parse(url),
       body: body,
-      headers: {"Authorization": token},
+      headers: {'Authorization': token},
     ).catchError(
       (error, stackTrace) {
-        if (url != "$apiUrl/onlineCheck") {
+        if (url != '$apiUrl/onlineCheck') {
           ScaffoldMessenger.of(
             currentScaffoldKey.currentContext!,
           ).clearSnackBars();
           // This message is too long to show in one notification, so just display it
           // in two.
           addNotif(
-            "Connection Error. Running in offline mode.",
+            'Connection Error. Running in offline mode.',
           );
           addNotif(
-            "If you close the app before we are back online, data will be lost.",
+            'If you close the app before we are back online, data will be lost.',
           );
           onlineMode = false;
         }
         // Status code 999 is used to show that there was an error connecting to the server.
-        return http.Response("", 999);
+        return http.Response('', 999);
       },
     );
   }
   return await method(
     Uri.parse(url),
-    headers: {"Authorization": token},
+    headers: {'Authorization': token},
   ).catchError(
     (error, stackTrace) {
-      if (url != "$apiUrl/onlineCheck") {
+      if (url != '$apiUrl/onlineCheck') {
         ScaffoldMessenger.of(
           currentScaffoldKey.currentContext!,
         ).clearSnackBars();
         addNotif(
-          "Connection Error. Running in offline mode.",
+          'Connection Error. Running in offline mode.',
         );
         addNotif(
-          "If you close the app before we are back online, data will be lost.",
+          'If you close the app before we are back online, data will be lost.',
         );
         onlineMode = false;
       }
-      return http.Response("", 999);
+      return http.Response('', 999);
     },
   );
 }

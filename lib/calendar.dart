@@ -1,14 +1,14 @@
 import 'dart:convert';
 
 import 'package:auto_size_text/auto_size_text.dart';
-import "package:flutter/material.dart";
-import "package:http/http.dart" as http;
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 import 'globals.dart';
 import 'network.dart';
-import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
+import 'pl_appbar.dart'; // Provides PLAppBar for the bar at the top of the screen.
 
 class Event {
   // This class represents an event stored in the server's database.
@@ -30,11 +30,11 @@ class Event {
   factory Event.fromJson(Map<String, dynamic> json) {
     // This function lets me easily convert a response from the server into this object.
     return Event(
-      json["event_id"],
-      json["user_id"],
-      json["name"],
-      DateTime.fromMillisecondsSinceEpoch(json["time"]),
-      json["description"],
+      json['event_id'],
+      json['user_id'],
+      json['name'],
+      DateTime.fromMillisecondsSinceEpoch(json['time']),
+      json['description'],
     );
   }
 }
@@ -57,18 +57,18 @@ class _EventsMiniState extends State<EventsMini> {
     super.initState();
     addRequest(
       NetworkOperation(
-        "/api/v1/events",
-        "GET",
+        '/api/v1/events',
+        'GET',
         (http.Response response) {
           gotEvents(response);
           addRequest(
             NetworkOperation(
-              "/api/v1/events/user/@me",
-              "GET",
+              '/api/v1/events/user/@me',
+              'GET',
               (http.Response response) {
                 gotEvents(response, add: true);
                 Navigator.of(context).popUntil(ModalRoute.withName(
-                    "/dash")); // This removes any modals or popup dialogs that are active at the current time.
+                    '/dash')); // This removes any modals or popup dialogs that are active at the current time.
                 if (!mounted) return;
                 setState(
                     () {}); // This then just forces the page to rebuild and redraw itself.
@@ -94,7 +94,7 @@ class _EventsMiniState extends State<EventsMini> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: const <Widget>[
               Text(
-                "Offline :(",
+                'Offline :(',
                 style: TextStyle(
                   fontSize: 32,
                 ),
@@ -123,7 +123,7 @@ class _EventsMiniState extends State<EventsMini> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: const <Widget>[
               Text(
-                "No upcoming events!",
+                'No upcoming events!',
                 style: TextStyle(
                   fontSize: 32,
                 ),
@@ -144,7 +144,7 @@ class _EventsMiniState extends State<EventsMini> {
             mainAxisAlignment: MainAxisAlignment.start,
             children: <Widget>[
               const AutoSizeText(
-                "Upcoming Events",
+                'Upcoming Events',
                 style: TextStyle(fontSize: 18),
                 maxLines: 1,
                 minFontSize: 12,
@@ -181,11 +181,11 @@ class _EventsMiniState extends State<EventsMini> {
                                 // without having to write it explicitly.
                                 event.time.difference(DateTime.now()) >=
                                         const Duration(days: 1, hours: 12)
-                                    ? "In ${event.time.difference(DateTime.now()).inDays} days and ${event.time.difference(DateTime.now()).inHours - event.time.difference(DateTime.now()).inDays * 24} hours"
+                                    ? 'In ${event.time.difference(DateTime.now()).inDays} days and ${event.time.difference(DateTime.now()).inHours - event.time.difference(DateTime.now()).inDays * 24} hours'
                                     : event.time.difference(DateTime.now()) >=
                                             const Duration(hours: 12)
-                                        ? "In ${event.time.difference(DateTime.now()).inHours} hours"
-                                        : "In ${event.time.difference(DateTime.now()).toString().substring(0, 4)}",
+                                        ? 'In ${event.time.difference(DateTime.now()).inHours} hours'
+                                        : 'In ${event.time.difference(DateTime.now()).toString().substring(0, 4)}',
                                 style: const TextStyle(fontSize: 16),
                                 maxLines: 1,
                                 minFontSize: 8,
@@ -207,15 +207,15 @@ void gotEvents(http.Response response, {bool add = false}) {
   // We must check for an error, then notify the user of it.
   if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
-  if (data["status"] != "success") {
-    addNotif(data["message"], error: true);
+  if (data['status'] != 'success') {
+    addNotif(data['message'], error: true);
     return;
   }
   if (!add) {
     events = {};
   }
-  if (data["data"] != null) {
-    for (dynamic rawEvent in data["data"]) {
+  if (data['data'] != null) {
+    for (dynamic rawEvent in data['data']) {
       Event event = Event.fromJson(rawEvent);
       DateTime eventTime = DateTime(
         // Since the DateTime provided is too precise and not specifically a day,
@@ -252,9 +252,9 @@ class CalendarPage extends StatefulWidget {
 }
 
 class _CalendarPageState extends State<CalendarPage> {
-  String name = "";
+  String name = '';
   DateTime time = DateTime.now();
-  String description = "";
+  String description = '';
   bool? private = true;
 
   List<Event> _selectedEvents = [];
@@ -267,18 +267,18 @@ class _CalendarPageState extends State<CalendarPage> {
     // This refreshes the page, grabbing new data from the API.
     addRequest(
       NetworkOperation(
-        "/api/v1/events",
-        "GET",
+        '/api/v1/events',
+        'GET',
         (http.Response response) {
           gotEvents(response);
           addRequest(
             NetworkOperation(
-              "/api/v1/events/user/@me",
-              "GET",
+              '/api/v1/events/user/@me',
+              'GET',
               (http.Response response) {
                 gotEvents(response, add: true);
                 Navigator.of(context).popUntil(ModalRoute.withName(
-                    "/dash")); // This removes any modals or popup dialogs that are active at the current time.
+                    '/dash')); // This removes any modals or popup dialogs that are active at the current time.
                 if (!mounted) return;
                 setState(() {
                   _selectedEvents =
@@ -296,16 +296,16 @@ class _CalendarPageState extends State<CalendarPage> {
     // This tells the server to create an event, then refreshes the page.
     addRequest(
       NetworkOperation(
-        "/api/v1/events",
-        "POST",
+        '/api/v1/events',
+        'POST',
         (http.Response response) {
           refreshCalendar();
         },
         data: {
-          "name": name,
-          "time": time.millisecondsSinceEpoch.toString(),
-          "description": description,
-          "private": private.toString(),
+          'name': name,
+          'time': time.millisecondsSinceEpoch.toString(),
+          'description': description,
+          'private': private.toString(),
         },
       ),
     );
@@ -324,26 +324,26 @@ class _CalendarPageState extends State<CalendarPage> {
     // As the server would not see these changes.
     if (!onlineMode) {
       return Scaffold(
-        appBar: PLAppBar("Calendar", context),
+        appBar: PLAppBar('Calendar', context),
         backgroundColor: Theme.of(context).backgroundColor,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const <Widget>[
               AutoSizeText(
-                "Unfortunately, you are offline.",
+                'Unfortunately, you are offline.',
                 style: TextStyle(
                   fontSize: 24,
                 ),
               ),
               AutoSizeText(
-                "Events cannot be managed without an internet connection.",
+                'Events cannot be managed without an internet connection.',
                 style: TextStyle(
                   fontSize: 24,
                 ),
               ),
               AutoSizeText(
-                "Please try again later.",
+                'Please try again later.',
                 style: TextStyle(
                   fontSize: 24,
                 ),
@@ -354,7 +354,7 @@ class _CalendarPageState extends State<CalendarPage> {
       );
     }
     return Scaffold(
-      appBar: PLAppBar("Calendar", context),
+      appBar: PLAppBar('Calendar', context),
       backgroundColor: Theme.of(context).backgroundColor,
       body: ListView(
         children: <Widget>[
@@ -419,7 +419,7 @@ class _CalendarPageState extends State<CalendarPage> {
                             ),
                           ),
                           child: const Text(
-                            "Create an Event",
+                            'Create an Event',
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -432,11 +432,11 @@ class _CalendarPageState extends State<CalendarPage> {
                             children: <Widget>[
                               TextFormField(
                                 decoration: const InputDecoration(
-                                  labelText: "Name",
+                                  labelText: 'Name',
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
-                                    return "Enter a name";
+                                    return 'Enter a name';
                                   }
                                   return null;
                                 },
@@ -479,7 +479,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                         // We want to show that this was successful,
                                         // and so we set the text of the text field.
                                         _dateController.text =
-                                            DateFormat("dd-MM-yy HH:mm")
+                                            DateFormat('dd-MM-yy HH:mm')
                                                 .format(time);
                                       },
                                     );
@@ -491,13 +491,13 @@ class _CalendarPageState extends State<CalendarPage> {
                                   enabled: false,
                                   controller: _dateController,
                                   decoration: const InputDecoration(
-                                    label: Text("Date"),
+                                    label: Text('Date'),
                                   ),
                                 ),
                               ),
                               TextFormField(
                                 decoration: const InputDecoration(
-                                  labelText: "Description",
+                                  labelText: 'Description',
                                 ),
                                 keyboardType: TextInputType.multiline,
                                 maxLines: 5,
@@ -548,7 +548,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   );
                 },
                 label: const Text(
-                  "New",
+                  'New',
                   style: TextStyle(
                     color: Colors.black,
                   ),
@@ -589,20 +589,20 @@ class _CalendarPageState extends State<CalendarPage> {
                         // long statement is used to format it into different
                         // formats depending on how far away it is.
                         event.time.isBefore(DateTime.now())
-                            ? "Event has happened."
+                            ? 'Event has happened.'
                             : event.time.difference(DateTime.now()) >=
                                     const Duration(days: 1, hours: 12)
-                                ? "In ${event.time.difference(DateTime.now()).inDays} days and ${event.time.difference(DateTime.now()).inHours - event.time.difference(DateTime.now()).inDays * 24} hours"
+                                ? 'In ${event.time.difference(DateTime.now()).inDays} days and ${event.time.difference(DateTime.now()).inHours - event.time.difference(DateTime.now()).inDays * 24} hours'
                                 : event.time.difference(DateTime.now()) >=
                                         const Duration(hours: 12)
-                                    ? "In ${event.time.difference(DateTime.now()).inHours} hours"
-                                    : "In ${event.time.difference(DateTime.now()).toString().substring(0, 4)}",
+                                    ? 'In ${event.time.difference(DateTime.now()).inHours} hours'
+                                    : 'In ${event.time.difference(DateTime.now()).toString().substring(0, 4)}',
                       ),
                     ),
                     ListTile(
                       title: Text(
                         event.description == null
-                            ? "No Description"
+                            ? 'No Description'
                             : event.description!,
                       ),
                     ),
@@ -612,12 +612,12 @@ class _CalendarPageState extends State<CalendarPage> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.red.shade400,
                           ),
-                          child: const Text("Delete"),
+                          child: const Text('Delete'),
                           onPressed: () {
                             addRequest(
                               NetworkOperation(
-                                "/api/v1/events/${event.eventId}",
-                                "DELETE",
+                                '/api/v1/events/${event.eventId}',
+                                'DELETE',
                                 (http.Response resp) {
                                   if (!validateResponse(resp)) return;
                                   refreshCalendar();

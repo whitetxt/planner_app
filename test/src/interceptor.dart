@@ -119,7 +119,7 @@ class Interceptor {
   /// Type problems.
   /// Will be removed in next versions.
   /// Use [reply] method.
-  @deprecated
+  @Deprecated('Type problems. Will be removed in future versions')
   void replay(int statusCode, dynamic body, {Map<String, String>? headers}) {
     reply(statusCode, body, headers: headers);
   }
@@ -166,7 +166,7 @@ class Interceptor {
     }
 
     if (exception != null) {
-      return def + ' throws ${exception!()}';
+      return '$def throws ${exception!()}';
     }
 
     def += ' -> $statusCode';

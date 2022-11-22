@@ -3,9 +3,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:planner_app/network.dart';
 
-import "package:http/http.dart" as http;
+import 'package:http/http.dart' as http;
 
-import "globals.dart";
+import 'globals.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({Key? key}) : super(key: key);
@@ -17,19 +17,19 @@ class SettingsPage extends StatefulWidget {
 void onLogoutResponse(http.Response _) {
   // When we logout, we don't care if it failed or succeeded,
   // just throw away our token and go back to the login screen.
-  token = "";
-  navigatorKey.currentState!.pushNamedAndRemoveUntil("/", (_) => false);
+  token = '';
+  navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
 }
 
 void onResetResponse(http.Response response) {
   if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
-  if (data["status"] != "success") {
-    addNotif(data["message"], error: true);
+  if (data['status'] != 'success') {
+    addNotif(data['message'], error: true);
     return;
   }
   addNotif(
-    "Successfully reset user data!",
+    'Successfully reset user data!',
     error: false,
   );
 }
@@ -37,18 +37,18 @@ void onResetResponse(http.Response response) {
 void onDeleteResponse(http.Response response) {
   if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
-  if (data["status"] != "success") {
+  if (data['status'] != 'success') {
     // If it failed, then don't logout since the account may not be fully deleted.
-    addNotif(data["message"], error: true);
+    addNotif(data['message'], error: true);
     return;
   }
   ScaffoldMessenger.of(currentScaffoldKey.currentContext!).clearSnackBars();
   addNotif(
-    "Successfully deleted account!",
+    'Successfully deleted account!',
     error: false,
   );
-  token = "";
-  navigatorKey.currentState!.pushNamedAndRemoveUntil("/", (_) => false);
+  token = '';
+  navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
 }
 
 class _SettingsPageState extends State<SettingsPage> {
@@ -59,7 +59,7 @@ class _SettingsPageState extends State<SettingsPage> {
         preferredSize: const Size.fromHeight(32),
         child: AppBar(
           title: const Center(
-            child: Text("Settings"),
+            child: Text('Settings'),
           ),
         ),
       ),
@@ -75,12 +75,12 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: ElevatedButton.icon(
                   // Use an icon with text next to it for the button.
                   icon: const Icon(Icons.logout),
-                  label: const Text("Logout"),
+                  label: const Text('Logout'),
                   onPressed: () {
                     addRequest(
                       NetworkOperation(
-                        "/api/v1/auth/logout",
-                        "GET",
+                        '/api/v1/auth/logout',
+                        'GET',
                         onLogoutResponse,
                       ),
                     );
@@ -94,7 +94,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icons.refresh,
                   ),
                   label: const Text(
-                    "Reset Data",
+                    'Reset Data',
                   ),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.amber.shade900),
@@ -122,7 +122,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   Icons.warning,
                                 ),
                                 Text(
-                                  "WARNING!",
+                                  'WARNING!',
                                 ),
                               ],
                             ),
@@ -131,10 +131,10 @@ class _SettingsPageState extends State<SettingsPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
                               const Text(
-                                "Are you sure you want to reset all data?",
+                                'Are you sure you want to reset all data?',
                               ),
                               const Text(
-                                "THIS ACTION CANNOT BE UNDONE!",
+                                'THIS ACTION CANNOT BE UNDONE!',
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -160,14 +160,14 @@ class _SettingsPageState extends State<SettingsPage> {
                                   onPressed: () {
                                     addRequest(
                                       NetworkOperation(
-                                        "/api/v1/users/reset",
-                                        "POST",
+                                        '/api/v1/users/reset',
+                                        'POST',
                                         onResetResponse,
                                       ),
                                     );
                                     Navigator.of(context).pop();
                                     addNotif(
-                                      "This may take a while. Please be patient",
+                                      'This may take a while. Please be patient',
                                       error: false,
                                     );
                                   },
@@ -188,7 +188,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     Icons.delete_forever,
                   ),
                   label: const Text(
-                    "Delete Account",
+                    'Delete Account',
                   ),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red.shade900),
@@ -214,7 +214,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   Icons.warning,
                                 ),
                                 Text(
-                                  "WARNING!",
+                                  'WARNING!',
                                 ),
                               ],
                             ),
@@ -223,10 +223,10 @@ class _SettingsPageState extends State<SettingsPage> {
                             mainAxisSize: MainAxisSize.min,
                             children: <Widget>[
                               const Text(
-                                "Are you sure you want to delete your account?",
+                                'Are you sure you want to delete your account?',
                               ),
                               const Text(
-                                "THIS ACTION CANNOT BE UNDONE!",
+                                'THIS ACTION CANNOT BE UNDONE!',
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -252,14 +252,14 @@ class _SettingsPageState extends State<SettingsPage> {
                                   onPressed: () {
                                     addRequest(
                                       NetworkOperation(
-                                        "/api/v1/users/@me",
-                                        "DELETE",
+                                        '/api/v1/users/@me',
+                                        'DELETE',
                                         onDeleteResponse,
                                       ),
                                     );
                                     Navigator.of(context).pop();
                                     addNotif(
-                                      "This may take a while. Please be patient",
+                                      'This may take a while. Please be patient',
                                       error: false,
                                     );
                                   },

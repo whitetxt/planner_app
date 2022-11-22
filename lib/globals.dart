@@ -1,4 +1,4 @@
-import "package:flutter/material.dart";
+import 'package:flutter/material.dart';
 
 // These keys are used to keep a hold of the current navigator and scaffold.
 // The navigator key is used to close dialogs without needing the BuildContext.
@@ -29,16 +29,16 @@ class User {
   factory User.fromJson(Map<String, dynamic> data) {
     // Converts server's json data into a User object.
     return User(
-      data["uid"],
-      data["username"],
-      DateTime.fromMillisecondsSinceEpoch(data["created_at"]),
-      Permissions.values[data["permissions"]],
+      data['uid'],
+      data['username'],
+      DateTime.fromMillisecondsSinceEpoch(data['created_at']),
+      Permissions.values[data['permissions']],
     );
   }
 }
 
 String token =
-    ""; // We keep the token as a global variable, as this lets me use it across multiple files easily.
+    ''; // We keep the token as a global variable, as this lets me use it across multiple files easily.
 
 User? me; // Keep a version of us on hand, for whenever we might need it.
 
@@ -78,4 +78,4 @@ void addNotif(String text, {bool error = true}) {
 //const String apiUrl = "https://planner-app.duckdns.org";
 
 // Localhost debug server.
-const String apiUrl = "http://127.0.0.1:8000";
+const String apiUrl = 'http://127.0.0.1:8000';

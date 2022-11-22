@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import "package:flutter/material.dart";
-import "package:http/http.dart" as http;
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'globals.dart';
 import 'network.dart';
-import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
+import 'pl_appbar.dart'; // Provides PLAppBar for the bar at the top of the screen.
 
 List<ExamMark> marks = [];
 
@@ -20,7 +20,7 @@ class ExamMark {
 
   Map<String, dynamic> toJson() {
     // Convert this object back into JSON.
-    return {"mark_id": id, "test_name": name, "mark": mark, "grade": grade};
+    return {'mark_id': id, 'test_name': name, 'mark': mark, 'grade': grade};
   }
 }
 
@@ -34,24 +34,24 @@ class MarkWidget extends StatelessWidget {
   final ExamMark data;
   final Function reset;
 
-  String newName = "";
+  String newName = '';
   int newMark = 0;
-  String newGrade = "";
+  String newGrade = '';
 
   void updateMark() {
     addRequest(
       NetworkOperation(
-        "/api/v1/marks",
-        "PUT",
+        '/api/v1/marks',
+        'PUT',
         (http.Response response) {
           if (!validateResponse(response)) return;
           reset();
         },
         data: {
-          "mark_id": data.id,
-          "name": data.name,
-          "mark": data.mark.toString(),
-          "grade": data.grade
+          'mark_id': data.id,
+          'name': data.name,
+          'mark': data.mark.toString(),
+          'grade': data.grade
         },
       ),
     );
@@ -73,11 +73,11 @@ class MarkWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "${data.mark}",
+                      '${data.mark}',
                       textAlign: TextAlign.center,
                     ),
                     Text(
-                      "${data.grade}",
+                      '${data.grade}',
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -117,7 +117,7 @@ class MarkWidget extends StatelessWidget {
                                     ),
                                   ),
                                   child: const Text(
-                                    "Changing Mark",
+                                    'Changing Mark',
                                     textAlign: TextAlign.center,
                                   ),
                                 ),
@@ -130,11 +130,11 @@ class MarkWidget extends StatelessWidget {
                                     children: <Widget>[
                                       TextFormField(
                                         decoration: const InputDecoration(
-                                          labelText: "Name",
+                                          labelText: 'Name',
                                         ),
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
-                                            return "Enter a name";
+                                            return 'Enter a name';
                                           }
                                           return null;
                                         },
@@ -148,7 +148,7 @@ class MarkWidget extends StatelessWidget {
                                       ),
                                       TextFormField(
                                         decoration: const InputDecoration(
-                                          labelText: "Mark",
+                                          labelText: 'Mark',
                                         ),
                                         keyboardType: TextInputType.number,
                                         initialValue: data.mark.toString(),
@@ -159,10 +159,10 @@ class MarkWidget extends StatelessWidget {
                                         },
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
-                                            return "Enter a mark";
+                                            return 'Enter a mark';
                                           }
                                           if (int.tryParse(value) == null) {
-                                            return "Mark must be a number";
+                                            return 'Mark must be a number';
                                           }
                                           return null;
                                         },
@@ -172,7 +172,7 @@ class MarkWidget extends StatelessWidget {
                                       ),
                                       TextFormField(
                                         decoration: const InputDecoration(
-                                          labelText: "Grade",
+                                          labelText: 'Grade',
                                         ),
                                         initialValue: data.grade,
                                         onChanged: (value) {
@@ -180,7 +180,7 @@ class MarkWidget extends StatelessWidget {
                                         },
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
-                                            return "Enter a name";
+                                            return 'Enter a name';
                                           }
                                           return null;
                                         },
@@ -211,7 +211,7 @@ class MarkWidget extends StatelessWidget {
                         );
                       },
                       child: const Text(
-                        "Modify Mark",
+                        'Modify Mark',
                         style: TextStyle(
                           fontSize: 14,
                         ),
@@ -221,17 +221,17 @@ class MarkWidget extends StatelessWidget {
                       onTap: () {
                         addRequest(
                           NetworkOperation(
-                            "/api/v1/marks",
-                            "DELETE",
+                            '/api/v1/marks',
+                            'DELETE',
                             (http.Response response) {
                               reset();
                             },
-                            data: {"mark_id": data.id.toString()},
+                            data: {'mark_id': data.id.toString()},
                           ),
                         );
                       },
                       child: const Text(
-                        "Delete",
+                        'Delete',
                         style: TextStyle(
                           fontSize: 14,
                         ),
@@ -253,25 +253,25 @@ Future<void> gotMarks(http.Response response) async {
   // We must check for an error, then notify the user of it.
   if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
-  if (data["status"] != "success") {
-    addNotif(data["message"], error: true);
+  if (data['status'] != 'success') {
+    addNotif(data['message'], error: true);
     return;
   }
   marks = [];
-  if (data["data"] != null) {
-    for (dynamic mark in data["data"]) {
+  if (data['data'] != null) {
+    for (dynamic mark in data['data']) {
       marks.add(
         ExamMark(
-          mark["mark_id"],
-          mark["test_name"],
-          mark["mark"],
-          mark["grade"],
+          mark['mark_id'],
+          mark['test_name'],
+          mark['mark'],
+          mark['grade'],
         ),
       );
     }
   }
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString("marks", json.encode(data["data"]));
+  await prefs.setString('marks', json.encode(data['data']));
 }
 
 class ExamPage extends StatefulWidget {
@@ -284,24 +284,24 @@ class ExamPage extends StatefulWidget {
 class _ExamPageState extends State<ExamPage> {
   final _formKey = GlobalKey<FormState>();
 
-  String name = "";
+  String name = '';
   int mark = 0;
-  String grade = "";
+  String grade = '';
 
   Future<void> load() async {
     // Load our local copy first.
     final prefs = await SharedPreferences.getInstance();
-    String? storedMarks = prefs.getString("marks");
+    String? storedMarks = prefs.getString('marks');
     if (storedMarks != null) {
       List<dynamic> data = json.decode(storedMarks);
       marks = [];
       for (dynamic mark in data) {
         marks.add(
           ExamMark(
-            mark["mark_id"],
-            mark["test_name"],
-            mark["mark"],
-            mark["grade"],
+            mark['mark_id'],
+            mark['test_name'],
+            mark['mark'],
+            mark['grade'],
           ),
         );
       }
@@ -311,12 +311,12 @@ class _ExamPageState extends State<ExamPage> {
     // This refreshes the marks page, grabbing new data from the API.
     addRequest(
       NetworkOperation(
-        "/api/v1/marks",
-        "GET",
+        '/api/v1/marks',
+        'GET',
         (http.Response response) {
           gotMarks(response);
           Navigator.of(context).popUntil(ModalRoute.withName(
-              "/dash")); // This removes any modals or popup dialogs that are active at the current time.
+              '/dash')); // This removes any modals or popup dialogs that are active at the current time.
           if (!mounted) return;
           setState(
               () {}); // This then just forces the page to rebuild and redraw itself.
@@ -326,23 +326,23 @@ class _ExamPageState extends State<ExamPage> {
   }
 
   void removePopups() {
-    Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+    Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
   }
 
   Future<void> addMark() async {
     // First we update our offline buffer of marks.
     final prefs = await SharedPreferences.getInstance();
-    String? storedMarks = prefs.getString("marks");
+    String? storedMarks = prefs.getString('marks');
     if (storedMarks != null) {
       List<dynamic> data = json.decode(storedMarks);
       marks = [];
       for (dynamic mark in data) {
         marks.add(
           ExamMark(
-            mark["mark_id"],
-            mark["test_name"],
-            mark["mark"],
-            mark["grade"],
+            mark['mark_id'],
+            mark['test_name'],
+            mark['mark'],
+            mark['grade'],
           ),
         );
       }
@@ -350,7 +350,7 @@ class _ExamPageState extends State<ExamPage> {
       // one and update the buffer.
       marks.add(ExamMark(0, name, mark, grade));
       await prefs.setString(
-          "marks", json.encode([for (ExamMark mark in marks) mark.toJson()]));
+          'marks', json.encode([for (ExamMark mark in marks) mark.toJson()]));
       removePopups();
       if (!mounted) return;
       setState(() {});
@@ -358,15 +358,15 @@ class _ExamPageState extends State<ExamPage> {
     // This adds a piece of homework to the server, and then refreshes the page.
     addRequest(
       NetworkOperation(
-        "/api/v1/marks",
-        "POST",
+        '/api/v1/marks',
+        'POST',
         (http.Response response) {
           load();
         },
         data: {
-          "name": name,
-          "mark": mark.toString(),
-          "grade": grade,
+          'name': name,
+          'mark': mark.toString(),
+          'grade': grade,
         },
       ),
     );
@@ -382,7 +382,7 @@ class _ExamPageState extends State<ExamPage> {
   Widget build(BuildContext context) {
     // This code is very similar to the homework page.
     return Scaffold(
-      appBar: PLAppBar("Exam Marks", context),
+      appBar: PLAppBar('Exam Marks', context),
       backgroundColor: Theme.of(context).backgroundColor,
       body: Column(
         children: <Widget>[
@@ -412,7 +412,7 @@ class _ExamPageState extends State<ExamPage> {
                               ),
                             ),
                             child: const Text(
-                              "Add a mark",
+                              'Add a mark',
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -423,11 +423,11 @@ class _ExamPageState extends State<ExamPage> {
                               children: <Widget>[
                                 TextFormField(
                                   decoration: const InputDecoration(
-                                    labelText: "Test Name",
+                                    labelText: 'Test Name',
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return "Enter a name";
+                                      return 'Enter a name';
                                     }
                                     return null;
                                   },
@@ -440,14 +440,14 @@ class _ExamPageState extends State<ExamPage> {
                                 ),
                                 TextFormField(
                                   decoration: const InputDecoration(
-                                    labelText: "Mark",
+                                    labelText: 'Mark',
                                   ),
                                   keyboardType: TextInputType.number,
                                   validator: (value) {
                                     if (value == null ||
                                         value.isEmpty ||
                                         int.tryParse(value) == null) {
-                                      return "Enter a valid mark";
+                                      return 'Enter a valid mark';
                                     }
                                     return null;
                                   },
@@ -464,11 +464,11 @@ class _ExamPageState extends State<ExamPage> {
                                 ),
                                 TextFormField(
                                   decoration: const InputDecoration(
-                                    labelText: "Grade",
+                                    labelText: 'Grade',
                                   ),
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
-                                      return "Enter a grade";
+                                      return 'Enter a grade';
                                     }
                                     return null;
                                   },
@@ -499,7 +499,7 @@ class _ExamPageState extends State<ExamPage> {
                     );
                   },
                   label: const Text(
-                    "New",
+                    'New',
                     style: TextStyle(
                       color: Colors.black,
                     ),
@@ -514,7 +514,7 @@ class _ExamPageState extends State<ExamPage> {
                 if (marks.isEmpty)
                   // If there is nothing to show, display this message.
                   const Text(
-                    "No marks",
+                    'No marks',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 32,

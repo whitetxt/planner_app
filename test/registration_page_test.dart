@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:planner_app/main.dart';
 
-import "nock.dart";
+import 'nock.dart';
 
 void main() {
   setUp(() {
@@ -15,7 +15,7 @@ void main() {
     nock.cleanAll();
   });
   //const String apiUrl = "https://planner-app.duckdns.org/api/v1";
-  const String apiUrl = "http://127.0.0.1:8000/api/v1";
+  const String apiUrl = 'http://127.0.0.1:8000/api/v1';
 
   testWidgets('Test Password Length Validation', (WidgetTester tester) async {
     // Build our app and trigger a frame.
@@ -23,17 +23,17 @@ void main() {
 
     // Enter fake details to "create" fake account
     await tester.enterText(
-        find.widgetWithText(TextFormField, "Username"), "test_account");
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
     await tester.pump();
     // Test if it checks for
     await tester.enterText(
-        find.widgetWithText(TextFormField, "Password"), "testp");
+        find.widgetWithText(TextFormField, 'Password'), 'testp');
     await tester.pump();
 
     // Press the register button.
-    await tester.tap(find.widgetWithText(ElevatedButton, "Register"));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
     await tester.pump();
-    expect(find.text("Password must be at least 8 characters long."),
+    expect(find.text('Password must be at least 8 characters long.'),
         findsOneWidget);
   });
 
@@ -43,30 +43,30 @@ void main() {
 
     // Enter fake details to "create" fake account
     await tester.enterText(
-        find.widgetWithText(TextFormField, "Username"), "test_account");
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
     await tester.pump();
     // Test if it checks for
     await tester.enterText(
-        find.widgetWithText(TextFormField, "Password"), "testpassword");
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword');
     await tester.pump();
 
     // Press the register button.
-    await tester.tap(find.widgetWithText(ElevatedButton, "Register"));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
     await tester.pump();
-    expect(find.text("Password must contain a number."), findsOneWidget);
+    expect(find.text('Password must contain a number.'), findsOneWidget);
   });
 
   testWidgets('Test Registration', (WidgetTester tester) async {
     nock(apiUrl)
         .post(
-          "/auth/register",
+          '/auth/register',
         )
         .reply(
           200,
           json.encode(
             {
-              "status": "success",
-              "data": {"access_token": "fake_token", "token_type": "Bearer"}
+              'status': 'success',
+              'data': {'access_token': 'fake_token', 'token_type': 'Bearer'}
             },
           ),
         );
@@ -75,19 +75,19 @@ void main() {
 
     // Enter fake details to "create" fake account
     await tester.enterText(
-        find.widgetWithText(TextFormField, "Username"), "test_account");
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
     await tester.pump();
     // Test if it checks for
     await tester.enterText(
-        find.widgetWithText(TextFormField, "Password"), "testpassword123");
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
     await tester.pump();
 
     // Press the register button.
-    await tester.tap(find.widgetWithText(ElevatedButton, "Register"));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
     await tester.pump();
 
     // Use no registration code.
-    await tester.tap(find.widgetWithText(ElevatedButton, "Submit"));
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Submit'));
     await tester.pump();
 
     expect(find.byType(MainPage), findsOneWidget);

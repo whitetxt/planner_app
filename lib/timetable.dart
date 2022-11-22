@@ -3,14 +3,14 @@ import 'dart:convert';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 
-import "package:http/http.dart" as http;
+import 'package:http/http.dart' as http;
 import 'package:planner_app/globals.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import "package:flutter_colorpicker/flutter_colorpicker.dart";
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
-import "pl_appbar.dart"; // Provides PLAppBar for the bar at the top of the screen.
-import "network.dart"; // Allows network requests on this page.
+import 'pl_appbar.dart'; // Provides PLAppBar for the bar at the top of the screen.
+import 'network.dart'; // Allows network requests on this page.
 
 class TimetableData {
   const TimetableData(this.id, this.name, this.teacher, this.room, this.colour);
@@ -62,7 +62,7 @@ class TimetableSlot extends StatefulWidget {
 
 class _TimetableSlotState extends State<TimetableSlot> {
   void resetStates() {
-    Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+    Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
     if (widget.reset != null) {
       widget.reset!();
     }
@@ -80,13 +80,13 @@ class _TimetableSlotState extends State<TimetableSlot> {
           if (widget.toSetTo == null) return;
           addRequest(
             NetworkOperation(
-              "/api/v1/timetable",
-              "POST",
+              '/api/v1/timetable',
+              'POST',
               (http.Response resp) {
                 addRequest(
                   NetworkOperation(
-                    "/api/v1/timetable",
-                    "GET",
+                    '/api/v1/timetable',
+                    'GET',
                     (http.Response resp) {
                       gotTimetable(resp);
                       widget.reset!();
@@ -95,9 +95,9 @@ class _TimetableSlotState extends State<TimetableSlot> {
                 );
               },
               data: {
-                "subject_id": widget.toSetTo!.id.toString(),
-                "day": widget.day.toString(),
-                "period": widget.period.toString(),
+                'subject_id': widget.toSetTo!.id.toString(),
+                'day': widget.day.toString(),
+                'period': widget.period.toString(),
               },
             ),
           );
@@ -131,21 +131,21 @@ class _TimetableSlotState extends State<TimetableSlot> {
                     ),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.delete),
-                      label: const Text("Remove subject"),
+                      label: const Text('Remove subject'),
                       onPressed: () {
                         addRequest(
                           NetworkOperation(
-                            "/api/v1/timetable",
-                            "DELETE",
+                            '/api/v1/timetable',
+                            'DELETE',
                             (http.Response response) {
                               widget.reset!();
                               Navigator.of(context).popUntil(
-                                ModalRoute.withName("/dash"),
+                                ModalRoute.withName('/dash'),
                               );
                             },
                             data: {
-                              "day": widget.day.toString(),
-                              "period": widget.period.toString(),
+                              'day': widget.day.toString(),
+                              'period': widget.period.toString(),
                             },
                           ),
                         );
@@ -222,17 +222,17 @@ class _TodayTimetableState extends State<TodayTimetable> {
           timetable[i].add(
             const TimetableData(
               -1,
-              "Loading",
-              "Loading",
-              "Loading",
-              "#ffffff",
+              'Loading',
+              'Loading',
+              'Loading',
+              '#ffffff',
             ),
           );
         }
       }
     }
     addRequest(
-        NetworkOperation("/api/v1/timetable", "GET", (http.Response response) {
+        NetworkOperation('/api/v1/timetable', 'GET', (http.Response response) {
       gotTimetable(response);
       if (!mounted) return;
       setState(() {});
@@ -254,7 +254,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: const <Widget>[
               Text(
-                "No lessons today!",
+                'No lessons today!',
                 style: TextStyle(
                   fontSize: 32,
                 ),
@@ -293,7 +293,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: <Widget>[
-                          Text("Period ${idx + 1}"),
+                          Text('Period ${idx + 1}'),
                           Text(timetable[today][idx].name),
                         ],
                       ),
@@ -311,51 +311,51 @@ class _TodayTimetableState extends State<TodayTimetable> {
 Future<void> gotTimetable(http.Response response) async {
   if (response.statusCode != 200) return;
   Map<String, dynamic> data = json.decode(response.body);
-  for (var i = 0; i < data["data"].length; i++) {
-    var today = data["data"][i];
+  for (var i = 0; i < data['data'].length; i++) {
+    var today = data['data'][i];
     for (var j = 0; j < today.length; j++) {
       var period = today[j];
       if (period == null) {
         timetable[i][j] = const TimetableData(
           -1,
-          "None",
-          "None",
-          "None",
-          "#FFFFFF",
+          'None',
+          'None',
+          'None',
+          '#FFFFFF',
         );
       } else {
         timetable[i][j] = TimetableData(
-          period["subject_id"],
-          period["name"],
-          period["teacher"],
-          period["room"],
-          period["colour"],
+          period['subject_id'],
+          period['name'],
+          period['teacher'],
+          period['room'],
+          period['colour'],
         );
       }
     }
   }
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString("timetable", json.encode(data["data"]));
+  await prefs.setString('timetable', json.encode(data['data']));
 }
 
 Future<void> gotSubjects(http.Response response) async {
   if (response.statusCode != 200) return;
   Map<String, dynamic> data = json.decode(response.body);
   subjects = [];
-  for (var i = 0; i < data["data"].length; i++) {
-    var subject = data["data"][i];
+  for (var i = 0; i < data['data'].length; i++) {
+    var subject = data['data'][i];
     subjects.add(
       TimetableData(
-        subject["subject_id"],
-        subject["name"],
-        subject["teacher"],
-        subject["room"],
-        subject["colour"],
+        subject['subject_id'],
+        subject['name'],
+        subject['teacher'],
+        subject['room'],
+        subject['colour'],
       ),
     );
   }
   final prefs = await SharedPreferences.getInstance();
-  await prefs.setString("subjects", json.encode(data["data"]));
+  await prefs.setString('subjects', json.encode(data['data']));
 }
 
 class SubjectWidget extends StatelessWidget {
@@ -369,25 +369,25 @@ class SubjectWidget extends StatelessWidget {
 
   void modifySubject(Color colour) {
     var red = colour.red < 16
-        ? "0${colour.red.toRadixString(16)}"
+        ? '0${colour.red.toRadixString(16)}'
         : colour.red.toRadixString(16);
     var green = colour.green < 16
-        ? "0${colour.green.toRadixString(16)}"
+        ? '0${colour.green.toRadixString(16)}'
         : colour.green.toRadixString(16);
     var blue = colour.blue < 16
-        ? "0${colour.blue.toRadixString(16)}"
+        ? '0${colour.blue.toRadixString(16)}'
         : colour.blue.toRadixString(16);
 
     addRequest(
       NetworkOperation(
-        "/api/v1/subjects/${subject.id}",
-        "PATCH",
+        '/api/v1/subjects/${subject.id}',
+        'PATCH',
         (http.Response response) {
           getSubjects();
           Navigator.of(navigatorKey.currentContext!).pop();
         },
         data: {
-          "colour": "#$red$green$blue",
+          'colour': '#$red$green$blue',
         },
       ),
     );
@@ -438,7 +438,7 @@ class SubjectWidget extends StatelessWidget {
                       ),
                     ),
                     child: const Text(
-                      "Change Subject Colour",
+                      'Change Subject Colour',
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -536,9 +536,9 @@ class TimetablePage extends StatefulWidget {
 class _TimetablePageState extends State<TimetablePage> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  String teacher = "";
-  String room = "";
-  String name = "";
+  String teacher = '';
+  String room = '';
+  String name = '';
   Color colour = const Color.fromARGB(255, 255, 255, 255);
 
   bool settingTimetable = false;
@@ -546,7 +546,7 @@ class _TimetablePageState extends State<TimetablePage> {
 
   void getTimetable() async {
     final prefs = await SharedPreferences.getInstance();
-    String? storedTimetable = prefs.getString("timetable");
+    String? storedTimetable = prefs.getString('timetable');
     if (storedTimetable != null) {
       List<dynamic> data = json.decode(storedTimetable);
       for (var i = 0; i < data.length; i++) {
@@ -556,18 +556,18 @@ class _TimetablePageState extends State<TimetablePage> {
           if (period == null) {
             timetable[i][j] = const TimetableData(
               -1,
-              "None",
-              "None",
-              "None",
-              "#FFFFFF",
+              'None',
+              'None',
+              'None',
+              '#FFFFFF',
             );
           } else {
             timetable[i][j] = TimetableData(
-              period["subject_id"],
-              period["name"],
-              period["teacher"],
-              period["room"],
-              period["colour"],
+              period['subject_id'],
+              period['name'],
+              period['teacher'],
+              period['room'],
+              period['colour'],
             );
           }
         }
@@ -577,8 +577,8 @@ class _TimetablePageState extends State<TimetablePage> {
     }
     addRequest(
       NetworkOperation(
-        "/api/v1/timetable",
-        "GET",
+        '/api/v1/timetable',
+        'GET',
         (http.Response response) async {
           await gotTimetable(response);
           if (!mounted) return;
@@ -595,38 +595,38 @@ class _TimetablePageState extends State<TimetablePage> {
   void createSubject() {
     addRequest(
       NetworkOperation(
-        "/api/v1/subjects",
-        "POST",
+        '/api/v1/subjects',
+        'POST',
         (http.Response response) async {
           await getSubjects();
           if (!mounted) return;
           setState(() {});
         },
         data: {
-          "name": name,
-          "teacher": teacher,
-          "room": room,
-          "colour": "#${(colour.value & 0x00FFFFFF).toRadixString(16)}",
+          'name': name,
+          'teacher': teacher,
+          'room': room,
+          'colour': '#${(colour.value & 0x00FFFFFF).toRadixString(16)}',
         },
       ),
     );
-    Navigator.of(context).popUntil(ModalRoute.withName("/dash"));
+    Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
   }
 
   Future<void> getSubjects() async {
     final prefs = await SharedPreferences.getInstance();
-    String? storedSubjects = prefs.getString("subjects");
+    String? storedSubjects = prefs.getString('subjects');
     if (storedSubjects != null) {
       List<dynamic> data = json.decode(storedSubjects);
       for (var i = 0; i < data.length; i++) {
         var subject = data[i];
         subjects.add(
           TimetableData(
-            subject["subject_id"],
-            subject["name"],
-            subject["teacher"],
-            subject["room"],
-            subject["colour"],
+            subject['subject_id'],
+            subject['name'],
+            subject['teacher'],
+            subject['room'],
+            subject['colour'],
           ),
         );
       }
@@ -635,8 +635,8 @@ class _TimetablePageState extends State<TimetablePage> {
     }
     addRequest(
       NetworkOperation(
-        "/api/v1/subjects/@me",
-        "GET",
+        '/api/v1/subjects/@me',
+        'GET',
         (http.Response response) {
           gotSubjects(response);
           getTimetable();
@@ -644,11 +644,11 @@ class _TimetablePageState extends State<TimetablePage> {
           setState(() {});
         },
         data: {
-          "name": name,
-          "teacher": teacher,
-          "room": room,
-          "colour":
-              "#${colour.red.toRadixString(16)}${colour.green.toRadixString(16)}${colour.blue.toRadixString(16)}",
+          'name': name,
+          'teacher': teacher,
+          'room': room,
+          'colour':
+              '#${colour.red.toRadixString(16)}${colour.green.toRadixString(16)}${colour.blue.toRadixString(16)}',
         },
       ),
     );
@@ -669,10 +669,10 @@ class _TimetablePageState extends State<TimetablePage> {
           timetable[i].add(
             const TimetableData(
               -1,
-              "Loading",
-              "Loading",
-              "Loading",
-              "#FFFFFF",
+              'Loading',
+              'Loading',
+              'Loading',
+              '#FFFFFF',
             ),
           );
         }
@@ -686,7 +686,7 @@ class _TimetablePageState extends State<TimetablePage> {
   @override
   Widget build(BuildContext context) {
     String baseColour =
-        "#${(Theme.of(context).highlightColor.value & 0x00FFFFFF).toRadixString(16)}";
+        '#${(Theme.of(context).highlightColor.value & 0x00FFFFFF).toRadixString(16)}';
     double borderWidth = 1;
     double width =
         MediaQuery.of(context).size.width / 6 - (borderWidth * 2 + borderWidth);
@@ -696,7 +696,7 @@ class _TimetablePageState extends State<TimetablePage> {
     height *= 1.25;
     double indent = 16;
     return Scaffold(
-      appBar: PLAppBar("Timetable", context),
+      appBar: PLAppBar('Timetable', context),
       backgroundColor: Theme.of(context).backgroundColor,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -734,7 +734,7 @@ class _TimetablePageState extends State<TimetablePage> {
                                 ),
                               ),
                               child: const Text(
-                                "Creating Subject",
+                                'Creating Subject',
                                 textAlign: TextAlign.center,
                               ),
                             ),
@@ -745,11 +745,11 @@ class _TimetablePageState extends State<TimetablePage> {
                                 children: <Widget>[
                                   TextFormField(
                                     decoration: const InputDecoration(
-                                      labelText: "Subject Name",
+                                      labelText: 'Subject Name',
                                     ),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
-                                        return "Enter a name";
+                                        return 'Enter a name';
                                       }
                                       return null;
                                     },
@@ -762,11 +762,11 @@ class _TimetablePageState extends State<TimetablePage> {
                                   ),
                                   TextFormField(
                                     decoration: const InputDecoration(
-                                      labelText: "Teacher",
+                                      labelText: 'Teacher',
                                     ),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
-                                        return "Enter a teacher";
+                                        return 'Enter a teacher';
                                       }
                                       return null;
                                     },
@@ -779,11 +779,11 @@ class _TimetablePageState extends State<TimetablePage> {
                                   ),
                                   TextFormField(
                                     decoration: const InputDecoration(
-                                      labelText: "Room",
+                                      labelText: 'Room',
                                     ),
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
-                                        return "Enter a room";
+                                        return 'Enter a room';
                                       }
                                       return null;
                                     },
@@ -818,7 +818,7 @@ class _TimetablePageState extends State<TimetablePage> {
                     }
                   },
                   label: Text(
-                    settingTimetable ? "Stop Setting" : "New",
+                    settingTimetable ? 'Stop Setting' : 'New',
                     style: const TextStyle(
                       color: Colors.black,
                     ),
@@ -847,9 +847,9 @@ class _TimetablePageState extends State<TimetablePage> {
                 -1,
                 TimetableData(
                   -1,
-                  "Monday",
-                  "",
-                  "",
+                  'Monday',
+                  '',
+                  '',
                   baseColour,
                 ),
                 settingTimetable,
@@ -864,9 +864,9 @@ class _TimetablePageState extends State<TimetablePage> {
                 -1,
                 TimetableData(
                   -1,
-                  "Tuesday",
-                  "",
-                  "",
+                  'Tuesday',
+                  '',
+                  '',
                   baseColour,
                 ),
                 settingTimetable,
@@ -881,9 +881,9 @@ class _TimetablePageState extends State<TimetablePage> {
                 -1,
                 TimetableData(
                   -1,
-                  "Wednesday",
-                  "",
-                  "",
+                  'Wednesday',
+                  '',
+                  '',
                   baseColour,
                 ),
                 settingTimetable,
@@ -898,9 +898,9 @@ class _TimetablePageState extends State<TimetablePage> {
                 -1,
                 TimetableData(
                   -1,
-                  "Thursday",
-                  "",
-                  "",
+                  'Thursday',
+                  '',
+                  '',
                   baseColour,
                 ),
                 settingTimetable,
@@ -915,9 +915,9 @@ class _TimetablePageState extends State<TimetablePage> {
                 -1,
                 TimetableData(
                   -1,
-                  "Friday",
-                  "",
-                  "",
+                  'Friday',
+                  '',
+                  '',
                   baseColour,
                 ),
                 settingTimetable,
