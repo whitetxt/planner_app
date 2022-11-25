@@ -72,7 +72,7 @@ class PlannerApp extends StatelessWidget {
       dividerColor: Colors.black,
     );
     return MaterialApp(
-      title: 'Planner',
+      title: 'MobilePlanner',
       theme: theme,
       navigatorKey: navigatorKey,
       // I create routes here, which allows me to change the page by pushing the route's name

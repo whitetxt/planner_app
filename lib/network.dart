@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -194,6 +195,7 @@ Future<http.Response> performRequest(
       headers: {'Authorization': token},
     ).catchError(
       (error, stackTrace) {
+        log(error, stackTrace: stackTrace);
         if (url != '$apiUrl/onlineCheck') {
           ScaffoldMessenger.of(
             currentScaffoldKey.currentContext!,
@@ -218,6 +220,9 @@ Future<http.Response> performRequest(
     headers: {'Authorization': token},
   ).catchError(
     (error, stackTrace) {
+      log(error.toString(), stackTrace: stackTrace);
+      print(error.toString());
+      print(stackTrace.toString());
       if (url != '$apiUrl/onlineCheck') {
         ScaffoldMessenger.of(
           currentScaffoldKey.currentContext!,
