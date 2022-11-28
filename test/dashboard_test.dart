@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:clock/clock.dart';
 
 import 'package:planner_app/main.dart';
 import 'package:planner_app/login.dart';
@@ -19,12 +20,28 @@ void main() {
     nock.cleanAll();
   });
 
-  testWidgets('Dashboard displays correct information',
+  testWidgets('Dashboard displays subject on weekday',
       (WidgetTester tester) async {
-    await tester.pumpWidget(const PlannerApp());
+    //
+    await withClock(Clock.fixed(DateTime(2022, 11, 28)), () async {
+      await tester.pumpWidget(const PlannerApp());
+    });
 
     // Logs into the app.
     await login(tester);
-    expect(find.widgetWithText(Text, 'test subject'), findsOneWidget);
+    expect(find.text("Today's Timetable"), findsOneWidget);
+    expect(find.text('test subject'), findsOneWidget);
+  });
+
+  testWidgets('Dashboard displays no subjects on weekend',
+      (WidgetTester tester) async {
+    //
+    await withClock(Clock.fixed(DateTime(2022, 11, 27)), () async {
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      expect(find.text('No Lessons Today!'), findsOneWidget);
+    });
   });
 }

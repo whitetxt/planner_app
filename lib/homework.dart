@@ -6,6 +6,7 @@ import 'package:planner_app/globals.dart';
 import 'package:planner_app/network.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:clock/clock.dart';
 
 import 'pl_appbar.dart'; // Provides PLAppBar for the bar at the top of the screen.
 
@@ -73,11 +74,11 @@ class HomeworkWidget extends StatelessWidget {
       // when this is due.
       color: data.completed
           ? Colors.green.shade200
-          : data.timeDue.isBefore(DateTime.now())
+          : data.timeDue.isBefore(clock.now())
               ? Colors.red
-              : data.timeDue.difference(DateTime.now()).inDays < 3
+              : data.timeDue.difference(clock.now()).inDays < 3
                   ? Colors.redAccent.shade100
-                  : data.timeDue.difference(DateTime.now()).inDays < 7
+                  : data.timeDue.difference(clock.now()).inDays < 7
                       ? Colors.orange.shade200
                       : Colors.white,
       child: Padding(
@@ -117,22 +118,22 @@ class HomeworkWidget extends StatelessWidget {
           children: [
             Text(
               // This large IF statement just ensures that the time remaining is presented in a readable manor.
-              data.timeDue.isBefore(DateTime.now())
+              data.timeDue.isBefore(clock.now())
                   ? 'Past Due!'
-                  : data.timeDue.difference(DateTime.now()) >=
+                  : data.timeDue.difference(clock.now()) >=
                           const Duration(days: 1, hours: 12)
-                      ? 'Due in ${data.timeDue.difference(DateTime.now()).inDays} days and ${data.timeDue.difference(DateTime.now()).inHours - data.timeDue.difference(DateTime.now()).inDays * 24} hours'
-                      : data.timeDue.difference(DateTime.now()) >=
+                      ? 'Due in ${data.timeDue.difference(clock.now()).inDays} days and ${data.timeDue.difference(clock.now()).inHours - data.timeDue.difference(clock.now()).inDays * 24} hours'
+                      : data.timeDue.difference(clock.now()) >=
                               const Duration(hours: 12)
-                          ? 'Due in ${data.timeDue.difference(DateTime.now()).inHours} hours'
-                          : 'Due in ${data.timeDue.difference(DateTime.now()).toString().substring(0, 4)}',
+                          ? 'Due in ${data.timeDue.difference(clock.now()).inHours} hours'
+                          : 'Due in ${data.timeDue.difference(clock.now()).toString().substring(0, 4)}',
               style: TextStyle(
                 // If the homework is past due, then increase the size and weight of the font
                 // so that it is easily visible to the user.
-                fontWeight: data.timeDue.isBefore(DateTime.now())
+                fontWeight: data.timeDue.isBefore(clock.now())
                     ? FontWeight.w900
                     : FontWeight.normal,
-                fontSize: data.timeDue.isBefore(DateTime.now()) ? 24 : 16,
+                fontSize: data.timeDue.isBefore(clock.now()) ? 24 : 16,
               ),
             ),
             Padding(
@@ -331,7 +332,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   final _formKey = GlobalKey<FormState>();
 
   String name = '';
-  DateTime date = DateTime.now();
+  DateTime date = clock.now();
   bool showCompleted = false;
   String description = '';
 
@@ -435,7 +436,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                   ),
                   onPressed: () {
                     name = '';
-                    date = DateTime.now();
+                    date = clock.now();
                     description = '';
                     showDialog(
                       context: context,
@@ -484,12 +485,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                     final DateTime? selected =
                                         await showDatePicker(
                                       context: context,
-                                      initialDate: DateTime.now(),
-                                      firstDate: DateTime.now(),
-                                      lastDate: DateTime.now().add(
-                                        // Allow the user to create homework for the next year.
-                                        const Duration(days: 365),
-                                      ),
+                                      initialDate: clock.now(),
+                                      firstDate: clock.now(),
+                                      lastDate: clock.now().add(
+                                            // Allow the user to create homework for the next year.
+                                            const Duration(days: 365),
+                                          ),
                                     );
                                     if (selected != null) {
                                       if (!mounted) return;

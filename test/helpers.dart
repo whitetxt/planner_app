@@ -151,6 +151,7 @@ void mockApis(String apiUrl) {
 /// Logs into the PlannerApp for a test
 /// Tester must already have PlannerApp() pumped.
 Future<void> login(WidgetTester tester) async {
+  expect(find.byType(LoginPage), findsOneWidget);
   // Enter fake details to "create" fake account
   await tester.enterText(
       find.widgetWithText(TextFormField, 'Username'), 'test_account');

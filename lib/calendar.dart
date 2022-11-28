@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'package:clock/clock.dart';
 
 import 'globals.dart';
 import 'network.dart';
@@ -107,7 +108,7 @@ class _EventsMiniState extends State<EventsMini> {
     }
     bool upcoming = false;
     for (DateTime date in events.keys) {
-      if (upcoming || date.isBefore(DateTime.now())) continue;
+      if (upcoming || date.isBefore(clock.now())) continue;
       upcoming = true;
       break;
     }
@@ -158,12 +159,12 @@ class _EventsMiniState extends State<EventsMini> {
                   // For each of the days that there are events, we should check
                   // if its today, or after today since we don't want to show
                   // previous events.
-                  if (date.isAfter(DateTime.now()) ||
-                      date.difference(DateTime.now()).inDays == 0)
+                  if (date.isAfter(clock.now()) ||
+                      date.difference(clock.now()).inDays == 0)
                     for (Event event in events[date]!)
                       // As we only checked for the day previously, we must now
                       // check that it is after the current time.
-                      if (event.time.isAfter(DateTime.now()))
+                      if (event.time.isAfter(clock.now()))
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Row(
@@ -179,13 +180,13 @@ class _EventsMiniState extends State<EventsMini> {
                                 // The ? : operator is called the ternary operator.
                                 // It allows me to easily put IF-ELSE statements such as this into code
                                 // without having to write it explicitly.
-                                event.time.difference(DateTime.now()) >=
+                                event.time.difference(clock.now()) >=
                                         const Duration(days: 1, hours: 12)
-                                    ? 'In ${event.time.difference(DateTime.now()).inDays} days and ${event.time.difference(DateTime.now()).inHours - event.time.difference(DateTime.now()).inDays * 24} hours'
-                                    : event.time.difference(DateTime.now()) >=
+                                    ? 'In ${event.time.difference(clock.now()).inDays} days and ${event.time.difference(clock.now()).inHours - event.time.difference(clock.now()).inDays * 24} hours'
+                                    : event.time.difference(clock.now()) >=
                                             const Duration(hours: 12)
-                                        ? 'In ${event.time.difference(DateTime.now()).inHours} hours'
-                                        : 'In ${event.time.difference(DateTime.now()).toString().substring(0, 4)}',
+                                        ? 'In ${event.time.difference(clock.now()).inHours} hours'
+                                        : 'In ${event.time.difference(clock.now()).toString().substring(0, 4)}',
                                 style: const TextStyle(fontSize: 16),
                                 maxLines: 1,
                                 minFontSize: 8,
@@ -253,12 +254,12 @@ class CalendarPage extends StatefulWidget {
 
 class _CalendarPageState extends State<CalendarPage> {
   String name = '';
-  DateTime time = DateTime.now();
+  DateTime time = clock.now();
   String description = '';
   bool? private = true;
 
   List<Event> _selectedEvents = [];
-  DateTime _selectedDay = DateTime.now();
+  DateTime _selectedDay = clock.now();
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _dateController = TextEditingController();
@@ -360,11 +361,11 @@ class _CalendarPageState extends State<CalendarPage> {
         children: <Widget>[
           TableCalendar(
             firstDay: DateTime.utc(2020, 1, 1),
-            lastDay: DateTime.now().add(
-              const Duration(days: 365),
-            ),
+            lastDay: clock.now().add(
+                  const Duration(days: 365),
+                ),
             startingDayOfWeek: StartingDayOfWeek.monday,
-            focusedDay: DateTime.now(),
+            focusedDay: clock.now(),
             rangeSelectionMode: RangeSelectionMode.disabled,
             selectedDayPredicate: (day) {
               return isSameDay(_selectedDay, day);
@@ -453,10 +454,10 @@ class _CalendarPageState extends State<CalendarPage> {
                                       await showDatePicker(
                                     context: context,
                                     initialDate: time,
-                                    firstDate: DateTime.now(),
-                                    lastDate: DateTime.now().add(
-                                      const Duration(days: 365),
-                                    ),
+                                    firstDate: clock.now(),
+                                    lastDate: clock.now().add(
+                                          const Duration(days: 365),
+                                        ),
                                   );
                                   final TimeOfDay? selectedTime =
                                       await showTimePicker(
@@ -564,10 +565,10 @@ class _CalendarPageState extends State<CalendarPage> {
                 margin: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
                   border: Border.all(
-                    color: event.time.difference(DateTime.now()) <
+                    color: event.time.difference(clock.now()) <
                             const Duration(days: 1)
                         ? Colors.red
-                        : event.time.difference(DateTime.now()) <
+                        : event.time.difference(clock.now()) <
                                 const Duration(days: 3)
                             ? Colors.orange
                             : Colors.green,
@@ -588,15 +589,15 @@ class _CalendarPageState extends State<CalendarPage> {
                         // As the time until should be formatted nicely, this
                         // long statement is used to format it into different
                         // formats depending on how far away it is.
-                        event.time.isBefore(DateTime.now())
+                        event.time.isBefore(clock.now())
                             ? 'Event has happened.'
-                            : event.time.difference(DateTime.now()) >=
+                            : event.time.difference(clock.now()) >=
                                     const Duration(days: 1, hours: 12)
-                                ? 'In ${event.time.difference(DateTime.now()).inDays} days and ${event.time.difference(DateTime.now()).inHours - event.time.difference(DateTime.now()).inDays * 24} hours'
-                                : event.time.difference(DateTime.now()) >=
+                                ? 'In ${event.time.difference(clock.now()).inDays} days and ${event.time.difference(clock.now()).inHours - event.time.difference(clock.now()).inDays * 24} hours'
+                                : event.time.difference(clock.now()) >=
                                         const Duration(hours: 12)
-                                    ? 'In ${event.time.difference(DateTime.now()).inHours} hours'
-                                    : 'In ${event.time.difference(DateTime.now()).toString().substring(0, 4)}',
+                                    ? 'In ${event.time.difference(clock.now()).inHours} hours'
+                                    : 'In ${event.time.difference(clock.now()).toString().substring(0, 4)}',
                       ),
                     ),
                     ListTile(

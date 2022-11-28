@@ -95,17 +95,17 @@ class Interceptor {
   }
 
   void throwNetworkError() {
-    exception = () => SocketException.closed();
+    exception = () => const SocketException.closed();
     _register();
   }
 
   void throwHandshakeError() {
-    exception = () => HandshakeException();
+    exception = () => const HandshakeException();
     _register();
   }
 
   void throwCertificateError() {
-    exception = () => CertificateException();
+    exception = () => const CertificateException();
     _register();
   }
 

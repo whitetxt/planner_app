@@ -132,7 +132,7 @@ class MockHttpHeaders implements HttpHeaders {
         remove(HttpHeaders.connectionHeader, 'close');
       } else {
         if (_contentLength == -1) {
-          throw HttpException(
+          throw const HttpException(
             "Trying to set 'Connection: Keep-Alive' on HTTP 1.0 headers with no ContentLength",
           );
         }
@@ -157,7 +157,7 @@ class MockHttpHeaders implements HttpHeaders {
     if (protocolVersion == '1.0' &&
         persistentConnection &&
         contentLength == -1) {
-      throw HttpException(
+      throw const HttpException(
         "Trying to clear ContentLength on HTTP 1.0 headers with 'Connection: Keep-Alive' set",
       );
     }
@@ -181,7 +181,7 @@ class MockHttpHeaders implements HttpHeaders {
   set chunkedTransferEncoding(bool chunkedTransferEncoding) {
     _checkMutable();
     if (chunkedTransferEncoding && protocolVersion == '1.0') {
-      throw HttpException(
+      throw const HttpException(
           "Trying to set 'Transfer-Encoding: Chunked' on HTTP 1.0 headers");
     }
     if (chunkedTransferEncoding == _chunkedTransferEncoding) return;
@@ -489,7 +489,7 @@ class MockHttpHeaders implements HttpHeaders {
   }
 
   void _checkMutable() {
-    if (!_mutable) throw HttpException('HTTP headers are not mutable');
+    if (!_mutable) throw const HttpException('HTTP headers are not mutable');
   }
 
   void _updateHostHeader() {
@@ -602,7 +602,9 @@ class MockHttpHeaders implements HttpHeaders {
 
     final values = _headers[HttpHeaders.cookieHeader];
     if (values != null) {
-      values.forEach((headerValue) => parseCookieString(headerValue));
+      for (var headerValue in values) {
+        parseCookieString(headerValue);
+      }
     }
     return cookies;
   }
@@ -725,7 +727,7 @@ class _HeaderValue implements HeaderValue {
 
     void expect(String expected) {
       if (done() || s[index] != expected) {
-        throw HttpException('Failed to parse header value');
+        throw const HttpException('Failed to parse header value');
       }
       index++;
     }
@@ -759,7 +761,7 @@ class _HeaderValue implements HeaderValue {
           while (!done()) {
             if (s[index] == '\\') {
               if (index + 1 == s.length) {
-                throw HttpException('Failed to parse header value');
+                throw const HttpException('Failed to parse header value');
               }
               if (preserveBackslash && s[index + 1] != '"') {
                 sb.write(s[index]);
@@ -828,23 +830,17 @@ class _ContentType extends _HeaderValue implements ContentType {
       : _primaryType = primaryType,
         _subType = subType,
         super('') {
-    if (_primaryType == null) _primaryType = '';
-    if (_subType == null) _subType = '';
     _value = '$_primaryType/$_subType';
-    if (parameters != null) {
-      _ensureParameters();
-      parameters.forEach((String key, String value) {
-        String lowerCaseKey = key;
-        if (lowerCaseKey == 'charset') {
-          value = value;
-        }
-        this._parameters![lowerCaseKey] = value;
-      });
-    }
-    if (charset != null) {
-      _ensureParameters();
-      this._parameters!['charset'] = charset;
-    }
+    _ensureParameters();
+    parameters.forEach((String key, String value) {
+      String lowerCaseKey = key;
+      if (lowerCaseKey == 'charset') {
+        value = value;
+      }
+      _parameters![lowerCaseKey] = value;
+    });
+    _ensureParameters();
+    _parameters!['charset'] = charset;
   }
 
   _ContentType._();
@@ -863,12 +859,16 @@ class _ContentType extends _HeaderValue implements ContentType {
     return result;
   }
 
+  @override
   String get mimeType => '$primaryType/$subType';
 
+  @override
   String get primaryType => _primaryType;
 
+  @override
   String get subType => _subType;
 
+  @override
   String? get charset => parameters['charset'];
 }
 
@@ -1130,6 +1130,7 @@ class _Cookie implements Cookie {
     return DateTime.utc(year, month, dayOfMonth, hour, minute, second, 0);
   }
 
+  @override
   String toString() {
     final sb = StringBuffer();
     sb

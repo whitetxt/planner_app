@@ -4,6 +4,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:clock/clock.dart';
 
 import 'homework.dart';
 import 'pl_appbar.dart';
@@ -74,7 +75,7 @@ class _ClassWidgetState extends State<ClassWidget> {
 
   User? selectedUser;
   String name = '';
-  DateTime date = DateTime.now();
+  DateTime date = clock.now();
   String description = '';
 
   void setHomework() {
@@ -291,11 +292,11 @@ class _ClassWidgetState extends State<ClassWidget> {
                                     final DateTime? selected =
                                         await showDatePicker(
                                       context: context,
-                                      initialDate: DateTime.now(),
-                                      firstDate: DateTime.now(),
-                                      lastDate: DateTime.now().add(
-                                        const Duration(days: 365),
-                                      ),
+                                      initialDate: clock.now(),
+                                      firstDate: clock.now(),
+                                      lastDate: clock.now().add(
+                                            const Duration(days: 365),
+                                          ),
                                     );
                                     if (selected != null) {
                                       if (!mounted) return;

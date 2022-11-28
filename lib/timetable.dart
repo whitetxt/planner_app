@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:clock/clock.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:planner_app/globals.dart';
@@ -23,7 +24,7 @@ class TimetableData {
 }
 
 List<List<TimetableData>> timetable = [[], [], [], [], []];
-DateTime lastFetchTime = DateTime.now();
+DateTime lastFetchTime = clock.now();
 
 List<TimetableData> subjects = [];
 
@@ -242,7 +243,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
 
   @override
   Widget build(BuildContext context) {
-    int today = DateTime.now().weekday;
+    int today = clock.now().weekday;
     if (today >= DateTime.saturday) {
       // If Sat or Sun
       return SizedBox(

@@ -221,8 +221,6 @@ Future<http.Response> performRequest(
   ).catchError(
     (error, stackTrace) {
       log(error.toString(), stackTrace: stackTrace);
-      print(error.toString());
-      print(stackTrace.toString());
       if (url != '$apiUrl/onlineCheck') {
         ScaffoldMessenger.of(
           currentScaffoldKey.currentContext!,

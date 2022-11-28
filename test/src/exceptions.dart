@@ -18,7 +18,7 @@ class NetConnectionNotAllowed extends Error {
       return 'No pending mocks';
     }
 
-    return 'Pending mocks: ' + pendingMocks.toString();
+    return 'Pending mocks: $pendingMocks';
   }
 }
 
@@ -37,7 +37,7 @@ class AlreadyRegistered implements Exception {
   AlreadyRegistered(this.interceptor);
 
   @override
-  String toString() => 'Request ${interceptor} already registered';
+  String toString() => 'Request $interceptor already registered';
 }
 
 class AlreadyCanceled implements Exception {
@@ -46,7 +46,7 @@ class AlreadyCanceled implements Exception {
   AlreadyCanceled(this.interceptor);
 
   @override
-  String toString() => 'Request ${interceptor} was canceled';
+  String toString() => 'Request $interceptor was canceled';
 }
 
 class MockIsNotActive implements Exception {
@@ -55,7 +55,7 @@ class MockIsNotActive implements Exception {
   MockIsNotActive(this.interceptor);
 
   @override
-  String toString() => 'Request ${interceptor} is not active';
+  String toString() => 'Request $interceptor is not active';
 }
 
 class UnknownBodyType implements Exception {
