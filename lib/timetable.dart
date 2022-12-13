@@ -624,6 +624,7 @@ class _TimetablePageState extends State<TimetablePage> {
     final prefs = await SharedPreferences.getInstance();
     String? storedSubjects = prefs.getString('subjects');
     if (storedSubjects != null) {
+      subjects = [];
       List<dynamic> data = json.decode(storedSubjects);
       for (var i = 0; i < data.length; i++) {
         var subject = data[i];

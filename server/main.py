@@ -295,7 +295,7 @@ async def delete_me(current_user: User = Depends(get_current_user)):
 	for cl in classes_owned:
 		students = User_Class_DB.get_students_in_class(cl.class_id)
 		for student in students:
-			User_Class_DB.delete_connection(cl.class_id, student.uid)
+			User_Class_DB.delete_connection(cl.class_id, student)
 		Classes_DB.delete_class(cl.class_id)
 	Users_DB.delete_user(current_user)
 	return {"status": "success"}
