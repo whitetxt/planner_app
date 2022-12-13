@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planner_app/login.dart';
 import 'package:planner_app/main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'nock.dart';
 import 'dart:convert';
@@ -146,6 +147,52 @@ void mockApis(String apiUrl) {
           'data': fakeTimetable,
         }),
       );
+
+  nock(apiUrl)
+      .get(
+        '/homework',
+      )
+      .reply(
+        200,
+        json.encode({
+          'status': 'success',
+          'data': [
+            {
+              'homework_id': 1,
+              'name': 'test homework',
+              'class_id': null,
+              'completed_by': null,
+              'user_id': 0,
+              'due_date': DateTime.now()
+                  .add(const Duration(days: 1))
+                  .millisecondsSinceEpoch,
+              'description': 'test description',
+              'completed': false
+            }
+          ],
+        }),
+      );
+}
+
+void mockSharedPrefs() {
+  SharedPreferences.setMockInitialValues({
+    'homework': json.encode(
+      [
+        {
+          'homework_id': 1,
+          'name': 'test homework',
+          'class_id': null,
+          'completed_by': null,
+          'user_id': 0,
+          'due_date': DateTime.now()
+              .add(const Duration(days: 1))
+              .millisecondsSinceEpoch,
+          'description': 'test description',
+          'completed': false
+        }
+      ],
+    ),
+  });
 }
 
 /// Logs into the PlannerApp for a test

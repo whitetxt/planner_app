@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clock/clock.dart';
 
 import 'package:planner_app/main.dart';
-import 'package:planner_app/login.dart';
 
 import 'helpers.dart';
 import 'nock.dart';
@@ -15,6 +13,7 @@ void main() {
   setUp(() {
     nock.init();
     mockApis(apiUrl);
+    mockSharedPrefs();
   });
   setUpAll(() {
     nock.cleanAll();
@@ -36,12 +35,27 @@ void main() {
   testWidgets('Dashboard displays no subjects on weekend',
       (WidgetTester tester) async {
     //
-    await withClock(Clock.fixed(DateTime(2022, 11, 27)), () async {
+    await withClock(Clock.fixed(DateTime(2022, 11, 26)), () async {
       await tester.pumpWidget(const PlannerApp());
-
       // Logs into the app.
       await login(tester);
-      expect(find.text('No Lessons Today!'), findsOneWidget);
+      expect(find.text('No lessons today!'), findsOneWidget);
     });
+  });
+
+  testWidgets('Dashboard displays homework correctly',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const PlannerApp());
+    // Logs into the app.
+    await login(tester);
+    expect(find.text('Due Homework'), findsOneWidget);
+  });
+
+  testWidgets('Dashboard displays no homework correctly',
+      (WidgetTester tester) async {
+    await tester.pumpWidget(const PlannerApp());
+    // Logs into the app.
+    await login(tester);
+    expect(find.text('No due homework!'), findsOneWidget);
   });
 }

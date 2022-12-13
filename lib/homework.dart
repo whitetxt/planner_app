@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
@@ -232,6 +233,13 @@ class _HomeworkMiniState extends State<HomeworkMini> {
 
   @override
   Widget build(BuildContext context) {
+    print(homework);
+    homework.forEach((element) {
+      print(element.completed);
+    });
+    print(homework.every(
+      (element) => element.completed,
+    ));
     if (homework.every(
       (element) => element.completed,
     )) {
@@ -356,11 +364,13 @@ class _HomeworkPageState extends State<HomeworkPage> {
         'GET',
         (http.Response response) {
           gotHomework(response);
-          Navigator.of(context).popUntil(ModalRoute.withName(
-              '/dash')); // This removes any modals or popup dialogs that are active at the current time.
+          Navigator.of(context).popUntil(
+            ModalRoute.withName('/dash'),
+          ); // This removes any modals or popup dialogs that are active at the current time.
           if (!mounted) return;
           setState(
-              () {}); // This then just forces the page to rebuild and redraw itself.
+            () {},
+          ); // This then just forces the page to rebuild and redraw itself.
         },
       ),
     );

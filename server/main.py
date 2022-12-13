@@ -4,6 +4,7 @@ from fastapi import FastAPI, Form, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi.routing import Mount
+from fastapi.responses import RedirectResponse
 from hashlib import sha512, sha256, sha384
 
 from database import *
@@ -68,7 +69,7 @@ oauth2_scheme = OAuth2PasswordBearer(
 
 @app.get("/")
 async def redirect_to_web_build():
-	return fastapi.responses.RedirectResponse("/web/index.html")
+	return RedirectResponse("/web/index.html")
 
 @app.get("/onlineCheck")
 async def online_check():

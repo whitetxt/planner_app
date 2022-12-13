@@ -233,11 +233,16 @@ class _TodayTimetableState extends State<TodayTimetable> {
       }
     }
     addRequest(
-        NetworkOperation('/api/v1/timetable', 'GET', (http.Response response) {
-      gotTimetable(response);
-      if (!mounted) return;
-      setState(() {});
-    }));
+      NetworkOperation(
+        '/api/v1/timetable',
+        'GET',
+        (http.Response response) {
+          gotTimetable(response);
+          if (!mounted) return;
+          setState(() {});
+        },
+      ),
+    );
     super.initState();
   }
 
@@ -607,7 +612,8 @@ class _TimetablePageState extends State<TimetablePage> {
           'name': name,
           'teacher': teacher,
           'room': room,
-          'colour': '#${(colour.value & 0x00FFFFFF).toRadixString(16)}',
+          'colour':
+              '#${colour.red.toRadixString(16).padLeft(2, "0")}${colour.green.toRadixString(16).padLeft(2, "0")}${colour.blue.toRadixString(16).padLeft(2, "0")}',
         },
       ),
     );
@@ -644,19 +650,12 @@ class _TimetablePageState extends State<TimetablePage> {
           if (!mounted) return;
           setState(() {});
         },
-        data: {
-          'name': name,
-          'teacher': teacher,
-          'room': room,
-          'colour':
-              '#${colour.red.toRadixString(16)}${colour.green.toRadixString(16)}${colour.blue.toRadixString(16)}',
-        },
       ),
     );
   }
 
   void toggleSetting(TimetableData subject) {
-    settingTimetable = !settingTimetable;
+    settingTimetable = true;
     toSetTo = subject;
     if (!mounted) return;
     setState(() {});
