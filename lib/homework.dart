@@ -127,7 +127,7 @@ class HomeworkWidget extends StatelessWidget {
                       : data.timeDue.difference(clock.now()) >=
                               const Duration(hours: 12)
                           ? 'Due in ${data.timeDue.difference(clock.now()).inHours} hours'
-                          : 'Due in ${data.timeDue.difference(clock.now()).toString().substring(0, 4)}',
+                          : 'Due in ${data.timeDue.difference(clock.now()).toString().substring(0, 5)}',
               style: TextStyle(
                 // If the homework is past due, then increase the size and weight of the font
                 // so that it is easily visible to the user.
@@ -233,13 +233,6 @@ class _HomeworkMiniState extends State<HomeworkMini> {
 
   @override
   Widget build(BuildContext context) {
-    print(homework);
-    homework.forEach((element) {
-      print(element.completed);
-    });
-    print(homework.every(
-      (element) => element.completed,
-    ));
     if (homework.every(
       (element) => element.completed,
     )) {
@@ -604,7 +597,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
                   ),
                 for (var hw in homework)
                   if (!showCompleted && hw.completed)
-                    ...[] // I could'nt figure out a way to do this any other way, so we just concatinate an empty array.
+                    ...[] // I couldn't figure out a way to do this any other way, so we just concatinate an empty array.
                   else ...[HomeworkWidget(hw, refreshHomework)],
               ],
             ),

@@ -15,32 +15,14 @@ class RequestMatcher {
 
   bool match(MockHttpClientRequest request) {
     if (method.toUpperCase() != request.method.toUpperCase()) {
-      /*print(
-        "Mismatched method: ${method.toUpperCase()}, ${request.method.toUpperCase()}",
-      );*/
       return false;
     }
     if (uri._path != request.uri) {
-      /*print(
-        "Mismatched uri: ${uri._path}, ${request.uri}",
-      );*/
       return false;
     }
     if (!headers.match(request.headers)) {
-      /*print(
-        "Mismatched headers: $headers, ${request.headers}",
-      );*/
       return false;
     }
-    /*
-    For some reason, the body was different and therefore no requests were ever being mocked.
-    I have disabled this.
-    if (!body.match(request.body, request.headers.contentType)!) {
-      print(
-        "Mismatched body: ${body.expected}, ${request.body} (${request.headers.contentType})",
-      );
-      return false;
-    }*/
     return true;
   }
 }
