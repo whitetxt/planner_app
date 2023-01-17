@@ -18,6 +18,7 @@ void onLogoutResponse(http.Response _) {
   // When we logout, we don't care if it failed or succeeded,
   // just throw away our token and go back to the login screen.
   token = '';
+  me = null;
   navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
 }
 
@@ -28,10 +29,8 @@ void onResetResponse(http.Response response) {
     addNotif(data['message'], error: true);
     return;
   }
-  addNotif(
-    'Successfully reset user data!',
-    error: false,
-  );
+  // If the reset was successful, alert the user.
+  addNotif('Successfully reset user data!', error: false);
 }
 
 void onDeleteResponse(http.Response response) {
@@ -42,12 +41,12 @@ void onDeleteResponse(http.Response response) {
     addNotif(data['message'], error: true);
     return;
   }
+  // If everything was OK, then tell the user and go back to the login screen.
   ScaffoldMessenger.of(currentScaffoldKey.currentContext!).clearSnackBars();
-  addNotif(
-    'Successfully deleted account!',
-    error: false,
-  );
+  addNotif('Successfully deleted account!', error: false);
   token = '';
+  me = null;
+  // Remove all of the previous navigation menus, so that a back arrow doesn't appear.
   navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
 }
 
@@ -90,19 +89,16 @@ class _SettingsPageState extends State<SettingsPage> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: ElevatedButton.icon(
-                  icon: const Icon(
-                    Icons.refresh,
-                  ),
-                  label: const Text(
-                    'Reset Data',
-                  ),
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Reset Data'),
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.amber.shade900),
+                    backgroundColor: Colors.amber.shade900,
+                  ),
                   onPressed: () {
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
-                        // Since this is an important action, I show this dialog to warn the user
+                        // Since this is an important action, show this dialog to warn the user
                         // that this cannot be undone, and is dangerous.
                         return AlertDialog(
                           backgroundColor: Colors.red.shade400,
@@ -118,12 +114,8 @@ class _SettingsPageState extends State<SettingsPage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: const [
-                                Icon(
-                                  Icons.warning,
-                                ),
-                                Text(
-                                  'WARNING!',
-                                ),
+                                Icon(Icons.warning),
+                                Text('WARNING!'),
                               ],
                             ),
                           ),
@@ -145,6 +137,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                     "Don't do it! Take me back!",
                                   ),
                                   onPressed: () {
+                                    // Remove the popup and don't do anything.
                                     Navigator.of(context).pop();
                                   },
                                 ),
@@ -158,6 +151,9 @@ class _SettingsPageState extends State<SettingsPage> {
                                     "Yes, I know what I'm doing.",
                                   ),
                                   onPressed: () {
+                                    // Tell the server that we want to reset our account,
+                                    // And then tell the user that we are waiting on a
+                                    // response from the server.
                                     addRequest(
                                       NetworkOperation(
                                         '/api/v1/users/reset',
@@ -184,14 +180,11 @@ class _SettingsPageState extends State<SettingsPage> {
               Padding(
                 padding: const EdgeInsets.all(8),
                 child: ElevatedButton.icon(
-                  icon: const Icon(
-                    Icons.delete_forever,
-                  ),
-                  label: const Text(
-                    'Delete Account',
-                  ),
+                  icon: const Icon(Icons.delete_forever),
+                  label: const Text('Delete Account'),
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade900),
+                    backgroundColor: Colors.red.shade900,
+                  ),
                   onPressed: () {
                     showDialog(
                       context: context,
@@ -210,12 +203,8 @@ class _SettingsPageState extends State<SettingsPage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: const [
-                                Icon(
-                                  Icons.warning,
-                                ),
-                                Text(
-                                  'WARNING!',
-                                ),
+                                Icon(Icons.warning),
+                                Text('WARNING!'),
                               ],
                             ),
                           ),

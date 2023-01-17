@@ -610,7 +610,7 @@ class MockHttpHeaders implements HttpHeaders {
   }
 
   static bool _isTokenChar(int byte) {
-    return byte > 31 && byte < 128 && !_Const.SEPARATOR_MAP[byte];
+    return byte > 31 && byte < 128 && !_Const.separatorMap[byte];
   }
 
   static String _validateField(String field) {
@@ -638,8 +638,8 @@ class MockHttpHeaders implements HttpHeaders {
 
   static bool _isValueChar(int byte) {
     return (byte > 31 && byte < 128) ||
-        (byte == _CharCode.SP) ||
-        (byte == _CharCode.HT);
+        (byte == _CharCode.sp) ||
+        (byte == _CharCode.ht);
   }
 }
 
@@ -652,18 +652,6 @@ class _HeaderValue implements HeaderValue {
     if (parameters != null) {
       _parameters = Map<String, String>.from(parameters);
     }
-  }
-
-  static _HeaderValue parse(
-    String value, {
-    parameterSeparator = ';',
-    valueSeparator,
-    preserveBackslash = false,
-  }) {
-    // Parse the string.
-    var result = _HeaderValue();
-    result._parse(value, parameterSeparator, valueSeparator, preserveBackslash);
-    return result;
   }
 
   @override
@@ -695,135 +683,12 @@ class _HeaderValue implements HeaderValue {
     }
     return sb.toString();
   }
-
-  void _parse(
-    String s,
-    String parameterSeparator,
-    String? valueSeparator,
-    bool preserveBackslash,
-  ) {
-    var index = 0;
-
-    bool done() => index == s.length;
-
-    void skipWS() {
-      while (!done()) {
-        if (s[index] != ' ' && s[index] != '\t') return;
-        index++;
-      }
-    }
-
-    String parseValue() {
-      var start = index;
-      while (!done()) {
-        if (s[index] == ' ' ||
-            s[index] == '\t' ||
-            s[index] == valueSeparator ||
-            s[index] == parameterSeparator) break;
-        index++;
-      }
-      return s.substring(start, index);
-    }
-
-    void expect(String expected) {
-      if (done() || s[index] != expected) {
-        throw const HttpException('Failed to parse header value');
-      }
-      index++;
-    }
-
-    void maybeExpect(String expected) {
-      if (s[index] == expected) index++;
-    }
-
-    void parseParameters() {
-      final parameters = HashMap<String, String?>();
-      _parameters = UnmodifiableMapView(parameters);
-
-      String parseParameterName() {
-        final start = index;
-        while (!done()) {
-          if (s[index] == ' ' ||
-              s[index] == '\t' ||
-              s[index] == '=' ||
-              s[index] == parameterSeparator ||
-              s[index] == valueSeparator) break;
-          index++;
-        }
-        return s.substring(start, index);
-      }
-
-      String? parseParameterValue() {
-        if (!done() && s[index] == '"') {
-          // Parse quoted value.
-          final sb = StringBuffer();
-          index++;
-          while (!done()) {
-            if (s[index] == '\\') {
-              if (index + 1 == s.length) {
-                throw const HttpException('Failed to parse header value');
-              }
-              if (preserveBackslash && s[index + 1] != '"') {
-                sb.write(s[index]);
-              }
-              index++;
-            } else if (s[index] == '"') {
-              index++;
-              break;
-            }
-            sb.write(s[index]);
-            index++;
-          }
-          return sb.toString();
-        } else {
-          // Parse non-quoted value.
-          var val = parseValue();
-          return val == '' ? null : val;
-        }
-      }
-
-      while (!done()) {
-        skipWS();
-        if (done()) return;
-        final name = parseParameterName();
-        skipWS();
-        if (done()) {
-          parameters[name] = null;
-          return;
-        }
-        maybeExpect('=');
-        skipWS();
-        if (done()) {
-          parameters[name] = null;
-          return;
-        }
-        String? value = parseParameterValue();
-        if (name == 'charset' && this is _ContentType && value != null) {
-          // Charset parameter of ContentTypes are always lower-case.
-          value = value;
-        }
-        parameters[name] = value;
-        skipWS();
-        if (done()) return;
-        // TODO: Implement support for multi-valued parameters.
-        if (s[index] == valueSeparator) return;
-        expect(parameterSeparator);
-      }
-    }
-
-    skipWS();
-    _value = parseValue();
-    skipWS();
-    if (done()) return;
-    maybeExpect(parameterSeparator);
-    parseParameters();
-  }
 }
 
 // ignore: unused_element
 class _ContentType extends _HeaderValue implements ContentType {
-  String _primaryType = '';
-  String _subType = '';
+  late String _primaryType = '';
+  late String _subType = '';
 
   _ContentType(String primaryType, String subType, String charset,
       Map<String, String> parameters)
@@ -841,22 +706,6 @@ class _ContentType extends _HeaderValue implements ContentType {
     });
     _ensureParameters();
     _parameters!['charset'] = charset;
-  }
-
-  _ContentType._();
-
-  static _ContentType parse(String value) {
-    var result = _ContentType._();
-    result._parse(value, ';', null, false);
-    int index = result._value.indexOf('/');
-    if (index == -1 || index == (result._value.length - 1)) {
-      result._primaryType = result._value.trim();
-      result._subType = '';
-    } else {
-      result._primaryType = result._value.substring(0, index).trim();
-      result._subType = result._value.substring(index + 1).trim();
-    }
-    return result;
   }
 
   @override
@@ -894,240 +743,6 @@ class _Cookie implements Cookie {
     // Default value of httponly is true.
     httpOnly = true;
     _validate();
-  }
-
-  _Cookie.fromSetCookieValue(String value)
-      : name = '',
-        value = '' {
-    // Parse the 'set-cookie' header value.
-    _parseSetCookieValue(value);
-  }
-
-  // Parse a 'set-cookie' header value according to the rules in RFC 6265.
-  void _parseSetCookieValue(String s) {
-    var index = 0;
-
-    bool done() => index == s.length;
-
-    String parseName() {
-      var start = index;
-      while (!done()) {
-        if (s[index] == '=') break;
-        index++;
-      }
-      return s.substring(start, index).trim();
-    }
-
-    String parseValue() {
-      var start = index;
-      while (!done()) {
-        if (s[index] == ';') break;
-        index++;
-      }
-      return s.substring(start, index).trim();
-    }
-
-    // ignore: unused_element
-    void expect(String expected) {
-      if (done()) throw HttpException('Failed to parse header value [$s]');
-      if (s[index] != expected) {
-        throw HttpException('Failed to parse header value [$s]');
-      }
-      index++;
-    }
-
-    void parseAttributes() {
-      String parseAttributeName() {
-        var start = index;
-        while (!done()) {
-          if (s[index] == '=' || s[index] == ';') break;
-          index++;
-        }
-        return s.substring(start, index).trim();
-      }
-
-      String parseAttributeValue() {
-        var start = index;
-        while (!done()) {
-          if (s[index] == ';') break;
-          index++;
-        }
-        return s.substring(start, index).trim();
-      }
-
-      while (!done()) {
-        var name = parseAttributeName();
-        var value = '';
-        if (!done() && s[index] == '=') {
-          index++; // Skip the = character.
-          value = parseAttributeValue();
-        }
-        if (name == 'expires') {
-          expires = _parseCookieDate(value);
-        } else if (name == 'max-age') {
-          maxAge = int.parse(value);
-        } else if (name == 'domain') {
-          domain = value;
-        } else if (name == 'path') {
-          path = value;
-        } else if (name == 'httponly') {
-          httpOnly = true;
-        } else if (name == 'secure') {
-          secure = true;
-        }
-        if (!done()) index++; // Skip the ; character
-      }
-    }
-
-    name = parseName();
-    if (done() || name.isEmpty) {
-      throw HttpException('Failed to parse header value [$s]');
-    }
-    index++; // Skip the = character.
-    value = parseValue();
-    _validate();
-    if (done()) return;
-    index++; // Skip the ; character.
-    parseAttributes();
-  }
-
-  // Parse a cookie date string.
-  static DateTime _parseCookieDate(String date) {
-    const monthsLowerCase = [
-      'jan',
-      'feb',
-      'mar',
-      'apr',
-      'may',
-      'jun',
-      'jul',
-      'aug',
-      'sep',
-      'oct',
-      'nov',
-      'dec',
-    ];
-
-    var position = 0;
-
-    void error() {
-      throw HttpException('Invalid cookie date $date');
-    }
-
-    bool isEnd() => position == date.length;
-
-    bool isDelimiter(String s) {
-      final char = s.codeUnitAt(0);
-      if (char == 0x09) return true;
-      if (char >= 0x20 && char <= 0x2F) return true;
-      if (char >= 0x3B && char <= 0x40) return true;
-      if (char >= 0x5B && char <= 0x60) return true;
-      if (char >= 0x7B && char <= 0x7E) return true;
-      return false;
-    }
-
-    bool isNonDelimiter(String s) {
-      final char = s.codeUnitAt(0);
-      if (char >= 0x00 && char <= 0x08) return true;
-      if (char >= 0x0A && char <= 0x1F) return true;
-      if (char >= 0x30 && char <= 0x39) return true; // Digit
-      if (char == 0x3A) return true; // ':'
-      if (char >= 0x41 && char <= 0x5A) return true; // Alpha
-      if (char >= 0x61 && char <= 0x7A) return true; // Alpha
-      if (char >= 0x7F && char <= 0xFF) return true; // Alpha
-      return false;
-    }
-
-    bool isDigit(String s) {
-      final char = s.codeUnitAt(0);
-      if (char > 0x2F && char < 0x3A) return true;
-      return false;
-    }
-
-    int getMonth(String month) {
-      if (month.length < 3) return -1;
-      return monthsLowerCase.indexOf(month.substring(0, 3));
-    }
-
-    int toInt(String s) {
-      int index = 0;
-      for (; index < s.length && isDigit(s[index]); index++) {
-        //
-      }
-      return int.parse(s.substring(0, index));
-    }
-
-    var tokens = [];
-    while (!isEnd()) {
-      while (!isEnd() && isDelimiter(date[position])) {
-        position++;
-      }
-      final start = position;
-      while (!isEnd() && isNonDelimiter(date[position])) {
-        position++;
-      }
-      tokens.add(date.substring(start, position).toLowerCase());
-      while (!isEnd() && isDelimiter(date[position])) {
-        position++;
-      }
-    }
-
-    String? timeStr;
-    String? dayOfMonthStr;
-    String? monthStr;
-    String? yearStr;
-
-    for (var token in tokens) {
-      if (token.length < 1) continue;
-      if (timeStr == null &&
-          token.length >= 5 &&
-          isDigit(token[0]) &&
-          (token[1] == ':' || (isDigit(token[1]) && token[2] == ':'))) {
-        timeStr = token;
-      } else if (dayOfMonthStr == null && isDigit(token[0])) {
-        dayOfMonthStr = token;
-      } else if (monthStr == null && getMonth(token) >= 0) {
-        monthStr = token;
-      } else if (yearStr == null &&
-          token.length >= 2 &&
-          isDigit(token[0]) &&
-          isDigit(token[1])) {
-        yearStr = token;
-      }
-    }
-
-    if (timeStr == null ||
-        dayOfMonthStr == null ||
-        monthStr == null ||
-        yearStr == null) {
-      error();
-    }
-
-    var year = toInt(yearStr!);
-    if (year >= 70 && year <= 99) {
-      year += 1900;
-    } else if (year >= 0 && year <= 69) {
-      year += 2000;
-    }
-    if (year < 1601) {
-      error();
-    }
-
-    var dayOfMonth = toInt(dayOfMonthStr!);
-    if (dayOfMonth < 1 || dayOfMonth > 31) error();
-
-    var month = getMonth(monthStr!) + 1;
-
-    var timeList = timeStr!.split(':');
-    if (timeList.length != 3) error();
-    var hour = toInt(timeList[0]);
-    var minute = toInt(timeList[1]);
-    var second = toInt(timeList[2]);
-    if (hour > 23) error();
-    if (minute > 59) error();
-    if (second > 59) error();
-
-    return DateTime.utc(year, month, dayOfMonth, hour, minute, second, 0);
   }
 
   @override
@@ -1209,40 +824,17 @@ class _Cookie implements Cookie {
 
 // Frequently used character codes.
 class _CharCode {
-  static const int HT = 9;
-  static const int LF = 10;
-  static const int CR = 13;
-  static const int SP = 32;
-  static const int AMPERSAND = 38;
-  static const int COMMA = 44;
-  static const int DASH = 45;
-  static const int SLASH = 47;
-  static const int ZERO = 48;
-  static const int ONE = 49;
-  static const int COLON = 58;
-  static const int SEMI_COLON = 59;
-  static const int EQUAL = 61;
+  static const int ht = 9;
+  static const int sp = 32;
 }
 
 // Global constants.
 class _Const {
-  // Bytes for "HTTP".
-  static const HTTP = [72, 84, 84, 80];
-
-  // Bytes for "HTTP/1.".
-  static const HTTP1DOT = [72, 84, 84, 80, 47, 49, 46];
-
-  // Bytes for "HTTP/1.0".
-  static const HTTP10 = [72, 84, 84, 80, 47, 49, 46, 48];
-
-  // Bytes for "HTTP/1.1".
-  static const HTTP11 = [72, 84, 84, 80, 47, 49, 46, 49];
-
   static const bool T = true;
   static const bool F = false;
 
   // Loopup-map for the following characters: '()<>@,;:\\"/[]?={} \t'.
-  static const SEPARATOR_MAP = [
+  static const separatorMap = [
     F, F, F, F, F, F, F, F, F, T, F, F, F, F, F, F, F, F, F, F, F, F, F, F, //
     F, F, F, F, F, F, F, F, T, F, T, F, F, F, F, F, T, T, F, F, T, F, F, T, //
     F, F, F, F, F, F, F, F, F, F, T, T, T, T, T, T, T, F, F, F, F, F, F, F, //

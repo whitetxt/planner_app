@@ -19,8 +19,8 @@ void main() {
     nock.cleanAll();
   });
 
-  testWidgets('Password Length Validation', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('Erroneous | Password Length Validation',
+      (WidgetTester tester) async {
     await tester.pumpWidget(const PlannerApp());
 
     // Enter fake details to "create" fake account
@@ -39,8 +39,8 @@ void main() {
         findsOneWidget);
   });
 
-  testWidgets('Password Number Validation', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('Erroneous | Password Number Validation',
+      (WidgetTester tester) async {
     await tester.pumpWidget(const PlannerApp());
 
     // Enter fake details to "create" fake account
@@ -58,8 +58,7 @@ void main() {
     expect(find.text('Password must contain a number.'), findsOneWidget);
   });
 
-  testWidgets('Registration Cancel', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('Normal | Registration Cancel', (WidgetTester tester) async {
     await tester.pumpWidget(const PlannerApp());
 
     // Enter fake details to "create" fake account
@@ -82,8 +81,7 @@ void main() {
     expect(find.byType(LoginPage), findsOneWidget);
   });
 
-  testWidgets('Registration', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('Normal | Registration', (WidgetTester tester) async {
     await tester.pumpWidget(const PlannerApp());
 
     // Enter fake details to "create" fake account
@@ -107,8 +105,7 @@ void main() {
     expect(find.byType(LoginPage), findsNothing);
   });
 
-  testWidgets('Login', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('Normal | Login', (WidgetTester tester) async {
     await tester.pumpWidget(const PlannerApp());
 
     // Enter in fake details

@@ -114,15 +114,11 @@ class MockClient implements HttpClient {
 
   @override
   void addCredentials(
-      Uri url, String realm, HttpClientCredentials credentials) {
-    // TODO: implement addCredentials
-  }
+      Uri url, String realm, HttpClientCredentials credentials) {}
 
   @override
   void addProxyCredentials(
-      String host, int port, String realm, HttpClientCredentials credentials) {
-    // TODO: implement addProxyCredentials
-  }
+      String host, int port, String realm, HttpClientCredentials credentials) {}
 
   @override
   Function(Uri url, String scheme, String realm)? authenticate;
@@ -135,7 +131,7 @@ class MockClient implements HttpClient {
   Function(X509Certificate cert, String host, int port)? badCertificateCallback;
 
   @override
-  void close({bool force = false}) => null;
+  void close({bool force = false}) {}
 
   @override
   Function(Uri url)? findProxy;

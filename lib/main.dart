@@ -20,6 +20,8 @@ import 'settings.dart';
 import 'classes.dart';
 
 void main() {
+  // While we have not gotten our current user, keep trying every 5 seconds.
+  // This timer will cancel itself after a user is grabbed.
   Timer.periodic(
     const Duration(seconds: 5),
     (timer) {
@@ -35,7 +37,12 @@ void main() {
 
 Future<User?> getMe() async {
   http.Response resp = await processNetworkRequest(
-      NetworkOperation('$apiUrl/api/v1/users/@me', 'GET', (_) {}));
+    NetworkOperation(
+      '$apiUrl/api/v1/users/@me',
+      'GET',
+      (_) {},
+    ),
+  );
   if (!validateResponse(resp)) {
     return null;
   }

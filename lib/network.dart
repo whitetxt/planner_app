@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -60,8 +59,12 @@ void createOnlineTest() {
     const Duration(seconds: 10),
     (timer) {
       processNetworkRequest(
-              NetworkOperation('$apiUrl/onlineCheck', 'GET', (_) {}))
-          .then(
+        NetworkOperation(
+          '$apiUrl/onlineCheck',
+          'GET',
+          (_) {},
+        ),
+      ).then(
         (http.Response resp) {
           if (validateResponse(resp)) {
             // If the server responds, then we are online and everything is good.
@@ -78,6 +81,10 @@ void createOnlineTest() {
               // the callback was registered), these are not fatal and must all still be
               // executed as there will be important processes going on in the callbacks
               // that should not be missed.
+
+              // Essentially, we are calling all callbacks, even at risk of causing some
+              // errors (which we can ignore due to them not being fatal), as the
+              // callbacks could contain important stuff and we don't know until we try.
               Future.delayed(
                 Duration(milliseconds: pending.indexOf(request) * 250),
                 () => processNetworkRequest(request).then(
@@ -195,23 +202,7 @@ Future<http.Response> performRequest(
       headers: {'Authorization': token},
     ).catchError(
       (error, stackTrace) {
-        log(error, stackTrace: stackTrace);
-        if (url != '$apiUrl/onlineCheck') {
-          ScaffoldMessenger.of(
-            currentScaffoldKey.currentContext!,
-          ).clearSnackBars();
-          // This message is too long to show in one notification, so just display it
-          // in two.
-          addNotif(
-            'Connection Error. Running in offline mode.',
-          );
-          addNotif(
-            'If you close the app before we are back online, data will be lost.',
-          );
-          onlineMode = false;
-        }
-        // Status code 999 is used to show that there was an error connecting to the server.
-        return http.Response('', 999);
+        return handleNetworkError(url);
       },
     );
   }
@@ -220,20 +211,26 @@ Future<http.Response> performRequest(
     headers: {'Authorization': token},
   ).catchError(
     (error, stackTrace) {
-      log(error.toString(), stackTrace: stackTrace);
-      if (url != '$apiUrl/onlineCheck') {
-        ScaffoldMessenger.of(
-          currentScaffoldKey.currentContext!,
-        ).clearSnackBars();
-        addNotif(
-          'Connection Error. Running in offline mode.',
-        );
-        addNotif(
-          'If you close the app before we are back online, data will be lost.',
-        );
-        onlineMode = false;
-      }
-      return http.Response('', 999);
+      return handleNetworkError(url);
     },
   );
+}
+
+http.Response handleNetworkError(String url) {
+  if (url != '$apiUrl/onlineCheck') {
+    ScaffoldMessenger.of(
+      currentScaffoldKey.currentContext!,
+    ).clearSnackBars();
+    // This message is too long to show in one notification, so just display it
+    // in two.
+    addNotif(
+      'Connection Error. Running in offline mode.',
+    );
+    addNotif(
+      'If you close the app before we are back online, data will be lost.',
+    );
+    onlineMode = false;
+  }
+  // Status code 999 is used to show that there was an error connecting to the server.
+  return http.Response('', 999);
 }

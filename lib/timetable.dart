@@ -24,7 +24,6 @@ class TimetableData {
 }
 
 List<List<TimetableData>> timetable = [[], [], [], [], []];
-DateTime lastFetchTime = clock.now();
 
 List<TimetableData> subjects = [];
 
@@ -36,6 +35,7 @@ class TimetableSlot extends StatefulWidget {
     this.settingSubject,
     this.toSetTo, {
     Key? key,
+    // The following are optional fields, so that this widget can be customized.
     this.width = 128,
     this.height = 32,
     this.borderWidth = 1,
@@ -62,6 +62,8 @@ class TimetableSlot extends StatefulWidget {
 }
 
 class _TimetableSlotState extends State<TimetableSlot> {
+  TimetableData? data;
+
   void resetStates() {
     Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
     if (widget.reset != null) {
@@ -71,14 +73,19 @@ class _TimetableSlotState extends State<TimetableSlot> {
 
   @override
   Widget build(BuildContext context) {
+    data ??= widget.data;
     Color bg = Color(
-      int.parse(widget.data.colour.substring(1, 7), radix: 16) + 0xFF000000,
+      // Convert a hex code back into a color object.
+      int.parse(data!.colour.substring(1, 7), radix: 16) + 0xFF000000,
     );
     return GestureDetector(
       onTap: () {
         if (!widget.clickable) return;
         if (widget.settingSubject) {
           if (widget.toSetTo == null) return;
+          setState(() {
+            data = widget.toSetTo!;
+          });
           addRequest(
             NetworkOperation(
               '/api/v1/timetable',
@@ -117,7 +124,7 @@ class _TimetableSlotState extends State<TimetableSlot> {
                     ),
                   ),
                   child: Text(
-                    widget.data.name,
+                    data!.name,
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -125,10 +132,10 @@ class _TimetableSlotState extends State<TimetableSlot> {
                   mainAxisSize: MainAxisSize.min,
                   children: <Widget>[
                     Text(
-                      "Room: ${widget.data.room.isEmpty ? 'None' : widget.data.room}",
+                      "Room: ${data!.room.isEmpty ? 'None' : data!.room}",
                     ),
                     Text(
-                      "Teacher: ${widget.data.teacher.isEmpty ? 'None' : widget.data.teacher}",
+                      "Teacher: ${data!.teacher.isEmpty ? 'None' : data!.teacher}",
                     ),
                     ElevatedButton.icon(
                       icon: const Icon(Icons.delete),
@@ -181,13 +188,13 @@ class _TimetableSlotState extends State<TimetableSlot> {
                   Expanded(
                     child: Center(
                       child: AutoSizeText(
-                        widget.data.name,
+                        data!.name,
                         textAlign: TextAlign.center,
                         minFontSize: 5,
                         maxFontSize: 16,
                         stepGranularity: 0.1,
                         maxLines: 3,
-                        semanticsLabel: widget.data.name,
+                        semanticsLabel: data!.name,
                         wrapWords: false,
                         style: TextStyle(
                           color: bg.computeLuminance() > 0.5
@@ -365,24 +372,23 @@ Future<void> gotSubjects(http.Response response) async {
 }
 
 class SubjectWidget extends StatelessWidget {
-  const SubjectWidget(this.subject, this.settingTimetable, this.getSubjects,
-      {Key? key})
-      : super(key: key);
+  const SubjectWidget(
+    this.subject,
+    this.settingTimetable,
+    this.getSubjects,
+    this.beingSet, {
+    Key? key,
+  }) : super(key: key);
 
   final TimetableData subject;
   final Function(TimetableData) settingTimetable;
   final Function getSubjects;
+  final bool beingSet;
 
   void modifySubject(Color colour) {
-    var red = colour.red < 16
-        ? '0${colour.red.toRadixString(16)}'
-        : colour.red.toRadixString(16);
-    var green = colour.green < 16
-        ? '0${colour.green.toRadixString(16)}'
-        : colour.green.toRadixString(16);
-    var blue = colour.blue < 16
-        ? '0${colour.blue.toRadixString(16)}'
-        : colour.blue.toRadixString(16);
+    var red = colour.red.toRadixString(16).padLeft(2, '0');
+    var green = colour.green.toRadixString(16).padLeft(2, '0');
+    var blue = colour.blue.toRadixString(16).padLeft(2, '0');
 
     addRequest(
       NetworkOperation(
@@ -485,6 +491,7 @@ class SubjectWidget extends StatelessWidget {
             );
             break;
           default:
+            break;
         }
       },
       child: Card(
@@ -500,6 +507,7 @@ class SubjectWidget extends StatelessWidget {
                 subject.name,
                 style: TextStyle(
                   color: textColour,
+                  fontWeight: beingSet ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ),
@@ -511,6 +519,7 @@ class SubjectWidget extends StatelessWidget {
                 subject.teacher,
                 style: TextStyle(
                   color: textColour,
+                  fontWeight: beingSet ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ),
@@ -522,6 +531,7 @@ class SubjectWidget extends StatelessWidget {
                 subject.room,
                 style: TextStyle(
                   color: textColour,
+                  fontWeight: beingSet ? FontWeight.bold : FontWeight.normal,
                 ),
               ),
             ),
@@ -560,6 +570,7 @@ class _TimetablePageState extends State<TimetablePage> {
         for (var j = 0; j < today.length; j++) {
           var period = today[j];
           if (period == null) {
+            // If there is no period, then just set it to have no data.
             timetable[i][j] = const TimetableData(
               -1,
               'None',
@@ -599,6 +610,10 @@ class _TimetablePageState extends State<TimetablePage> {
   }
 
   void createSubject() {
+    // Convert the color object into a hex code.
+    String red = colour.red.toRadixString(16).padLeft(2, '0');
+    String green = colour.green.toRadixString(16).padLeft(2, '0');
+    String blue = colour.blue.toRadixString(16).padLeft(2, '0');
     addRequest(
       NetworkOperation(
         '/api/v1/subjects',
@@ -612,8 +627,7 @@ class _TimetablePageState extends State<TimetablePage> {
           'name': name,
           'teacher': teacher,
           'room': room,
-          'colour':
-              '#${colour.red.toRadixString(16).padLeft(2, "0")}${colour.green.toRadixString(16).padLeft(2, "0")}${colour.blue.toRadixString(16).padLeft(2, "0")}',
+          'colour': '#$red$green$blue',
         },
       ),
     );
@@ -624,6 +638,7 @@ class _TimetablePageState extends State<TimetablePage> {
     final prefs = await SharedPreferences.getInstance();
     String? storedSubjects = prefs.getString('subjects');
     if (storedSubjects != null) {
+      // Overwrite current subject data with the stored data.
       subjects = [];
       List<dynamic> data = json.decode(storedSubjects);
       for (var i = 0; i < data.length; i++) {
@@ -655,7 +670,8 @@ class _TimetablePageState extends State<TimetablePage> {
     );
   }
 
-  void toggleSetting(TimetableData subject) {
+  void setTimetableSubject(TimetableData subject) {
+    // Tells the timetables to set their subject when clicked.
     settingTimetable = true;
     toSetTo = subject;
     if (!mounted) return;
@@ -664,7 +680,10 @@ class _TimetablePageState extends State<TimetablePage> {
 
   @override
   void initState() {
+    super.initState();
     if (timetable[0].length != 9) {
+      // If the timetable doesn't have all of the items in it, we need to load it.
+      // In this case, we show the user that it is loading.
       for (var i = 0; i < 5; i++) {
         for (var j = 0; j < 9; j++) {
           timetable[i].add(
@@ -681,7 +700,6 @@ class _TimetablePageState extends State<TimetablePage> {
     }
     getSubjects();
     getTimetable();
-    super.initState();
   }
 
   @override
@@ -689,8 +707,8 @@ class _TimetablePageState extends State<TimetablePage> {
     String baseColour =
         '#${(Theme.of(context).highlightColor.value & 0x00FFFFFF).toRadixString(16)}';
     double borderWidth = 1;
-    double width =
-        MediaQuery.of(context).size.width / 6 - (borderWidth * 2 + borderWidth);
+    double width = MediaQuery.of(context).size.width / (timetable.length + 1) -
+        (borderWidth * 2 + borderWidth);
     double height =
         MediaQuery.of(context).size.height / (timetable[0].length + 4) -
             (borderWidth * 2 + borderWidth);
@@ -719,7 +737,11 @@ class _TimetablePageState extends State<TimetablePage> {
                   onPressed: () {
                     if (settingTimetable) {
                       if (!mounted) return;
-                      setState(() => settingTimetable = false);
+                      // If we are currently setting the timetable, stop setting it.
+                      setState(() {
+                        settingTimetable = false;
+                        toSetTo = null;
+                      });
                     } else {
                       showDialog(
                         context: context,
@@ -833,7 +855,12 @@ class _TimetablePageState extends State<TimetablePage> {
                     scrollDirection: Axis.horizontal,
                     children: [
                       for (TimetableData subject in subjects)
-                        SubjectWidget(subject, toggleSetting, getSubjects),
+                        SubjectWidget(
+                          subject,
+                          setTimetableSubject,
+                          getSubjects,
+                          subject == toSetTo,
+                        ),
                     ],
                   ),
                 ),

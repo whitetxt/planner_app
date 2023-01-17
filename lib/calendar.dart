@@ -68,11 +68,13 @@ class _EventsMiniState extends State<EventsMini> {
               'GET',
               (http.Response response) {
                 gotEvents(response, add: true);
-                Navigator.of(context).popUntil(ModalRoute.withName(
-                    '/dash')); // This removes any modals or popup dialogs that are active at the current time.
+                Navigator.of(context).popUntil(
+                  ModalRoute.withName('/dash'),
+                ); // This removes any modals or popup dialogs that are active at the current time.
                 if (!mounted) return;
                 setState(
-                    () {}); // This then just forces the page to rebuild and redraw itself.
+                  () {},
+                ); // This then just forces the page to rebuild and redraw itself.
               },
             ),
           );
@@ -84,7 +86,8 @@ class _EventsMiniState extends State<EventsMini> {
   @override
   Widget build(BuildContext context) {
     // If we are offline, there's no point allowing the user to see events since
-    // their local version will be outdated and new events will be hidden from them.
+    // their local version will (most likely) be outdated and new events will
+    // be hidden from them.
     if (!onlineMode) {
       return SizedBox(
         width: 15 * MediaQuery.of(context).size.width / 16,
@@ -95,7 +98,7 @@ class _EventsMiniState extends State<EventsMini> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: const <Widget>[
               Text(
-                'Offline :(',
+                'Events cannot be fetched while offline :(',
                 style: TextStyle(
                   fontSize: 32,
                 ),
@@ -370,6 +373,7 @@ class _CalendarPageState extends State<CalendarPage> {
             selectedDayPredicate: (day) {
               return isSameDay(_selectedDay, day);
             },
+            onFormatChanged: (format) => {},
             onDaySelected: (selectedDay, focusedDay) {
               time = selectedDay;
               setState(() {

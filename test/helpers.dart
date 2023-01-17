@@ -7,115 +7,211 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'nock.dart';
 import 'dart:convert';
 
-void mockApis(String apiUrl) {
-  nock(apiUrl)
-      .get(
-        '/onlineCheck',
-      )
-      .reply(
-        200,
-        json.encode({'status': 'success'}),
-      );
-  nock(apiUrl)
-      .post(
-        '/auth/register',
-      )
-      .reply(
-        200,
-        json.encode(
-          {
+void mockApis(
+  String apiUrl, {
+  bool onlineCheck = true,
+  bool register = true,
+  bool login = true,
+  bool usersme = true,
+  bool events = true,
+  bool timetable = true,
+  bool homework = true,
+}) {
+  if (onlineCheck) {
+    nock(apiUrl)
+        .get(
+          '/onlineCheck',
+        )
+        .reply(
+          200,
+          json.encode({'status': 'success'}),
+        );
+  }
+  if (register) {
+    nock(apiUrl)
+        .post(
+          '/auth/register',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+              'data': {'access_token': 'fake_token', 'token_type': 'Bearer'}
+            },
+          ),
+        );
+  } else {
+    nock(apiUrl)
+        .post(
+          '/auth/register',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+              'data': {},
+            },
+          ),
+        );
+  }
+  if (login) {
+    nock(apiUrl)
+        .post(
+          '/auth/login',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+              'data': {'access_token': 'fake_token', 'token_type': 'Bearer'}
+            },
+          ),
+        );
+  } else {
+    nock(apiUrl)
+        .post(
+          '/auth/login',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+              'data': {},
+            },
+          ),
+        );
+  }
+  if (usersme) {
+    nock(apiUrl)
+        .get(
+          '/users/@me',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+              'data': {
+                'uid': 0,
+                'username': 'test_account',
+                'created_at': 0,
+                'permissions': 0,
+              }
+            },
+          ),
+        );
+  } else {
+    nock(apiUrl)
+        .get(
+          '/users/@me',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+              'data': {},
+            },
+          ),
+        );
+  }
+  if (events) {
+    nock(apiUrl)
+        .get(
+          '/events',
+        )
+        .reply(
+          200,
+          json.encode({
             'status': 'success',
-            'data': {'access_token': 'fake_token', 'token_type': 'Bearer'}
-          },
-        ),
-      );
-  nock(apiUrl)
-      .post(
-        '/auth/login',
-      )
-      .reply(
-        200,
-        json.encode(
-          {
+            'data': [
+              {
+                'event_id': 0,
+                'user_id': 0,
+                'name': 'public event',
+                'time': DateTime.now()
+                    .add(
+                      const Duration(
+                        days: 1,
+                      ),
+                    )
+                    .millisecondsSinceEpoch,
+                'description': 'test description',
+                'private': false
+              },
+              {
+                'event_id': 0,
+                'user_id': 0,
+                'name': 'private event',
+                'time': DateTime.now()
+                    .add(
+                      const Duration(
+                        days: 1,
+                      ),
+                    )
+                    .millisecondsSinceEpoch,
+                'description': 'test description',
+                'private': true
+              },
+            ],
+          }),
+        );
+    nock(apiUrl)
+        .get(
+          '/events/user/@me',
+        )
+        .reply(
+          200,
+          json.encode({
             'status': 'success',
-            'data': {'access_token': 'fake_token', 'token_type': 'Bearer'}
-          },
-        ),
-      );
-  nock(apiUrl)
-      .get(
-        '/users/@me',
-      )
-      .reply(
-        200,
-        json.encode(
-          {
+            'data': [
+              {
+                'event_id': 0,
+                'user_id': 0,
+                'name': 'public event',
+                'time': 0,
+                'description': 'test description',
+                'private': false
+              },
+              {
+                'event_id': 0,
+                'user_id': 0,
+                'name': 'private event',
+                'time': 0,
+                'description': 'test description',
+                'private': true
+              },
+            ],
+          }),
+        );
+  } else {
+    nock(apiUrl)
+        .get(
+          '/events',
+        )
+        .reply(
+          200,
+          json.encode({
             'status': 'success',
-            'data': {
-              'uid': 0,
-              'username': 'test_account',
-              'created_at': 0,
-              'permissions': 0,
-            }
-          },
-        ),
-      );
-  nock(apiUrl)
-      .get(
-        '/events',
-      )
-      .reply(
-        200,
-        json.encode({
-          'status': 'success',
-          'data': [
-            {
-              'event_id': 0,
-              'user_id': 0,
-              'name': 'public event',
-              'time': 0,
-              'description': 'test description',
-              'private': false
-            },
-            {
-              'event_id': 0,
-              'user_id': 0,
-              'name': 'private event',
-              'time': 0,
-              'description': 'test description',
-              'private': true
-            },
-          ],
-        }),
-      );
-  nock(apiUrl)
-      .get(
-        '/events/user/@me',
-      )
-      .reply(
-        200,
-        json.encode({
-          'status': 'success',
-          'data': [
-            {
-              'event_id': 0,
-              'user_id': 0,
-              'name': 'public event',
-              'time': 0,
-              'description': 'test description',
-              'private': false
-            },
-            {
-              'event_id': 0,
-              'user_id': 0,
-              'name': 'private event',
-              'time': 0,
-              'description': 'test description',
-              'private': true
-            },
-          ],
-        }),
-      );
+            'data': [],
+          }),
+        );
+    nock(apiUrl)
+        .get(
+          '/events/user/@me',
+        )
+        .reply(
+          200,
+          json.encode({
+            'status': 'success',
+            'data': [],
+          }),
+        );
+  }
   List<List<Map<String, Object>?>> fakeTimetable = [
     [],
     [],
@@ -136,47 +232,76 @@ void mockApis(String apiUrl) {
       'colour': '#FFFFFF',
     };
   }
-  nock(apiUrl)
-      .get(
-        '/timetable',
-      )
-      .reply(
-        200,
-        json.encode({
-          'status': 'success',
-          'data': fakeTimetable,
-        }),
-      );
+  if (timetable) {
+    nock(apiUrl)
+        .get(
+          '/timetable',
+        )
+        .reply(
+          200,
+          json.encode({
+            'status': 'success',
+            'data': fakeTimetable,
+          }),
+        );
+  } else {
+    nock(apiUrl)
+        .get(
+          '/timetable',
+        )
+        .reply(
+          200,
+          json.encode({
+            'status': 'success',
+            'data': [],
+          }),
+        );
+  }
 
-  nock(apiUrl)
-      .get(
-        '/homework',
-      )
-      .reply(
-        200,
-        json.encode({
-          'status': 'success',
-          'data': [
-            {
-              'homework_id': 1,
-              'name': 'test homework',
-              'class_id': null,
-              'completed_by': null,
-              'user_id': 0,
-              'due_date': DateTime.now()
-                  .add(const Duration(days: 1))
-                  .millisecondsSinceEpoch,
-              'description': 'test description',
-              'completed': false
-            }
-          ],
-        }),
-      );
+  if (homework) {
+    nock(apiUrl)
+        .get(
+          '/homework',
+        )
+        .reply(
+          200,
+          json.encode({
+            'status': 'success',
+            'data': [
+              {
+                'homework_id': 1,
+                'name': 'test homework',
+                'class_id': null,
+                'completed_by': null,
+                'user_id': 0,
+                'due_date': DateTime.now()
+                    .add(const Duration(days: 1))
+                    .millisecondsSinceEpoch,
+                'description': 'test description',
+                'completed': false
+              }
+            ],
+          }),
+        );
+  } else {
+    nock(apiUrl)
+        .get(
+          '/homework',
+        )
+        .reply(
+          200,
+          json.encode({
+            'status': 'success',
+            'data': [],
+          }),
+        );
+  }
 }
 
-void mockSharedPrefs() {
-  SharedPreferences.setMockInitialValues({
-    'homework': json.encode(
+void mockSharedPrefs({bool homework = true}) {
+  String hw = '';
+  if (homework) {
+    hw = json.encode(
       [
         {
           'homework_id': 1,
@@ -191,7 +316,12 @@ void mockSharedPrefs() {
           'completed': false
         }
       ],
-    ),
+    );
+  } else {
+    hw = json.encode([]);
+  }
+  SharedPreferences.setMockInitialValues({
+    'homework': hw,
   });
 }
 
