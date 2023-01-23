@@ -11,10 +11,8 @@ void main() {
   //const String apiUrl = 'http://127.0.0.1:8000/api/v1';
 
   setUp(() {
-    nock.init();
-  });
-  setUpAll(() {
     nock.cleanAll();
+    nock.init();
   });
 
   testWidgets('Normal | Dashboard displays subject on weekday',
@@ -28,7 +26,7 @@ void main() {
       // Logs into the app.
       await login(tester);
       expect(find.text("Today's Timetable"), findsOneWidget);
-      expect(find.text('test subject'), findsOneWidget);
+      expect(find.text('test subject'), findsWidgets);
     });
   });
 
@@ -63,6 +61,7 @@ void main() {
     await tester.pumpWidget(const PlannerApp());
     // Logs into the app.
     await login(tester);
+    expect(find.text('test homework'), findsNothing);
     expect(find.text('No due homework!'), findsOneWidget);
   });
 

@@ -31,6 +31,7 @@ void addRequest(NetworkOperation request) {
     // If we are online, then process this request normally.
     processNetworkRequest(request).then(
       (value) {
+        //print(value.body);
         if (value.statusCode == 999) {
           // Status code 999 is not used by HTTP, and so I use it to show a connection error.
           // If this occurs, then stop sending requests and start checking for whenever we
@@ -202,7 +203,7 @@ Future<http.Response> performRequest(
       headers: {'Authorization': token},
     ).catchError(
       (error, stackTrace) {
-        return handleNetworkError(url);
+        return handleNetworkError(error, url);
       },
     );
   }
@@ -211,12 +212,12 @@ Future<http.Response> performRequest(
     headers: {'Authorization': token},
   ).catchError(
     (error, stackTrace) {
-      return handleNetworkError(url);
+      return handleNetworkError(error, url);
     },
   );
 }
 
-http.Response handleNetworkError(String url) {
+http.Response handleNetworkError(dynamic error, String url) {
   if (url != '$apiUrl/onlineCheck') {
     ScaffoldMessenger.of(
       currentScaffoldKey.currentContext!,
@@ -232,5 +233,6 @@ http.Response handleNetworkError(String url) {
     onlineMode = false;
   }
   // Status code 999 is used to show that there was an error connecting to the server.
-  return http.Response('', 999);
+  print(error.toString());
+  return http.Response(error.toString(), 999);
 }

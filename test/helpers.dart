@@ -7,6 +7,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'nock.dart';
 import 'dart:convert';
 
+bool homeworkCompleted = false;
+
 void mockApis(
   String apiUrl, {
   bool onlineCheck = true,
@@ -173,7 +175,13 @@ void mockApis(
                 'event_id': 0,
                 'user_id': 0,
                 'name': 'public event',
-                'time': 0,
+                'time': DateTime.now()
+                    .add(
+                      const Duration(
+                        days: 1,
+                      ),
+                    )
+                    .millisecondsSinceEpoch,
                 'description': 'test description',
                 'private': false
               },
@@ -181,7 +189,13 @@ void mockApis(
                 'event_id': 0,
                 'user_id': 0,
                 'name': 'private event',
-                'time': 0,
+                'time': DateTime.now()
+                    .add(
+                      const Duration(
+                        days: 1,
+                      ),
+                    )
+                    .millisecondsSinceEpoch,
                 'description': 'test description',
                 'private': true
               },
@@ -212,27 +226,27 @@ void mockApis(
           }),
         );
   }
-  List<List<Map<String, Object>?>> fakeTimetable = [
-    [],
-    [],
-    [],
-    [],
-    [],
-  ];
-  for (int i = 0; i < 5; i++) {
-    for (int j = 0; j < 9; j++) {
-      fakeTimetable[i].add(null);
-    }
-    fakeTimetable[i][0] = {
-      'subject_id': 0,
-      'user_id': 0,
-      'name': 'test subject',
-      'teacher': 'test teacher',
-      'room': 'test room',
-      'colour': '#FFFFFF',
-    };
-  }
   if (timetable) {
+    List<List<Map<String, Object>?>> fakeTimetable = [
+      [],
+      [],
+      [],
+      [],
+      [],
+    ];
+    for (int i = 0; i < 5; i++) {
+      for (int j = 0; j < 9; j++) {
+        fakeTimetable[i].add(null);
+        fakeTimetable[i][j] = {
+          'subject_id': 0,
+          'user_id': 0,
+          'name': 'test subject',
+          'teacher': 'test teacher',
+          'room': 'test room',
+          'colour': '#FFFFFF',
+        };
+      }
+    }
     nock(apiUrl)
         .get(
           '/timetable',
@@ -264,24 +278,43 @@ void mockApis(
           '/homework',
         )
         .reply(
+            200,
+            json.encode({
+              'status': 'success',
+              'data': [
+                {
+                  'homework_id': 1,
+                  'name': 'test homework',
+                  'class_id': null,
+                  'completed_by': null,
+                  'user_id': 0,
+                  'due_date': DateTime.now()
+                      .add(const Duration(days: 1))
+                      .millisecondsSinceEpoch,
+                  'description': 'test description',
+                  'completed': false
+                },
+                {
+                  'homework_id': 2,
+                  'name': 'test hidden homework',
+                  'class_id': null,
+                  'completed_by': null,
+                  'user_id': 0,
+                  'due_date': DateTime.now()
+                      .add(const Duration(days: 1))
+                      .millisecondsSinceEpoch,
+                  'description': 'test description',
+                  'completed': true
+                }
+              ],
+            }));
+    nock(apiUrl)
+        .patch(
+          '/homework',
+        )
+        .reply(
           200,
-          json.encode({
-            'status': 'success',
-            'data': [
-              {
-                'homework_id': 1,
-                'name': 'test homework',
-                'class_id': null,
-                'completed_by': null,
-                'user_id': 0,
-                'due_date': DateTime.now()
-                    .add(const Duration(days: 1))
-                    .millisecondsSinceEpoch,
-                'description': 'test description',
-                'completed': false
-              }
-            ],
-          }),
+          json.encode({'status': 'success'}),
         );
   } else {
     nock(apiUrl)
@@ -294,6 +327,15 @@ void mockApis(
             'status': 'success',
             'data': [],
           }),
+        );
+    nock(apiUrl)
+        .patch(
+          '/homework',
+        )
+        .persist()
+        .reply(
+          200,
+          json.encode({'status': 'success'}),
         );
   }
 }
@@ -314,6 +356,18 @@ void mockSharedPrefs({bool homework = true}) {
               .millisecondsSinceEpoch,
           'description': 'test description',
           'completed': false
+        },
+        {
+          'homework_id': 2,
+          'name': 'test hidden homework',
+          'class_id': null,
+          'completed_by': null,
+          'user_id': 0,
+          'due_date': DateTime.now()
+              .add(const Duration(days: 1))
+              .millisecondsSinceEpoch,
+          'description': 'test description',
+          'completed': true
         }
       ],
     );

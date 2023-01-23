@@ -14,7 +14,12 @@ final registry = Registry();
 class Registry {
   final _interceptors = <Interceptor>[];
 
-  void cleanAll() => _interceptors.clear();
+  void cleanAll() {
+    for (var interceptor in _interceptors) {
+      remove(interceptor);
+    }
+    _interceptors.clear();
+  }
 
   Iterable<Interceptor> get pendingMocks => _interceptors.where(
         (interceptor) => !interceptor.isDone,
@@ -25,8 +30,14 @@ class Registry {
   void add(Interceptor interceptor) => _interceptors.add(interceptor);
 
   void remove(Interceptor interceptor) {
-    _interceptors.remove(interceptor);
-    interceptor._onReply?.close();
+    /*interceptor._onReply?.close();
+    bool res = _interceptors.remove(interceptor);
+    if (!res) {
+      print("FAILED TO REMOVE INTERCEPTOR!!");
+    } else {
+      print(
+          "REMOVED INTERCEPTOR ${interceptor._matcher.method} ${interceptor._matcher.uri._path}");
+    }*/
   }
 
   Interceptor? match(HttpClientRequest request) {
@@ -40,7 +51,7 @@ class Registry {
   }
 
   void completed(Interceptor interceptor) {
-    interceptor._isDone = true;
+    //interceptor._isDone = true;
     interceptor._onReply?.add(null);
 
     if (!interceptor.isPersist) {
@@ -65,6 +76,10 @@ class Interceptor {
   bool _isDone = false;
   bool _isRegistered = false;
   bool _isCanceled = false;
+
+  Function? replyCallback;
+
+  void Function()? bodyFunction;
 
   StreamController? _onReply;
 
@@ -109,7 +124,10 @@ class Interceptor {
     _register();
   }
 
-  void persist([bool enabled = true]) => _isPersist = enabled;
+  Interceptor persist([bool enabled = true]) {
+    _isPersist = enabled;
+    return this;
+  }
 
   void query(dynamic query) => _matcher.uri.expected = query;
 
@@ -144,6 +162,10 @@ class Interceptor {
 
     if (body is String) {
       return utf8.encode(body);
+    }
+
+    if (body is Function) {
+      return body();
     }
 
     return <int>[];
@@ -187,14 +209,16 @@ class Interceptor {
     }
   }
 
-  void onReply(void Function() callback) {
-    if (!isActive) {
+  Interceptor onReply(void Function() callback) {
+    /*if (!isActive) {
       throw MockIsNotActive(this);
-    }
+    }*/
 
+    replyCallback = callback;
     _onReply ??= StreamController.broadcast();
     _onReply!.stream.listen((_) {
       callback();
     });
+    return this;
   }
 }
