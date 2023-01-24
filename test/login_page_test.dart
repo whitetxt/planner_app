@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -14,10 +16,10 @@ void main() {
   setUp(() {
     nock.cleanAll();
     nock.init();
-    mockApis(apiUrl);
   });
 
   testWidgets('Erroneous | Username Validation', (WidgetTester tester) async {
+    mockApis(apiUrl);
     await tester.pumpWidget(const PlannerApp());
 
     // Test if it checks for
@@ -33,6 +35,7 @@ void main() {
 
   testWidgets('Erroneous | Password Length Validation',
       (WidgetTester tester) async {
+    mockApis(apiUrl);
     await tester.pumpWidget(const PlannerApp());
 
     // Enter fake details to "create" fake account
@@ -53,6 +56,7 @@ void main() {
 
   testWidgets('Erroneous | Password Number Validation',
       (WidgetTester tester) async {
+    mockApis(apiUrl);
     await tester.pumpWidget(const PlannerApp());
 
     // Enter fake details to "create" fake account
@@ -70,14 +74,20 @@ void main() {
     expect(find.text('Password must contain a number.'), findsOneWidget);
   });
 
-  testWidgets('Normal | Registration Cancel', (WidgetTester tester) async {
+  testWidgets('Erroneous | Registration Server 500 Response',
+      (WidgetTester tester) async {
+    mockApis(apiUrl, register: false);
+    nock(apiUrl)
+        .post(
+          '/auth/register',
+        )
+        .reply(500, 'Whoops! Something went wrong.');
     await tester.pumpWidget(const PlannerApp());
 
     // Enter fake details to "create" fake account
     await tester.enterText(
         find.widgetWithText(TextFormField, 'Username'), 'test_account');
     await tester.pumpAndSettle();
-
     await tester.enterText(
         find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
     await tester.pumpAndSettle();
@@ -85,39 +95,149 @@ void main() {
     // Press the register button.
     await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
     await tester.pumpAndSettle();
-
-    // Use no registration code.
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Cancel'));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(LoginPage), findsOneWidget);
-  });
-
-  testWidgets('Normal | Registration', (WidgetTester tester) async {
-    await tester.pumpWidget(const PlannerApp());
-
-    // Enter fake details to "create" fake account
-    await tester.enterText(
-        find.widgetWithText(TextFormField, 'Username'), 'test_account');
-    await tester.pumpAndSettle();
-
-    await tester.enterText(
-        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
-    await tester.pumpAndSettle();
-
-    // Press the register button.
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
-    await tester.pumpAndSettle();
-
     // Use no registration code.
     await tester.tap(find.widgetWithText(ElevatedButton, 'Submit'));
     await tester.pumpAndSettle();
+    expect(find.byType(LoginPage), findsOneWidget);
+  });
 
-    expect(find.byType(MainPage), findsOneWidget);
-    expect(find.byType(LoginPage), findsNothing);
+  testWidgets('Erroneous | Registration Connection Error',
+      (WidgetTester tester) async {
+    mockApis(apiUrl, register: false);
+    nock(apiUrl)
+        .post(
+          '/auth/register',
+        )
+        .reply(999, "Couldn't connect");
+    await tester.pumpWidget(const PlannerApp());
+
+    // Enter fake details to "create" fake account
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
+    await tester.pumpAndSettle();
+
+    // Press the register button.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
+    await tester.pumpAndSettle();
+    // Use no registration code.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Submit'));
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginPage), findsOneWidget);
+  });
+
+  testWidgets('Erroneous | Registration Generic Error',
+      (WidgetTester tester) async {
+    mockApis(apiUrl, register: false);
+    nock(apiUrl)
+        .post(
+          '/auth/register',
+        )
+        .reply(
+          404,
+          json.encode({
+            'detail': 'Not Found.',
+          }),
+        );
+    await tester.pumpWidget(const PlannerApp());
+
+    // Enter fake details to "create" fake account
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
+    await tester.pumpAndSettle();
+
+    // Press the register button.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
+    await tester.pumpAndSettle();
+    // Use no registration code.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Submit'));
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginPage), findsOneWidget);
+  });
+
+  testWidgets('Erroneous | Login Server 500 Response',
+      (WidgetTester tester) async {
+    mockApis(apiUrl, login: false);
+    nock(apiUrl)
+        .post(
+          '/auth/login',
+        )
+        .reply(500, 'Whoops! Something went wrong.');
+    await tester.pumpWidget(const PlannerApp());
+
+    // Enter fake details to "create" fake account
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
+    await tester.pumpAndSettle();
+
+    // Press the register button.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginPage), findsOneWidget);
+  });
+
+  testWidgets('Erroneous | Login Connection Error',
+      (WidgetTester tester) async {
+    mockApis(apiUrl, login: false);
+    nock(apiUrl)
+        .post(
+          '/auth/login',
+        )
+        .reply(999, "Couldn't connect");
+    await tester.pumpWidget(const PlannerApp());
+
+    // Enter fake details to "create" fake account
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
+    await tester.pumpAndSettle();
+
+    // Press the register button.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginPage), findsOneWidget);
+  });
+
+  testWidgets('Erroneous | Login Generic Error', (WidgetTester tester) async {
+    mockApis(apiUrl, login: false);
+    nock(apiUrl)
+        .post(
+          '/auth/login',
+        )
+        .reply(
+          404,
+          json.encode({
+            'detail': 'Not Found.',
+          }),
+        );
+    await tester.pumpWidget(const PlannerApp());
+
+    // Enter fake details to "create" fake account
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
+    await tester.pumpAndSettle();
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
+    await tester.pumpAndSettle();
+
+    // Press the register button.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Login'));
+    await tester.pumpAndSettle();
+    expect(find.byType(LoginPage), findsOneWidget);
   });
 
   testWidgets('Boundary | Password Length', (WidgetTester tester) async {
+    mockApis(apiUrl);
     await tester.pumpWidget(const PlannerApp());
 
     // Enter fake details to "create" fake account
@@ -141,7 +261,86 @@ void main() {
     expect(find.byType(LoginPage), findsNothing);
   });
 
+  testWidgets('Normal | Registration Cancel', (WidgetTester tester) async {
+    mockApis(apiUrl);
+    await tester.pumpWidget(const PlannerApp());
+
+    // Enter fake details to "create" fake account
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
+    await tester.pumpAndSettle();
+
+    // Press the register button.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
+    await tester.pumpAndSettle();
+
+    // Use no registration code.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(LoginPage), findsOneWidget);
+  });
+
+  testWidgets('Normal | Registration', (WidgetTester tester) async {
+    mockApis(apiUrl);
+    await tester.pumpWidget(const PlannerApp());
+
+    // Enter fake details to "create" fake account
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
+    await tester.pumpAndSettle();
+
+    // Press the register button.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
+    await tester.pumpAndSettle();
+
+    // Use no registration code.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Submit'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MainPage), findsOneWidget);
+    expect(find.byType(LoginPage), findsNothing);
+  });
+
+  testWidgets('Normal | Registration with registration code',
+      (WidgetTester tester) async {
+    mockApis(apiUrl);
+    await tester.pumpWidget(const PlannerApp());
+
+    // Enter fake details to "create" fake account
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
+    await tester.pumpAndSettle();
+
+    // Press the register button.
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Register'));
+    await tester.pumpAndSettle();
+
+    // Use no registration code.
+    await tester.enterText(
+        find.widgetWithText(TextField, 'Registration Code'), 'abcd');
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Submit'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MainPage), findsOneWidget);
+    expect(find.byType(LoginPage), findsNothing);
+  });
+
   testWidgets('Normal | Login', (WidgetTester tester) async {
+    mockApis(apiUrl);
     await tester.pumpWidget(const PlannerApp());
 
     // Enter in fake details
@@ -157,5 +356,50 @@ void main() {
 
     // Verify that we have changed page.
     expect(find.byType(MainPage), findsOneWidget);
+  });
+
+  testWidgets('Normal | Login using enter key on username field',
+      (WidgetTester tester) async {
+    mockApis(apiUrl);
+    await tester.pumpWidget(const PlannerApp());
+
+    // Enter fake details to "create" fake account
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
+    await tester.pumpAndSettle();
+
+    // Enter username second so that it is active when enter is pressed.
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
+    await tester.pumpAndSettle();
+
+    // Tell the text inputs that we have pressed enter.
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MainPage), findsOneWidget);
+    expect(find.byType(LoginPage), findsNothing);
+  });
+
+  testWidgets('Normal | Login using enter key on password field',
+      (WidgetTester tester) async {
+    mockApis(apiUrl);
+    await tester.pumpWidget(const PlannerApp());
+
+    // Enter fake details to "create" fake account
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Username'), 'test_account');
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+        find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
+    await tester.pumpAndSettle();
+
+    // Tell the text inputs that we have pressed enter.
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(MainPage), findsOneWidget);
+    expect(find.byType(LoginPage), findsNothing);
   });
 }

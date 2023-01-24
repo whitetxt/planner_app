@@ -43,20 +43,6 @@ void mockApis(
             },
           ),
         );
-  } else {
-    nock(apiUrl)
-        .post(
-          '/auth/register',
-        )
-        .reply(
-          200,
-          json.encode(
-            {
-              'status': 'success',
-              'data': {},
-            },
-          ),
-        );
   }
   if (login) {
     nock(apiUrl)
@@ -69,20 +55,6 @@ void mockApis(
             {
               'status': 'success',
               'data': {'access_token': 'fake_token', 'token_type': 'Bearer'}
-            },
-          ),
-        );
-  } else {
-    nock(apiUrl)
-        .post(
-          '/auth/login',
-        )
-        .reply(
-          200,
-          json.encode(
-            {
-              'status': 'success',
-              'data': {},
             },
           ),
         );

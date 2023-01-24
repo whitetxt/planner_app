@@ -189,7 +189,6 @@ class _LoginPageState extends State<LoginPage> {
         addNotif('Registration failed: $reason');
       }
     }
-    return;
   }
 
   Future<void> validateLogin() async {

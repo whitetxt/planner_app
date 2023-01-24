@@ -1,12 +1,7 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:planner_app/network.dart';
-import 'package:http/http.dart' as http;
 
 import 'globals.dart';
 
@@ -20,34 +15,8 @@ import 'settings.dart';
 import 'classes.dart';
 
 void main() {
-  // While we have not gotten our current user, keep trying every 5 seconds.
-  // This timer will cancel itself after a user is grabbed.
-  Timer.periodic(
-    const Duration(seconds: 5),
-    (timer) {
-      if (me != null && me!.uid != 0) {
-        timer.cancel();
-      }
-      getMe().then((value) => me = value);
-    },
-  );
   // This tells Flutter to start the app and render stuff.
   runApp(const PlannerApp());
-}
-
-Future<User?> getMe() async {
-  http.Response resp = await processNetworkRequest(
-    NetworkOperation(
-      '$apiUrl/api/v1/users/@me',
-      'GET',
-      (_) {},
-    ),
-  );
-  if (!validateResponse(resp)) {
-    return null;
-  }
-  dynamic data = json.decode(resp.body)['data'];
-  return User.fromJson(data);
 }
 
 class PlannerApp extends StatelessWidget {
@@ -87,7 +56,6 @@ class PlannerApp extends StatelessWidget {
       routes: {
         '/': (context) => const LoginPage(),
         '/dash': (context) => const MainPage(),
-        '/settings': (context) => const SettingsPage(),
       },
       initialRoute: '/',
     );
