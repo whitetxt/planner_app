@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:planner_app/network.dart';
 
@@ -24,23 +22,13 @@ void onLogoutResponse(http.Response _) {
 
 void onResetResponse(http.Response response) {
   if (!validateResponse(response)) return;
-  dynamic data = json.decode(response.body);
-  if (data['status'] != 'success') {
-    addNotif(data['message'], error: true);
-    return;
-  }
   // If the reset was successful, alert the user.
   addNotif('Successfully reset user data!', error: false);
+  navigatorKey.currentState!.popUntil(ModalRoute.withName('/dash'));
 }
 
 void onDeleteResponse(http.Response response) {
   if (!validateResponse(response)) return;
-  dynamic data = json.decode(response.body);
-  if (data['status'] != 'success') {
-    // If it failed, then don't logout since the account may not be fully deleted.
-    addNotif(data['message'], error: true);
-    return;
-  }
   // If everything was OK, then tell the user and go back to the login screen.
   ScaffoldMessenger.of(currentScaffoldKey.currentContext!).clearSnackBars();
   addNotif('Successfully deleted account!', error: false);

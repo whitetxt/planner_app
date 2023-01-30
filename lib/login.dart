@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 import 'globals.dart';
 import 'network.dart';
@@ -103,14 +104,19 @@ class _LoginPageState extends State<LoginPage> {
     // If the user cancelled:
     if (!proceed) return 'Cancelled by user';
     // POSTs to the server the user's desired details and waits for a response.
-    final response = await http.post(
-      Uri.parse(url),
-      body: {
-        'username': username,
-        'password': passwordHash,
-        'registration_code': regCode
-      },
-    );
+    Response response;
+    try {
+      response = await http.post(
+        Uri.parse(url),
+        body: {
+          'username': username,
+          'password': passwordHash,
+          'registration_code': regCode
+        },
+      );
+    } catch (e) {
+      response = Response('Connection Error', 999);
+    }
 
     // If the response code isn't OK
     if (response.statusCode != 200) {

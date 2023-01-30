@@ -173,7 +173,7 @@ async def logout(current_user: User = Depends(get_current_user)):
 	"""
 	current_user.session = None
 	Users_DB.update_user(current_user)
-	return {"Status": "OK"}
+	return {"status": "success"}
 
 # ------------------
 # USER ENDPOINTS
@@ -737,4 +737,4 @@ async def get_completed_homework(class_id: int, homework_id: int, user: User = D
 	return {"status": "success", "data": students}
 
 if __name__ == "__main__":
-	uvicorn.run("main:app", port=8000, debug=True, reload=True, workers=4)
+	uvicorn.run("main:app", port=8000, reload=True, workers=4)

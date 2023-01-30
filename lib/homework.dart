@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
-import 'package:planner_app/globals.dart';
 import 'package:planner_app/network.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -305,10 +304,6 @@ Future<void> gotHomework(http.Response response) async {
   // We must check for an error, then notify the user of it.
   if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
-  if (data['status'] != 'success') {
-    addNotif(data['message'], error: true);
-    return;
-  }
   homework = [];
   if (data['data'] != null) {
     for (dynamic hw in data['data']) {
@@ -368,10 +363,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
     );
   }
 
-  void removePopups() {
-    Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
-  }
-
   Future<void> addHomework() async {
     // First, add it to the local copy and render that.
     final prefs = await SharedPreferences.getInstance();
@@ -387,9 +378,10 @@ class _HomeworkPageState extends State<HomeworkPage> {
         'homework',
         json.encode([for (HomeworkData hw in homework) hw.toJson()]),
       );
-      removePopups();
       if (!mounted) return;
-      setState(() {});
+      setState(() {
+        Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
+      });
     }
     // Then, add it to the server and refresh.
     addRequest(
@@ -416,6 +408,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   @override
   Widget build(BuildContext context) {
+    date = DateTime.now();
+    _dateController.text = DateFormat('dd-MM-yy').format(date);
     return Scaffold(
       appBar: PLAppBar('Homework', context),
       backgroundColor: Theme.of(context).backgroundColor,

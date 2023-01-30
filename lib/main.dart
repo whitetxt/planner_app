@@ -11,7 +11,6 @@ import 'homework.dart';
 import 'dashboard.dart';
 import 'calendar.dart';
 import 'exams.dart';
-import 'settings.dart';
 import 'classes.dart';
 
 void main() {

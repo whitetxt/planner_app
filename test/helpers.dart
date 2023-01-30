@@ -14,6 +14,9 @@ void mockApis(
   bool onlineCheck = true,
   bool register = true,
   bool login = true,
+  bool logout = true,
+  bool delete = true,
+  bool reset = true,
   bool usersme = true,
   bool events = true,
   bool timetable = true,
@@ -92,6 +95,31 @@ void mockApis(
             },
           ),
         );
+  }
+  if (logout) {
+    nock(apiUrl).get('/auth/logout').reply(
+        200,
+        json.encode({
+          'status': 'success',
+        }));
+  }
+  if (delete) {
+    nock(apiUrl).delete('/users/@me').reply(
+        200,
+        json.encode(
+          {
+            'status': 'success',
+          },
+        ));
+  }
+  if (reset) {
+    nock(apiUrl).post('/users/reset').reply(
+        200,
+        json.encode(
+          {
+            'status': 'success',
+          },
+        ));
   }
   if (events) {
     nock(apiUrl)
@@ -277,7 +305,43 @@ void mockApis(
                       .millisecondsSinceEpoch,
                   'description': 'test description',
                   'completed': true
-                }
+                },
+                {
+                  'homework_id': 3,
+                  'name': 'test homework far future',
+                  'class_id': null,
+                  'completed_by': null,
+                  'user_id': 0,
+                  'due_date': DateTime.now()
+                      .add(const Duration(days: 90))
+                      .millisecondsSinceEpoch,
+                  'description': 'test description',
+                  'completed': false
+                },
+                {
+                  'homework_id': 4,
+                  'name': 'test homework future',
+                  'class_id': null,
+                  'completed_by': null,
+                  'user_id': 0,
+                  'due_date': DateTime.now()
+                      .add(const Duration(days: 4))
+                      .millisecondsSinceEpoch,
+                  'description': 'test description',
+                  'completed': false
+                },
+                {
+                  'homework_id': 5,
+                  'name': 'test homework soon',
+                  'class_id': null,
+                  'completed_by': null,
+                  'user_id': 0,
+                  'due_date': DateTime.now()
+                      .add(const Duration(hours: 1))
+                      .millisecondsSinceEpoch,
+                  'description': 'test description',
+                  'completed': false
+                },
               ],
             }));
     nock(apiUrl)
@@ -285,6 +349,10 @@ void mockApis(
           '/homework',
         )
         .reply(
+          200,
+          json.encode({'status': 'success'}),
+        );
+    nock(apiUrl).post('/homework').reply(
           200,
           json.encode({'status': 'success'}),
         );
@@ -340,6 +408,42 @@ void mockSharedPrefs({bool homework = true}) {
               .millisecondsSinceEpoch,
           'description': 'test description',
           'completed': true
+        },
+        {
+          'homework_id': 3,
+          'name': 'test homework far future',
+          'class_id': null,
+          'completed_by': null,
+          'user_id': 0,
+          'due_date': DateTime.now()
+              .add(const Duration(days: 90))
+              .millisecondsSinceEpoch,
+          'description': 'test description',
+          'completed': false
+        },
+        {
+          'homework_id': 4,
+          'name': 'test homework future',
+          'class_id': null,
+          'completed_by': null,
+          'user_id': 0,
+          'due_date': DateTime.now()
+              .add(const Duration(days: 4))
+              .millisecondsSinceEpoch,
+          'description': 'test description',
+          'completed': false
+        },
+        {
+          'homework_id': 5,
+          'name': 'test homework soon',
+          'class_id': null,
+          'completed_by': null,
+          'user_id': 0,
+          'due_date': DateTime.now()
+              .add(const Duration(hours: 1))
+              .millisecondsSinceEpoch,
+          'description': 'test description',
+          'completed': false
         }
       ],
     );

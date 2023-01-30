@@ -325,10 +325,6 @@ class _ExamPageState extends State<ExamPage> {
     );
   }
 
-  void removePopups() {
-    Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
-  }
-
   Future<void> addMark() async {
     // First we update our offline buffer of marks.
     final prefs = await SharedPreferences.getInstance();
@@ -351,9 +347,10 @@ class _ExamPageState extends State<ExamPage> {
       marks.add(ExamMark(0, name, mark, grade));
       await prefs.setString(
           'marks', json.encode([for (ExamMark mark in marks) mark.toJson()]));
-      removePopups();
       if (!mounted) return;
-      setState(() {});
+      setState(() {
+        Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
+      });
     }
     // This adds a piece of homework to the server, and then refreshes the page.
     addRequest(

@@ -429,6 +429,11 @@ class SubjectWidget extends StatelessWidget {
           onTap: () {},
           child: const Text('Modify'),
         ),
+        PopupMenuItem(
+          value: 3,
+          onTap: () {},
+          child: const Text('Delete'),
+        ),
       ],
       onSelected: (int value) {
         switch (value) {
@@ -436,6 +441,62 @@ class SubjectWidget extends StatelessWidget {
             settingTimetable(subject);
             break;
           case 2:
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  title: Container(
+                    decoration: BoxDecoration(
+                      border: Border(
+                        bottom: BorderSide(
+                          color: Theme.of(context).dividerColor,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                    child: const Text(
+                      'Change Subject Colour',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: ColorPicker(
+                          enableAlpha: false,
+                          hexInputBar: true,
+                          pickerColor: changedTo,
+                          onColorChanged: (value) => changedTo = value,
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            modifySubject(changedTo);
+                          },
+                          child: const Text('Update'),
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Cancel'),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+            break;
+          case 3:
+            // TODO: Implement deleting subjects server-side!
             showDialog(
               context: context,
               builder: (BuildContext context) {
