@@ -115,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
         },
       );
     } catch (e) {
-      response = Response('Connection Error', 999);
+      return 'Connection Error';
     }
 
     // If the response code isn't OK
@@ -141,10 +141,15 @@ class _LoginPageState extends State<LoginPage> {
     String url = '$apiUrl/api/v1/auth/login';
     String passwordToSend = calculatePasswordHash(password);
     // POSTs to the server the user's details and waits for a response.
-    final response = await http.post(
-      Uri.parse(url),
-      body: {'username': username, 'password': passwordToSend},
-    );
+    Response response;
+    try {
+      response = await http.post(
+        Uri.parse(url),
+        body: {'username': username, 'password': passwordToSend},
+      );
+    } catch (e) {
+      return 'Connection Error';
+    }
 
     // If the response code isn't OK
     if (response.statusCode != 200) {
