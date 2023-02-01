@@ -347,8 +347,6 @@ Future<void> gotTimetable(http.Response response) async {
       }
     }
   }
-  print("Recieved timetable:");
-  print(data);
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('timetable', json.encode(data['data']));
 }
@@ -723,11 +721,12 @@ class _TimetablePageState extends State<TimetablePage> {
       NetworkOperation(
         '/api/v1/subjects/@me',
         'GET',
-        (http.Response response) {
-          gotSubjects(response);
-          getTimetable();
+        (http.Response response) async {
+          await gotSubjects(response);
           if (!mounted) return;
-          setState(() {});
+          setState(() {
+            getTimetable();
+          });
         },
       ),
     );
@@ -735,10 +734,11 @@ class _TimetablePageState extends State<TimetablePage> {
 
   void setTimetableSubject(TimetableData subject) {
     // Tells the timetables to set their subject when clicked.
-    settingTimetable = true;
-    toSetTo = subject;
     if (!mounted) return;
-    setState(() {});
+    setState(() {
+      settingTimetable = true;
+      toSetTo = subject;
+    });
   }
 
   @override
@@ -920,10 +920,7 @@ class _TimetablePageState extends State<TimetablePage> {
                         SubjectWidget(
                           subject,
                           setTimetableSubject,
-                          () {
-                            getSubjects();
-                            setState(() {});
-                          },
+                          getTimetable,
                           subject == toSetTo,
                         ),
                     ],
