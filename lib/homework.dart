@@ -351,10 +351,10 @@ class _HomeworkPageState extends State<HomeworkPage> {
         'GET',
         (http.Response response) {
           gotHomework(response);
+          if (!mounted) return;
           Navigator.of(context).popUntil(
             ModalRoute.withName('/dash'),
           ); // This removes any modals or popup dialogs that are active at the current time.
-          if (!mounted) return;
           setState(
             () {},
           ); // This then just forces the page to rebuild and redraw itself.
@@ -379,9 +379,8 @@ class _HomeworkPageState extends State<HomeworkPage> {
         json.encode([for (HomeworkData hw in homework) hw.toJson()]),
       );
       if (!mounted) return;
-      setState(() {
-        Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
-      });
+      Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
+      setState(() {});
     }
     // Then, add it to the server and refresh.
     addRequest(

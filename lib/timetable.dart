@@ -95,8 +95,8 @@ class _TimetableSlotState extends State<TimetableSlot> {
                   NetworkOperation(
                     '/api/v1/timetable',
                     'GET',
-                    (http.Response resp) {
-                      gotTimetable(resp);
+                    (http.Response resp) async {
+                      await gotTimetable(resp);
                       widget.reset!();
                     },
                   ),
@@ -243,8 +243,8 @@ class _TodayTimetableState extends State<TodayTimetable> {
       NetworkOperation(
         '/api/v1/timetable',
         'GET',
-        (http.Response response) {
-          gotTimetable(response);
+        (http.Response response) async {
+          await gotTimetable(response);
           if (!mounted) return;
           setState(() {});
         },
@@ -347,6 +347,8 @@ Future<void> gotTimetable(http.Response response) async {
       }
     }
   }
+  print("Recieved timetable:");
+  print(data);
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('timetable', json.encode(data['data']));
 }
@@ -760,7 +762,6 @@ class _TimetablePageState extends State<TimetablePage> {
       }
     }
     getSubjects();
-    getTimetable();
   }
 
   @override
@@ -919,7 +920,10 @@ class _TimetablePageState extends State<TimetablePage> {
                         SubjectWidget(
                           subject,
                           setTimetableSubject,
-                          getSubjects,
+                          () {
+                            getSubjects();
+                            setState(() {});
+                          },
                           subject == toSetTo,
                         ),
                     ],
