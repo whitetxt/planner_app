@@ -407,8 +407,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
 
   @override
   Widget build(BuildContext context) {
-    date = DateTime.now();
-    _dateController.text = DateFormat('dd-MM-yy').format(date);
     return Scaffold(
       appBar: PLAppBar('Homework', context),
       backgroundColor: Theme.of(context).backgroundColor,
@@ -489,9 +487,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                     );
                                     if (selected != null) {
                                       if (!mounted) return;
+                                      date = selected;
                                       setState(
                                         () {
-                                          date = selected;
                                           _dateController.text =
                                               DateFormat('dd-MM-yy')
                                                   .format(selected);

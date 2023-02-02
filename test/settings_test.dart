@@ -138,7 +138,7 @@ void main() {
     });
   });
   group('Erroneous Data', () {
-    testWidgets('Bad response from server for resetting',
+    testWidgets('Bad response from server during account resetting',
         (WidgetTester tester) async {
       mockApis(apiUrl, reset: false);
       nock(apiUrl).post('/users/reset').reply(
@@ -167,7 +167,7 @@ void main() {
       expect(find.byType(SettingsPage), findsOneWidget);
     });
 
-    testWidgets('Bad response from server for deleting',
+    testWidgets('Bad response from server during account deletion',
         (WidgetTester tester) async {
       mockApis(apiUrl, delete: false);
       nock(apiUrl).delete('/users/@me').reply(

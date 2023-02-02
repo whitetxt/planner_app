@@ -15,7 +15,7 @@ void main() {
     nock.init();
   });
 
-  testWidgets('Normal | Dashboard displays subject on weekday',
+  testWidgets('Normal | Dashboard displays subjects on weekdays',
       (WidgetTester tester) async {
     mockApis(apiUrl);
     mockSharedPrefs();
@@ -30,7 +30,7 @@ void main() {
     });
   });
 
-  testWidgets('Normal | Dashboard displays no subjects on weekend',
+  testWidgets('Normal | Dashboard displays no subjects on a weekend',
       (WidgetTester tester) async {
     mockApis(apiUrl);
     mockSharedPrefs();
@@ -51,6 +51,7 @@ void main() {
     await tester.pumpWidget(const PlannerApp());
     // Logs into the app.
     await login(tester);
+    expect(find.text('test homework'), findsOneWidget);
     expect(find.text('Due Homework'), findsOneWidget);
   });
 

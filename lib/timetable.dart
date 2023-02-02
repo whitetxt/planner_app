@@ -835,6 +835,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Enter a name';
+                                      } else if (value.length > 32) {
+                                        return 'Subject name must be less than 32 characters';
                                       }
                                       return null;
                                     },
@@ -852,6 +854,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Enter a teacher';
+                                      } else if (value.length > 32) {
+                                        return "Teacher's name must be less than 32 characters";
                                       }
                                       return null;
                                     },
@@ -869,6 +873,8 @@ class _TimetablePageState extends State<TimetablePage> {
                                     validator: (value) {
                                       if (value == null || value.isEmpty) {
                                         return 'Enter a room';
+                                      } else if (value.length > 16) {
+                                        return 'Room must be less than 16 characters';
                                       }
                                       return null;
                                     },

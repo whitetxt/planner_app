@@ -333,8 +333,14 @@ async def create_subject(name: str = Form(...), teacher: str = Form("None"), roo
 	Returns the ID of the created subject.
 	"""
 	name = name.title()
+	if len(name) > 32:
+		return {"status": "fail", "message": "Subject name is longer than 32 characters"}
 	teacher = teacher.title()
+	if len(teacher) > 32:
+		return {"status": "fail", "message": "Teacher's name is longer than 32 characters"}
 	room = room.upper()
+	if len(room) > 16:
+		return {"status": "fail", "message": "Room name is longer than 16 characters"}
 	exists = Subjects_DB.get_subjects_by_name(name, user.uid)
 	if not exists:
 		for subject in exists:
@@ -394,6 +400,20 @@ async def get_timetable(user: User = Depends(get_current_user)):
 	"""
 	Gets the current user's timetable.
 	"""
+	"""
+	For testing purposes
+	timetable = []
+	for day in range(5):
+		timetable.append([])
+		for period in range(9):
+			timetable[day].append(Subject(
+				subject_id=0,
+				user_id=0,
+				name="test subject",
+				teacher="Mrs Sian",
+				room="B5"
+			))
+	return {"status": "success", "data": timetable}"""
 	result = User_Subjects_DB.get_timetable(user.uid)
 	timetable = result.get_client_format()
 
