@@ -152,7 +152,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 	for _ in range(100):
 		# This process is called salting.
 		# It means that if a malicious individual gets access to the database,
-		# They have no way of retrieving the passwords stored since they go through this process of scrambling.
+		# They have no way of retrieving the passwords stored since they go through this process of hashing.
 		# We store the salt in plaintext as to make sure that we can do this same process to allow the user to login.
 		for method in [sha256, sha384, sha512]:
 			password = method(f"{user.salt}{password}".encode()).hexdigest()

@@ -3,14 +3,12 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:planner_app/main.dart';
+import 'package:planner_app/globals.dart';
 
 import 'helpers.dart';
 import 'nock.dart';
 
 void main() {
-  const String apiUrl = 'https://planner-app.duckdns.org/api/v1';
-  //const String apiUrl = 'http://127.0.0.1:8000/api/v1';
-
   setUp(() {
     nock.cleanAll();
     nock.init();
@@ -144,6 +142,69 @@ void main() {
       );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add homework'), findsNothing);
+    });
+
+    testWidgets('Adding homework by pressing enter on name field',
+        (WidgetTester tester) async {
+      mockApis(apiUrl);
+      mockSharedPrefs();
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      await tester.tap(find.byIcon(Icons.book));
+      await tester.pumpAndSettle();
+      expect(find.text('New'), findsOneWidget);
+
+      await tester.tap(find.text('New'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add homework'), findsOneWidget);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Description (Optional)'),
+        'Test Homework Description',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Homework Name'),
+        'Test Homework',
+      );
+      await tester.pumpAndSettle();
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add homework'), findsNothing);
+    });
+
+    testWidgets('Adding homework by pressing enter on description field',
+        (WidgetTester tester) async {
+      mockApis(apiUrl);
+      mockSharedPrefs();
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      await tester.tap(find.byIcon(Icons.book));
+      await tester.pumpAndSettle();
+      expect(find.text('New'), findsOneWidget);
+
+      await tester.tap(find.text('New'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add homework'), findsOneWidget);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Homework Name'),
+        'Test Homework',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Description (Optional)'),
+        'Test Homework Description',
+      );
+      await tester.pumpAndSettle();
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
 
       expect(find.text('Add homework'), findsNothing);
     });

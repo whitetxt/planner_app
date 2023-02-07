@@ -64,7 +64,7 @@ void addNotif(String text, {bool error = true}) {
       ),
       backgroundColor: error
           // We change the background colour if this message is an error.
-          ? Theme.of(currentScaffoldKey.currentContext!).errorColor
+          ? Theme.of(currentScaffoldKey.currentContext!).colorScheme.error
           : Theme.of(currentScaffoldKey.currentContext!).highlightColor,
       duration: const Duration(seconds: 3),
     ),

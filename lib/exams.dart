@@ -380,7 +380,7 @@ class _ExamPageState extends State<ExamPage> {
     // This code is very similar to the homework page.
     return Scaffold(
       appBar: PLAppBar('Exam Marks', context),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: Column(
         children: <Widget>[
           Row(

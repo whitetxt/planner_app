@@ -510,7 +510,7 @@ class _ClassPageState extends State<ClassPage> {
     if (!onlineMode) {
       return Scaffold(
         appBar: PLAppBar('Classes', context),
-        backgroundColor: Theme.of(context).backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.background,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -540,7 +540,7 @@ class _ClassPageState extends State<ClassPage> {
     }
     return Scaffold(
       appBar: PLAppBar('Classes', context),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: ListView(
         children: [
           Row(

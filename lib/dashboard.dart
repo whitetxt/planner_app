@@ -18,7 +18,7 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PLAppBar('Dashboard', context),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       // All this code is just to center the widgets in the middle of the screen.
       body: Row(
         mainAxisAlignment: MainAxisAlignment.center,

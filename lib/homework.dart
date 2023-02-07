@@ -409,7 +409,7 @@ class _HomeworkPageState extends State<HomeworkPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PLAppBar('Homework', context),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: Column(
         children: <Widget>[
           Row(

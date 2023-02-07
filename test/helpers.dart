@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planner_app/login.dart';
@@ -21,7 +22,9 @@ void mockApis(
   bool events = true,
   bool timetable = true,
   bool homework = true,
+  bool subjects = true,
 }) {
+  apiUrl = '$apiUrl/api/v1';
   if (onlineCheck) {
     nock(apiUrl)
         .get(
@@ -81,20 +84,6 @@ void mockApis(
             },
           ),
         );
-  } else {
-    nock(apiUrl)
-        .get(
-          '/users/@me',
-        )
-        .reply(
-          200,
-          json.encode(
-            {
-              'status': 'success',
-              'data': {},
-            },
-          ),
-        );
   }
   if (logout) {
     nock(apiUrl).get('/auth/logout').reply(
@@ -135,7 +124,8 @@ void mockApis(
                 'event_id': 0,
                 'user_id': 0,
                 'name': 'public event',
-                'time': DateTime.now()
+                'time': clock
+                    .now()
                     .add(
                       const Duration(
                         days: 1,
@@ -144,20 +134,6 @@ void mockApis(
                     .millisecondsSinceEpoch,
                 'description': 'test description',
                 'private': false
-              },
-              {
-                'event_id': 0,
-                'user_id': 0,
-                'name': 'private event',
-                'time': DateTime.now()
-                    .add(
-                      const Duration(
-                        days: 1,
-                      ),
-                    )
-                    .millisecondsSinceEpoch,
-                'description': 'test description',
-                'private': true
               },
             ],
           }),
@@ -172,10 +148,26 @@ void mockApis(
             'status': 'success',
             'data': [
               {
+                'event_id': 2,
+                'user_id': 0,
+                'name': 'event today',
+                'time': clock
+                    .now()
+                    .add(
+                      const Duration(
+                        hours: 1,
+                      ),
+                    )
+                    .millisecondsSinceEpoch,
+                'description': 'test description',
+                'private': false
+              },
+              {
                 'event_id': 0,
                 'user_id': 0,
                 'name': 'public event',
-                'time': DateTime.now()
+                'time': clock
+                    .now()
                     .add(
                       const Duration(
                         days: 1,
@@ -186,10 +178,11 @@ void mockApis(
                 'private': false
               },
               {
-                'event_id': 0,
+                'event_id': 1,
                 'user_id': 0,
                 'name': 'private event',
-                'time': DateTime.now()
+                'time': clock
+                    .now()
                     .add(
                       const Duration(
                         days: 1,
@@ -201,6 +194,14 @@ void mockApis(
               },
             ],
           }),
+        );
+    nock(apiUrl)
+        .post(
+          '/events',
+        )
+        .reply(
+          200,
+          json.encode({'status': 'success'}),
         );
   } else {
     nock(apiUrl)
@@ -225,6 +226,14 @@ void mockApis(
             'data': [],
           }),
         );
+    nock(apiUrl)
+        .post(
+          '/events',
+        )
+        .reply(
+          200,
+          json.encode({'status': 'success'}),
+        );
   }
   if (timetable) {
     List<List<Map<String, Object>?>> fakeTimetable = [
@@ -240,12 +249,13 @@ void mockApis(
         fakeTimetable[i][j] = {
           'subject_id': 0,
           'user_id': 0,
-          'name': 'test subject',
+          'name': 'test subject $i $j',
           'teacher': 'test teacher',
           'room': 'test room',
           'colour': '#FFFFFF',
         };
       }
+      fakeTimetable[i][1] = null;
     }
     nock(apiUrl)
         .get(
@@ -258,6 +268,12 @@ void mockApis(
             'data': fakeTimetable,
           }),
         );
+    nock(apiUrl)
+        .delete('/timetable')
+        .reply(200, json.encode({'status': 'success'}));
+    nock(apiUrl)
+        .post('/timetable')
+        .reply(200, json.encode({'status': 'success'}));
   } else {
     nock(apiUrl)
         .get(
@@ -270,6 +286,12 @@ void mockApis(
             'data': [],
           }),
         );
+    nock(apiUrl)
+        .delete('/timetable')
+        .reply(200, json.encode({'status': 'success'}));
+    nock(apiUrl)
+        .post('/timetable')
+        .reply(200, json.encode({'status': 'success'}));
   }
 
   if (homework) {
@@ -288,7 +310,8 @@ void mockApis(
                   'class_id': null,
                   'completed_by': null,
                   'user_id': 0,
-                  'due_date': DateTime.now()
+                  'due_date': clock
+                      .now()
                       .add(const Duration(days: 1))
                       .millisecondsSinceEpoch,
                   'description': 'test description',
@@ -300,7 +323,8 @@ void mockApis(
                   'class_id': null,
                   'completed_by': null,
                   'user_id': 0,
-                  'due_date': DateTime.now()
+                  'due_date': clock
+                      .now()
                       .add(const Duration(days: 1))
                       .millisecondsSinceEpoch,
                   'description': 'test description',
@@ -312,7 +336,8 @@ void mockApis(
                   'class_id': null,
                   'completed_by': null,
                   'user_id': 0,
-                  'due_date': DateTime.now()
+                  'due_date': clock
+                      .now()
                       .add(const Duration(days: 90))
                       .millisecondsSinceEpoch,
                   'description': 'test description',
@@ -324,7 +349,8 @@ void mockApis(
                   'class_id': null,
                   'completed_by': null,
                   'user_id': 0,
-                  'due_date': DateTime.now()
+                  'due_date': clock
+                      .now()
                       .add(const Duration(days: 4))
                       .millisecondsSinceEpoch,
                   'description': 'test description',
@@ -336,7 +362,8 @@ void mockApis(
                   'class_id': null,
                   'completed_by': null,
                   'user_id': 0,
-                  'due_date': DateTime.now()
+                  'due_date': clock
+                      .now()
                       .add(const Duration(hours: 1))
                       .millisecondsSinceEpoch,
                   'description': 'test description',
@@ -372,11 +399,50 @@ void mockApis(
         .patch(
           '/homework',
         )
-        .persist()
         .reply(
           200,
           json.encode({'status': 'success'}),
         );
+  }
+  if (subjects) {
+    nock(apiUrl).get('/subjects/@me').reply(
+        200,
+        json.encode(
+          {
+            'status': 'success',
+            'data': [
+              {
+                'subject_id': 0,
+                'user_id': 0,
+                'name': 'test subject',
+                'teacher': 'subject teacher',
+                'room': 'A1',
+                'colour': '#FF0000',
+              }
+            ],
+          },
+        ));
+    nock(apiUrl)
+        .post('/subjects')
+        .reply(200, json.encode({'status': 'success'}));
+    nock(apiUrl)
+        .patch('/subjects/0')
+        .reply(200, json.encode({'status': 'success'}));
+  } else {
+    nock(apiUrl).get('/subjects/@me').reply(
+        200,
+        json.encode(
+          {
+            'status': 'success',
+            'data': [],
+          },
+        ));
+    nock(apiUrl)
+        .post('/subjects')
+        .reply(200, json.encode({'status': 'success'}));
+    nock(apiUrl)
+        .patch('/subjects/0')
+        .reply(200, json.encode({'status': 'success'}));
   }
 }
 
@@ -391,9 +457,8 @@ void mockSharedPrefs({bool homework = true}) {
           'class_id': null,
           'completed_by': null,
           'user_id': 0,
-          'due_date': DateTime.now()
-              .add(const Duration(days: 1))
-              .millisecondsSinceEpoch,
+          'due_date':
+              clock.now().add(const Duration(days: 1)).millisecondsSinceEpoch,
           'description': 'test description',
           'completed': false
         },
@@ -403,9 +468,8 @@ void mockSharedPrefs({bool homework = true}) {
           'class_id': null,
           'completed_by': null,
           'user_id': 0,
-          'due_date': DateTime.now()
-              .add(const Duration(days: 1))
-              .millisecondsSinceEpoch,
+          'due_date':
+              clock.now().add(const Duration(days: 1)).millisecondsSinceEpoch,
           'description': 'test description',
           'completed': true
         },
@@ -415,9 +479,8 @@ void mockSharedPrefs({bool homework = true}) {
           'class_id': null,
           'completed_by': null,
           'user_id': 0,
-          'due_date': DateTime.now()
-              .add(const Duration(days: 90))
-              .millisecondsSinceEpoch,
+          'due_date':
+              clock.now().add(const Duration(days: 90)).millisecondsSinceEpoch,
           'description': 'test description',
           'completed': false
         },
@@ -427,9 +490,8 @@ void mockSharedPrefs({bool homework = true}) {
           'class_id': null,
           'completed_by': null,
           'user_id': 0,
-          'due_date': DateTime.now()
-              .add(const Duration(days: 4))
-              .millisecondsSinceEpoch,
+          'due_date':
+              clock.now().add(const Duration(days: 4)).millisecondsSinceEpoch,
           'description': 'test description',
           'completed': false
         },
@@ -439,9 +501,8 @@ void mockSharedPrefs({bool homework = true}) {
           'class_id': null,
           'completed_by': null,
           'user_id': 0,
-          'due_date': DateTime.now()
-              .add(const Duration(hours: 1))
-              .millisecondsSinceEpoch,
+          'due_date':
+              clock.now().add(const Duration(hours: 1)).millisecondsSinceEpoch,
           'description': 'test description',
           'completed': false
         }
@@ -459,7 +520,7 @@ void mockSharedPrefs({bool homework = true}) {
 /// Tester must already have PlannerApp() pumped.
 Future<void> login(WidgetTester tester) async {
   expect(find.byType(LoginPage), findsOneWidget);
-  // Enter fake details to "create" fake account
+  // Enter fake details to login to account
   await tester.enterText(
       find.widgetWithText(TextFormField, 'Username'), 'test_account');
   await tester.pumpAndSettle();

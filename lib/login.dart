@@ -237,7 +237,7 @@ class _LoginPageState extends State<LoginPage> {
           title: const Text('Login or Register'),
         ),
       ),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: Form(
         key: _formKey,
         child: Column(

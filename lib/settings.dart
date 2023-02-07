@@ -17,6 +17,7 @@ void onLogoutResponse(http.Response _) {
   // just throw away our token and go back to the login screen.
   token = '';
   me = null;
+  addNotif('Successfully logged out!', error: false);
   navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
 }
 
@@ -50,7 +51,7 @@ class _SettingsPageState extends State<SettingsPage> {
           ),
         ),
       ),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: SizedBox(
         height: MediaQuery.of(context).size.height - 32,
         child: Center(
@@ -126,6 +127,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ),
                                   onPressed: () {
                                     // Remove the popup and don't do anything.
+                                    addNotif('Cancelled resetting data',
+                                        error: false);
                                     Navigator.of(context).pop();
                                   },
                                 ),
@@ -214,6 +217,8 @@ class _SettingsPageState extends State<SettingsPage> {
                                     "Don't do it! Take me back!",
                                   ),
                                   onPressed: () {
+                                    addNotif('Cancelled deleting account',
+                                        error: false);
                                     Navigator.of(context).pop();
                                   },
                                 ),

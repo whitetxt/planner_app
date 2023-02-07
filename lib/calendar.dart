@@ -211,10 +211,6 @@ void gotEvents(http.Response response, {bool add = false}) {
   // We must check for an error, then notify the user of it.
   if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
-  if (data['status'] != 'success') {
-    addNotif(data['message'], error: true);
-    return;
-  }
   if (!add) {
     events = {};
   }
@@ -329,7 +325,7 @@ class _CalendarPageState extends State<CalendarPage> {
     if (!onlineMode) {
       return Scaffold(
         appBar: PLAppBar('Calendar', context),
-        backgroundColor: Theme.of(context).backgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.background,
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -359,7 +355,7 @@ class _CalendarPageState extends State<CalendarPage> {
     }
     return Scaffold(
       appBar: PLAppBar('Calendar', context),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: ListView(
         children: <Widget>[
           TableCalendar(
@@ -463,6 +459,7 @@ class _CalendarPageState extends State<CalendarPage> {
                                           const Duration(days: 365),
                                         ),
                                   );
+                                  if (selected == null) return;
                                   final TimeOfDay? selectedTime =
                                       await showTimePicker(
                                     context: context,

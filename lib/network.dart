@@ -128,14 +128,14 @@ bool validateResponse(http.Response response) {
       // communicate custom errors.
       return false;
     }
-    addNotif(response.body);
+    addNotif('An unknown network error has occurred: ${response.body}');
     return false;
   }
   Map<String, dynamic> data = json.decode(response.body);
   if (data['status'] != 'success') {
     // If it wasn't successful then the server will have returned the reason why
     // in the JSON so we display that to the user.
-    addNotif(data['message']);
+    addNotif('A network error has occurred: ${data['message']}');
     return false;
   }
   return true;
@@ -233,6 +233,6 @@ http.Response handleNetworkError(dynamic error, String url) {
     onlineMode = false;
   }
   // Status code 999 is used to show that there was an error connecting to the server.
-  print(error.toString());
+  print('Network Error: $error');
   return http.Response(error.toString(), 999);
 }
