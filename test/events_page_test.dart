@@ -1,8 +1,10 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 
 import 'package:planner_app/main.dart';
 import 'package:planner_app/globals.dart';
@@ -56,6 +58,67 @@ void main() {
       await tester.tap(find.text('OK'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Create Private Event'));
+      await tester.pumpAndSettle();
+      expect(find.text('Create an Event'), findsNothing);
+    });
+
+    testWidgets('Creating a private event by using enter key on name field',
+        (WidgetTester tester) async {
+      mockApis(apiUrl);
+      mockSharedPrefs();
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      await tester.tap(find.byIcon(Icons.calendar_month));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Calendar'), findsWidgets);
+
+      await tester.tap(find.text('New'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextFormField, 'Description'),
+          'test private event');
+      await tester.tap(find.widgetWithText(InkWell, 'Date'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+          find.widgetWithText(TextFormField, 'Name'), 'private event');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(find.text('Create an Event'), findsNothing);
+    });
+
+    testWidgets(
+        'Creating a private event by using enter key on description field',
+        (WidgetTester tester) async {
+      mockApis(apiUrl);
+      mockSharedPrefs();
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      await tester.tap(find.byIcon(Icons.calendar_month));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Calendar'), findsWidgets);
+
+      await tester.tap(find.text('New'));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+          find.widgetWithText(TextFormField, 'Name'), 'private event');
+      await tester.tap(find.widgetWithText(InkWell, 'Date'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.widgetWithText(TextFormField, 'Description'),
+          'test private event');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
       expect(find.text('Create an Event'), findsNothing);
     });
@@ -123,6 +186,97 @@ void main() {
       await tester.tap(find.text('Create Public Event'));
       await tester.pumpAndSettle();
       expect(find.text('Create an Event'), findsNothing);
+    });
+
+    testWidgets('Events display correctly for the selected day',
+        (WidgetTester tester) async {
+      mockApis(apiUrl);
+      mockSharedPrefs();
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      await tester.tap(find.byIcon(Icons.calendar_month));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Calendar'), findsWidgets);
+      expect(
+        find.text(
+          "event today - ${DateFormat('HH:mm').format(clock.now())}",
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+        "Delete button doesn't show if the event is not the current user's",
+        (WidgetTester tester) async {
+      mockApis(apiUrl);
+      mockSharedPrefs();
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      await tester.tap(find.byIcon(Icons.calendar_month));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Calendar'), findsWidgets);
+      expect(
+        find.text(
+          "not yours - ${DateFormat('HH:mm').format(clock.now())}",
+          skipOffstage: false,
+        ),
+        findsOneWidget,
+      );
+      await tester.dragUntilVisible(
+        find.text(
+          "not yours - ${DateFormat('HH:mm').format(clock.now())}",
+          skipOffstage: false,
+        ),
+        find.byType(ListView),
+        Offset.fromDirection(3 * pi / 2),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.text(
+          "not yours - ${DateFormat('HH:mm').format(clock.now())}",
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete'), findsNothing);
+    });
+
+    testWidgets('Deleting events works', (WidgetTester tester) async {
+      mockApis(apiUrl);
+      mockSharedPrefs();
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      await tester.tap(find.byIcon(Icons.calendar_month));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Calendar'), findsWidgets);
+      expect(
+        find.text("event today - ${DateFormat('HH:mm').format(clock.now())}"),
+        findsOneWidget,
+      );
+      await tester.tap(
+        find.text("event today - ${DateFormat('HH:mm').format(clock.now())}"),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Delete'), findsOneWidget);
+      await tester.dragUntilVisible(
+        find.widgetWithText(ElevatedButton, 'Delete'),
+        find.byType(ListView),
+        Offset.fromDirection(3 * pi / 2),
+      );
+      await tester.tap(
+        find.widgetWithText(ElevatedButton, 'Delete'),
+      );
+      await tester.pumpAndSettle();
     });
   });
 

@@ -227,9 +227,10 @@ void gotEvents(http.Response response, {bool add = false}) {
       if (events.containsKey(eventTime)) {
         if (events[eventTime]!.every(
           (Event e) {
-            return e.name != event.name &&
-                e.eventId != event.eventId &&
-                e.description != event.description &&
+            return e.name != event.name ||
+                e.userId != event.userId ||
+                e.eventId != event.eventId ||
+                e.description != event.description ||
                 e.time != event.time;
           },
         )) {
@@ -280,9 +281,16 @@ class _CalendarPageState extends State<CalendarPage> {
                 Navigator.of(context).popUntil(ModalRoute.withName(
                     '/dash')); // This removes any modals or popup dialogs that are active at the current time.
                 if (!mounted) return;
+                for (DateTime kDay in events.keys) {
+                  if (isSameDay(kDay, time)) {
+                    setState(() {
+                      _selectedEvents = events[kDay]!;
+                    });
+                    return;
+                  }
+                }
                 setState(() {
-                  _selectedEvents =
-                      events.containsKey(time) ? events[time]! : [];
+                  _selectedEvents = [];
                 }); // This then just forces the page to rebuild and redraw itself.
               },
             ),
@@ -465,27 +473,24 @@ class _CalendarPageState extends State<CalendarPage> {
                                     context: context,
                                     initialTime: TimeOfDay.now(),
                                   );
-                                  if (selected != null) {
-                                    if (!mounted) return;
-                                    setState(
-                                      () {
-                                        time = selected;
-                                        if (selectedTime != null) {
-                                          time = time.add(
-                                            Duration(
-                                              hours: selectedTime.hour,
-                                              minutes: selectedTime.minute,
-                                            ),
-                                          );
-                                        }
-                                        // We want to show that this was successful,
-                                        // and so we set the text of the text field.
-                                        _dateController.text =
-                                            DateFormat('dd-MM-yy HH:mm')
-                                                .format(time);
-                                      },
-                                    );
-                                  }
+                                  if (selectedTime == null) return;
+                                  if (!mounted) return;
+                                  setState(
+                                    () {
+                                      time = selected;
+                                      time = time.add(
+                                        Duration(
+                                          hours: selectedTime.hour,
+                                          minutes: selectedTime.minute,
+                                        ),
+                                      );
+                                      // We want to show that this was successful,
+                                      // and so we set the text of the text field.
+                                      _dateController.text =
+                                          DateFormat('dd-MM-yy HH:mm')
+                                              .format(time);
+                                    },
+                                  );
                                 },
                                 child: TextFormField(
                                   // This form is disabled, as the code inside the

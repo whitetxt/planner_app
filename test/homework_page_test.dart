@@ -147,6 +147,40 @@ void main() {
       expect(find.text('Add homework'), findsNothing);
     });
 
+    testWidgets('Adding homework with a default date',
+        (WidgetTester tester) async {
+      mockApis(apiUrl);
+      mockSharedPrefs();
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      await tester.tap(find.byIcon(Icons.book));
+      await tester.pumpAndSettle();
+      expect(find.text('New'), findsOneWidget);
+
+      await tester.tap(find.text('New'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add homework'), findsOneWidget);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Homework Name'),
+        'Test Homework',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Description (Optional)'),
+        'Test Homework Description',
+      );
+      await tester.tap(find.widgetWithText(InkWell, 'Date Due'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add homework'), findsNothing);
+    });
+
     testWidgets('Adding homework by pressing enter on name field',
         (WidgetTester tester) async {
       mockApis(apiUrl);

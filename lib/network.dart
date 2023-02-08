@@ -31,7 +31,6 @@ void addRequest(NetworkOperation request) {
     // If we are online, then process this request normally.
     processNetworkRequest(request).then(
       (value) {
-        //print(value.body);
         if (value.statusCode == 999) {
           // Status code 999 is not used by HTTP, and so I use it to show a connection error.
           // If this occurs, then stop sending requests and start checking for whenever we

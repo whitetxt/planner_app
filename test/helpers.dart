@@ -121,6 +121,22 @@ void mockApis(
             'status': 'success',
             'data': [
               {
+                'event_id': 2,
+                'user_id': 0,
+                'name': 'event today',
+                'time': clock.now().millisecondsSinceEpoch,
+                'description': 'test description',
+                'private': false
+              },
+              {
+                'event_id': 3,
+                'user_id': 1,
+                'name': 'not yours',
+                'time': clock.now().millisecondsSinceEpoch,
+                'description': 'description',
+                'private': false
+              },
+              {
                 'event_id': 0,
                 'user_id': 0,
                 'name': 'public event',
@@ -151,14 +167,7 @@ void mockApis(
                 'event_id': 2,
                 'user_id': 0,
                 'name': 'event today',
-                'time': clock
-                    .now()
-                    .add(
-                      const Duration(
-                        hours: 1,
-                      ),
-                    )
-                    .millisecondsSinceEpoch,
+                'time': clock.now().millisecondsSinceEpoch,
                 'description': 'test description',
                 'private': false
               },
@@ -229,6 +238,14 @@ void mockApis(
     nock(apiUrl)
         .post(
           '/events',
+        )
+        .reply(
+          200,
+          json.encode({'status': 'success'}),
+        );
+    nock(apiUrl)
+        .delete(
+          '/events/2',
         )
         .reply(
           200,
