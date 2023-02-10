@@ -521,21 +521,21 @@ async def add_mark(name: str = Form(...), mark: int = Form(...), grade: str = Fo
 	return {"status": "success"}
 
 @app.put("/api/v1/marks", tags=["Marks"])
-async def update_mark(mark_id: int = Form(...), name: str = Form(...), mark: int = Form(...), grade: int = Form(...), user: User = Depends(get_current_user)):
+async def update_mark(mark_id: int = Form(...), name: str = Form(...), mark: int = Form(...), grade: str = Form(...), user: User = Depends(get_current_user)):
 	"""
 	Updates the details of a mark.
 	
 	Mark **must** belong to the current user.
 	"""
-	mark = Marks_DB.get_mark(mark_id)
-	if mark is None:
+	realMark = Marks_DB.get_mark(mark_id)
+	if realMark is None:
 		return {"status": "error", "message": "Mark doesn't exist."}
-	if mark.user_id != user.uid:
+	if realMark.user_id != user.uid:
 		return {"status": "error", "message": "Not your mark."}
-	mark.name = name
-	mark.mark = mark
-	mark.grade = grade
-	Marks_DB.update_mark(mark)
+	realMark.test_name = name
+	realMark.mark = mark
+	realMark.grade = grade
+	Marks_DB.update_mark(realMark)
 	return {"status": "success"}
 
 @app.delete("/api/v1/marks", tags=["Marks"])

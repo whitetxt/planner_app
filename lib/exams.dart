@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'globals.dart';
 import 'network.dart';
 import 'pl_appbar.dart'; // Provides PLAppBar for the bar at the top of the screen.
 
@@ -35,10 +34,19 @@ class MarkWidget extends StatelessWidget {
   final Function reset;
 
   String newName = '';
-  int newMark = 0;
+  int newMark = -1;
   String newGrade = '';
 
   void updateMark() {
+    if (newName == '') {
+      newName = data.name;
+    }
+    if (newMark == -1) {
+      newMark = data.mark;
+    }
+    if (newGrade == '') {
+      newGrade = data.grade!;
+    }
     addRequest(
       NetworkOperation(
         '/api/v1/marks',
@@ -48,10 +56,10 @@ class MarkWidget extends StatelessWidget {
           reset();
         },
         data: {
-          'mark_id': data.id,
-          'name': data.name,
-          'mark': data.mark.toString(),
-          'grade': data.grade
+          'mark_id': data.id.toString(),
+          'name': newName,
+          'mark': newMark.toString(),
+          'grade': newGrade
         },
       ),
     );
@@ -253,10 +261,6 @@ Future<void> gotMarks(http.Response response) async {
   // We must check for an error, then notify the user of it.
   if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
-  if (data['status'] != 'success') {
-    addNotif(data['message'], error: true);
-    return;
-  }
   marks = [];
   if (data['data'] != null) {
     for (dynamic mark in data['data']) {

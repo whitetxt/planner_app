@@ -38,11 +38,12 @@ class AppClass {
       // Since the server returns json for each piece of homework or user,
       // We use their respective classes and functions to convert them.
       [
-        for (dynamic homework in data['homework'])
+        for (Map<String, dynamic> homework in data['homework'])
           HomeworkData.fromJson(homework)
       ],
       [
-        for (dynamic student in data['students']) User.fromJson(student),
+        for (Map<String, dynamic> student in data['students'])
+          User.fromJson(student)
       ],
     );
   }
@@ -80,6 +81,9 @@ class _ClassWidgetState extends State<ClassWidget> {
 
   void setHomework() {
     // This sets a new piece of homework and refreshes the parent widget.
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
     addRequest(
       NetworkOperation(
         '/api/v1/classes/${widget.data.classId}/homework',
@@ -101,7 +105,7 @@ class _ClassWidgetState extends State<ClassWidget> {
     // I am using an ExpansionTile here, to allow the user to see which information they want.
     return ExpansionTile(
       title: Text(
-        '${widget.data.className} - ${widget.data.students.length} Students',
+        '${widget.data.className} - ${widget.data.students.length} Student${widget.data.students.length != 1 ? "s" : ""}',
       ),
       children: <Widget>[
         Row(
@@ -156,6 +160,7 @@ class _ClassWidgetState extends State<ClassWidget> {
                                     NetworkOperation(
                                       '$apiUrl/api/v1/users/search/${textEditingValue.text}',
                                       'GET',
+                                      // Since we are doing this manually, not with addRequest, don't add a callback
                                       (_) {},
                                     ),
                                   ).then(

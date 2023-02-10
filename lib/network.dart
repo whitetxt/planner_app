@@ -202,6 +202,8 @@ Future<http.Response> performRequest(
       headers: {'Authorization': token},
     ).catchError(
       (error, stackTrace) {
+        print('StackTrace: $stackTrace');
+        print('Body: $body');
         return handleNetworkError(error, url);
       },
     );
@@ -211,6 +213,7 @@ Future<http.Response> performRequest(
     headers: {'Authorization': token},
   ).catchError(
     (error, stackTrace) {
+      print('StackTrace: $stackTrace');
       return handleNetworkError(error, url);
     },
   );

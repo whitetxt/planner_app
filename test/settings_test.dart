@@ -168,12 +168,19 @@ void main() {
     testWidgets('Bad response from server during account deletion',
         (WidgetTester tester) async {
       mockApis(apiUrl, delete: false);
-      nock(apiUrl).delete('/api/v1/users/@me').reply(
-          200,
-          json.encode({
-            'status': 'fail',
-            'message': 'This is a test failure.',
-          }));
+      nock(apiUrl)
+          .delete(
+            '/api/v1/users/@me',
+          )
+          .reply(
+            200,
+            json.encode(
+              {
+                'status': 'fail',
+                'message': 'This is a test failure.',
+              },
+            ),
+          );
       mockSharedPrefs();
       await tester.pumpWidget(const PlannerApp());
 
