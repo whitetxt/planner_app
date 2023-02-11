@@ -64,13 +64,6 @@ class TimetableSlot extends StatefulWidget {
 class _TimetableSlotState extends State<TimetableSlot> {
   TimetableData? data;
 
-  void resetStates() {
-    Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
-    if (widget.reset != null) {
-      widget.reset!();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     data ??= widget.data;
@@ -429,11 +422,6 @@ class SubjectWidget extends StatelessWidget {
           onTap: () {},
           child: const Text('Modify'),
         ),
-        PopupMenuItem(
-          value: 3,
-          onTap: () {},
-          child: const Text('Delete'),
-        ),
       ],
       onSelected: (int value) {
         switch (value) {
@@ -441,62 +429,6 @@ class SubjectWidget extends StatelessWidget {
             settingTimetable(subject);
             break;
           case 2:
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  title: Container(
-                    decoration: BoxDecoration(
-                      border: Border(
-                        bottom: BorderSide(
-                          color: Theme.of(context).dividerColor,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    child: const Text(
-                      'Change Subject Colour',
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  content: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: ColorPicker(
-                          enableAlpha: false,
-                          hexInputBar: true,
-                          pickerColor: changedTo,
-                          onColorChanged: (value) => changedTo = value,
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            modifySubject(changedTo);
-                          },
-                          child: const Text('Update'),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          child: const Text('Cancel'),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            );
-            break;
-          case 3:
-            // TODO: Implement deleting subjects server-side!
             showDialog(
               context: context,
               builder: (BuildContext context) {
@@ -778,7 +710,7 @@ class _TimetablePageState extends State<TimetablePage> {
     double indent = 16;
     return Scaffold(
       appBar: PLAppBar('Timetable', context),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -885,20 +817,28 @@ class _TimetablePageState extends State<TimetablePage> {
                                       createSubject();
                                     },
                                   ),
-                                  ColorPicker(
-                                    enableAlpha: false,
-                                    hexInputBar: true,
-                                    pickerColor: colour,
-                                    onColorChanged: onColourChanged,
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: ColorPicker(
+                                        enableAlpha: false,
+                                        hexInputBar: true,
+                                        pickerColor: colour,
+                                        onColorChanged: onColourChanged,
+                                      ),
+                                    ),
                                   ),
-                                  ElevatedButton(
-                                    onPressed: () async {
-                                      // Validate the form (returns true if all is ok)
-                                      if (_formKey.currentState!.validate()) {
-                                        createSubject();
-                                      }
-                                    },
-                                    child: const Text('Create'),
+                                  Padding(
+                                    padding: const EdgeInsets.all(8),
+                                    child: ElevatedButton(
+                                      onPressed: () async {
+                                        // Validate the form (returns true if all is ok)
+                                        if (_formKey.currentState!.validate()) {
+                                          createSubject();
+                                        }
+                                      },
+                                      child: const Text('Create'),
+                                    ),
                                   ),
                                 ],
                               ),

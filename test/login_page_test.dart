@@ -5,14 +5,12 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:planner_app/main.dart';
 import 'package:planner_app/login.dart';
+import 'package:planner_app/globals.dart';
 
 import 'helpers.dart';
 import 'nock.dart';
 
 void main() {
-  const String apiUrl = 'https://planner-app.duckdns.org/api/v1';
-  //const String apiUrl = 'http://127.0.0.1:8000/api/v1';
-
   setUp(() {
     nock.cleanAll();
     nock.init();
@@ -221,7 +219,7 @@ void main() {
       mockApis(apiUrl, register: false);
       nock(apiUrl)
           .post(
-            '/auth/register',
+            '/api/v1/auth/register',
           )
           .reply(500, 'Whoops! Something went wrong.');
       await tester.pumpWidget(const PlannerApp());
@@ -247,7 +245,7 @@ void main() {
       mockApis(apiUrl, register: false);
       nock(apiUrl)
           .post(
-            '/auth/register',
+            '/api/v1/auth/register',
           )
           .reply(999, "Couldn't connect");
       await tester.pumpWidget(const PlannerApp());
@@ -273,7 +271,7 @@ void main() {
       mockApis(apiUrl, register: false);
       nock(apiUrl)
           .post(
-            '/auth/register',
+            '/api/v1/auth/register',
           )
           .reply(
             404,
@@ -304,7 +302,7 @@ void main() {
       mockApis(apiUrl, login: false);
       nock(apiUrl)
           .post(
-            '/auth/login',
+            '/api/v1/auth/login',
           )
           .reply(500, 'Whoops! Something went wrong.');
       await tester.pumpWidget(const PlannerApp());
@@ -327,7 +325,7 @@ void main() {
       mockApis(apiUrl, login: false);
       nock(apiUrl)
           .post(
-            '/auth/login',
+            '/api/v1/auth/login',
           )
           .reply(999, "Couldn't connect");
       await tester.pumpWidget(const PlannerApp());
@@ -350,7 +348,7 @@ void main() {
       mockApis(apiUrl, login: false);
       nock(apiUrl)
           .post(
-            '/auth/login',
+            '/api/v1/auth/login',
           )
           .reply(
             404,

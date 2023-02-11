@@ -26,7 +26,6 @@ class PlannerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ThemeData theme = ThemeData(
-      primarySwatch: Colors.blue,
       primaryColor: Colors.grey.shade600,
       highlightColor: Colors.blue.shade100,
       appBarTheme: AppBarTheme(
@@ -40,11 +39,11 @@ class PlannerApp extends StatelessWidget {
         color: Colors.blueGrey.shade700,
         elevation: 8,
       ),
-      // I chose this background colour, as it is a slightly darker white which is nicer for the eyes.
-      backgroundColor: const Color.fromRGBO(200, 200, 200, 1),
       // This gets the montserrat font from Google, and uses it as the main font for the app.
       textTheme: GoogleFonts.montserratTextTheme(),
       dividerColor: Colors.black,
+      colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
+          .copyWith(background: const Color.fromRGBO(200, 200, 200, 1)),
     );
     return MaterialApp(
       title: 'MobilePlanner',

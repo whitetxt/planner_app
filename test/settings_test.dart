@@ -2,18 +2,16 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:planner_app/login.dart';
 
+import 'package:planner_app/login.dart';
 import 'package:planner_app/main.dart';
 import 'package:planner_app/settings.dart';
+import 'package:planner_app/globals.dart';
 
 import 'helpers.dart';
 import 'nock.dart';
 
 void main() {
-  const String apiUrl = 'https://planner-app.duckdns.org/api/v1';
-  //const String apiUrl = 'http://127.0.0.1:8000/api/v1';
-
   setUp(() {
     nock.cleanAll();
     nock.init();
@@ -141,7 +139,7 @@ void main() {
     testWidgets('Bad response from server during account resetting',
         (WidgetTester tester) async {
       mockApis(apiUrl, reset: false);
-      nock(apiUrl).post('/users/reset').reply(
+      nock(apiUrl).post('/api/v1/users/reset').reply(
           200,
           json.encode({
             'status': 'fail',
@@ -170,12 +168,19 @@ void main() {
     testWidgets('Bad response from server during account deletion',
         (WidgetTester tester) async {
       mockApis(apiUrl, delete: false);
-      nock(apiUrl).delete('/users/@me').reply(
-          200,
-          json.encode({
-            'status': 'fail',
-            'message': 'This is a test failure.',
-          }));
+      nock(apiUrl)
+          .delete(
+            '/api/v1/users/@me',
+          )
+          .reply(
+            200,
+            json.encode(
+              {
+                'status': 'fail',
+                'message': 'This is a test failure.',
+              },
+            ),
+          );
       mockSharedPrefs();
       await tester.pumpWidget(const PlannerApp());
 

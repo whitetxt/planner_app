@@ -31,7 +31,6 @@ void addRequest(NetworkOperation request) {
     // If we are online, then process this request normally.
     processNetworkRequest(request).then(
       (value) {
-        //print(value.body);
         if (value.statusCode == 999) {
           // Status code 999 is not used by HTTP, and so I use it to show a connection error.
           // If this occurs, then stop sending requests and start checking for whenever we
@@ -128,14 +127,14 @@ bool validateResponse(http.Response response) {
       // communicate custom errors.
       return false;
     }
-    addNotif(response.body);
+    addNotif('An unknown network error has occurred: ${response.body}');
     return false;
   }
   Map<String, dynamic> data = json.decode(response.body);
   if (data['status'] != 'success') {
     // If it wasn't successful then the server will have returned the reason why
     // in the JSON so we display that to the user.
-    addNotif(data['message']);
+    addNotif('A network error has occurred: ${data['message']}');
     return false;
   }
   return true;
@@ -203,6 +202,8 @@ Future<http.Response> performRequest(
       headers: {'Authorization': token},
     ).catchError(
       (error, stackTrace) {
+        print('StackTrace: $stackTrace');
+        print('Body: $body');
         return handleNetworkError(error, url);
       },
     );
@@ -212,6 +213,7 @@ Future<http.Response> performRequest(
     headers: {'Authorization': token},
   ).catchError(
     (error, stackTrace) {
+      print('StackTrace: $stackTrace');
       return handleNetworkError(error, url);
     },
   );
@@ -233,6 +235,6 @@ http.Response handleNetworkError(dynamic error, String url) {
     onlineMode = false;
   }
   // Status code 999 is used to show that there was an error connecting to the server.
-  print(error.toString());
+  print('Network Error: $error');
   return http.Response(error.toString(), 999);
 }

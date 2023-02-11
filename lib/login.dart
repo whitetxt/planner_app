@@ -184,12 +184,7 @@ class _LoginPageState extends State<LoginPage> {
             NetworkOperation('$apiUrl/api/v1/users/@me', 'GET', (_) {}));
         if (!validateResponse(resp)) return;
         dynamic data = json.decode(resp.body)['data'];
-        me = User(
-          data['uid'],
-          data['username'],
-          DateTime.fromMillisecondsSinceEpoch(data['created_at']),
-          Permissions.values[data['permissions']],
-        );
+        me = User.fromJson(data);
         Navigator.pushNamedAndRemoveUntil(
           context,
           '/dash',
@@ -214,12 +209,7 @@ class _LoginPageState extends State<LoginPage> {
           NetworkOperation('$apiUrl/api/v1/users/@me', 'GET', (_) {}));
       if (!validateResponse(resp)) return;
       dynamic data = json.decode(resp.body)['data'];
-      me = User(
-        data['uid'],
-        data['username'],
-        DateTime.fromMillisecondsSinceEpoch(data['created_at']),
-        Permissions.values[data['permissions']],
-      );
+      me = User.fromJson(data);
       Navigator.pushNamedAndRemoveUntil(context, '/dash', (_) => false);
     } else {
       addNotif('Login failed: $reason');
@@ -237,7 +227,7 @@ class _LoginPageState extends State<LoginPage> {
           title: const Text('Login or Register'),
         ),
       ),
-      backgroundColor: Theme.of(context).backgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: Form(
         key: _formKey,
         child: Column(

@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:planner_app/login.dart';
@@ -7,13 +8,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'nock.dart';
 import 'dart:convert';
 
-bool homeworkCompleted = false;
-
 void mockApis(
   String apiUrl, {
   bool onlineCheck = true,
   bool register = true,
   bool login = true,
+  bool teacher = false,
   bool logout = true,
   bool delete = true,
   bool reset = true,
@@ -21,7 +21,11 @@ void mockApis(
   bool events = true,
   bool timetable = true,
   bool homework = true,
+  bool subjects = true,
+  bool marks = true,
+  bool classes = true,
 }) {
+  apiUrl = '$apiUrl/api/v1';
   if (onlineCheck) {
     nock(apiUrl)
         .get(
@@ -76,50 +80,49 @@ void mockApis(
                 'uid': 0,
                 'username': 'test_account',
                 'created_at': 0,
-                'permissions': 0,
+                // If we want to be a teacher, say we are, otherwise don't.
+                'permissions': teacher ? 1 : 0,
               }
-            },
-          ),
-        );
-  } else {
-    nock(apiUrl)
-        .get(
-          '/users/@me',
-        )
-        .reply(
-          200,
-          json.encode(
-            {
-              'status': 'success',
-              'data': {},
             },
           ),
         );
   }
   if (logout) {
-    nock(apiUrl).get('/auth/logout').reply(
-        200,
-        json.encode({
-          'status': 'success',
-        }));
+    nock(apiUrl)
+        .get(
+          '/auth/logout',
+        )
+        .reply(
+            200,
+            json.encode({
+              'status': 'success',
+            }));
   }
   if (delete) {
-    nock(apiUrl).delete('/users/@me').reply(
-        200,
-        json.encode(
-          {
-            'status': 'success',
-          },
-        ));
+    nock(apiUrl)
+        .delete(
+          '/users/@me',
+        )
+        .reply(
+            200,
+            json.encode(
+              {
+                'status': 'success',
+              },
+            ));
   }
   if (reset) {
-    nock(apiUrl).post('/users/reset').reply(
-        200,
-        json.encode(
-          {
-            'status': 'success',
-          },
-        ));
+    nock(apiUrl)
+        .post(
+          '/users/reset',
+        )
+        .reply(
+            200,
+            json.encode(
+              {
+                'status': 'success',
+              },
+            ));
   }
   if (events) {
     nock(apiUrl)
@@ -132,10 +135,27 @@ void mockApis(
             'status': 'success',
             'data': [
               {
+                'event_id': 2,
+                'user_id': 0,
+                'name': 'event today',
+                'time': clock.now().millisecondsSinceEpoch,
+                'description': 'test description',
+                'private': false
+              },
+              {
+                'event_id': 3,
+                'user_id': 1,
+                'name': 'not yours',
+                'time': clock.now().millisecondsSinceEpoch,
+                'description': 'description',
+                'private': false
+              },
+              {
                 'event_id': 0,
                 'user_id': 0,
                 'name': 'public event',
-                'time': DateTime.now()
+                'time': clock
+                    .now()
                     .add(
                       const Duration(
                         days: 1,
@@ -144,20 +164,6 @@ void mockApis(
                     .millisecondsSinceEpoch,
                 'description': 'test description',
                 'private': false
-              },
-              {
-                'event_id': 0,
-                'user_id': 0,
-                'name': 'private event',
-                'time': DateTime.now()
-                    .add(
-                      const Duration(
-                        days: 1,
-                      ),
-                    )
-                    .millisecondsSinceEpoch,
-                'description': 'test description',
-                'private': true
               },
             ],
           }),
@@ -172,10 +178,19 @@ void mockApis(
             'status': 'success',
             'data': [
               {
+                'event_id': 2,
+                'user_id': 0,
+                'name': 'event today',
+                'time': clock.now().millisecondsSinceEpoch,
+                'description': 'test description',
+                'private': false
+              },
+              {
                 'event_id': 0,
                 'user_id': 0,
                 'name': 'public event',
-                'time': DateTime.now()
+                'time': clock
+                    .now()
                     .add(
                       const Duration(
                         days: 1,
@@ -186,10 +201,11 @@ void mockApis(
                 'private': false
               },
               {
-                'event_id': 0,
+                'event_id': 1,
                 'user_id': 0,
                 'name': 'private event',
-                'time': DateTime.now()
+                'time': clock
+                    .now()
                     .add(
                       const Duration(
                         days: 1,
@@ -201,6 +217,14 @@ void mockApis(
               },
             ],
           }),
+        );
+    nock(apiUrl)
+        .post(
+          '/events',
+        )
+        .reply(
+          200,
+          json.encode({'status': 'success'}),
         );
   } else {
     nock(apiUrl)
@@ -224,6 +248,22 @@ void mockApis(
             'status': 'success',
             'data': [],
           }),
+        );
+    nock(apiUrl)
+        .post(
+          '/events',
+        )
+        .reply(
+          200,
+          json.encode({'status': 'success'}),
+        );
+    nock(apiUrl)
+        .delete(
+          '/events/2',
+        )
+        .reply(
+          200,
+          json.encode({'status': 'success'}),
         );
   }
   if (timetable) {
@@ -240,12 +280,13 @@ void mockApis(
         fakeTimetable[i][j] = {
           'subject_id': 0,
           'user_id': 0,
-          'name': 'test subject',
+          'name': 'test subject $i $j',
           'teacher': 'test teacher',
           'room': 'test room',
           'colour': '#FFFFFF',
         };
       }
+      fakeTimetable[i][1] = null;
     }
     nock(apiUrl)
         .get(
@@ -258,6 +299,30 @@ void mockApis(
             'data': fakeTimetable,
           }),
         );
+    nock(apiUrl)
+        .delete(
+          '/timetable',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+    nock(apiUrl)
+        .post(
+          '/timetable',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
   } else {
     nock(apiUrl)
         .get(
@@ -269,6 +334,30 @@ void mockApis(
             'status': 'success',
             'data': [],
           }),
+        );
+    nock(apiUrl)
+        .delete(
+          '/timetable',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+    nock(apiUrl)
+        .post(
+          '/timetable',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
         );
   }
 
@@ -288,7 +377,8 @@ void mockApis(
                   'class_id': null,
                   'completed_by': null,
                   'user_id': 0,
-                  'due_date': DateTime.now()
+                  'due_date': clock
+                      .now()
                       .add(const Duration(days: 1))
                       .millisecondsSinceEpoch,
                   'description': 'test description',
@@ -300,7 +390,8 @@ void mockApis(
                   'class_id': null,
                   'completed_by': null,
                   'user_id': 0,
-                  'due_date': DateTime.now()
+                  'due_date': clock
+                      .now()
                       .add(const Duration(days: 1))
                       .millisecondsSinceEpoch,
                   'description': 'test description',
@@ -312,7 +403,8 @@ void mockApis(
                   'class_id': null,
                   'completed_by': null,
                   'user_id': 0,
-                  'due_date': DateTime.now()
+                  'due_date': clock
+                      .now()
                       .add(const Duration(days: 90))
                       .millisecondsSinceEpoch,
                   'description': 'test description',
@@ -324,7 +416,8 @@ void mockApis(
                   'class_id': null,
                   'completed_by': null,
                   'user_id': 0,
-                  'due_date': DateTime.now()
+                  'due_date': clock
+                      .now()
                       .add(const Duration(days: 4))
                       .millisecondsSinceEpoch,
                   'description': 'test description',
@@ -336,7 +429,8 @@ void mockApis(
                   'class_id': null,
                   'completed_by': null,
                   'user_id': 0,
-                  'due_date': DateTime.now()
+                  'due_date': clock
+                      .now()
                       .add(const Duration(hours: 1))
                       .millisecondsSinceEpoch,
                   'description': 'test description',
@@ -352,7 +446,11 @@ void mockApis(
           200,
           json.encode({'status': 'success'}),
         );
-    nock(apiUrl).post('/homework').reply(
+    nock(apiUrl)
+        .post(
+          '/homework',
+        )
+        .reply(
           200,
           json.encode({'status': 'success'}),
         );
@@ -372,15 +470,331 @@ void mockApis(
         .patch(
           '/homework',
         )
-        .persist()
         .reply(
           200,
           json.encode({'status': 'success'}),
         );
   }
+  if (subjects) {
+    nock(apiUrl)
+        .get(
+          '/subjects/@me',
+        )
+        .reply(
+            200,
+            json.encode(
+              {
+                'status': 'success',
+                'data': [
+                  {
+                    'subject_id': 0,
+                    'user_id': 0,
+                    'name': 'test subject',
+                    'teacher': 'subject teacher',
+                    'room': 'A1',
+                    'colour': '#FF0000',
+                  }
+                ],
+              },
+            ));
+    nock(apiUrl)
+        .post(
+          '/subjects',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+    nock(apiUrl)
+        .patch(
+          '/subjects/0',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+  } else {
+    nock(apiUrl).get('/subjects/@me').reply(
+        200,
+        json.encode(
+          {
+            'status': 'success',
+            'data': [],
+          },
+        ));
+    nock(apiUrl)
+        .post(
+          '/subjects',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+    nock(apiUrl)
+        .patch(
+          '/subjects/0',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+  }
+  if (marks) {
+    nock(apiUrl).get('/marks').reply(
+        200,
+        json.encode({
+          'status': 'success',
+          'data': [
+            {
+              'mark_id': 0,
+              'user_id': 0,
+              'test_name': 'test mark',
+              'mark': 100,
+              'grade': 'A*',
+            },
+          ],
+        }));
+    nock(apiUrl)
+        .post(
+          '/marks',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+    nock(apiUrl)
+        .put(
+          '/marks',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+    nock(apiUrl)
+        .delete(
+          '/marks',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+  } else {
+    nock(apiUrl)
+        .get(
+          '/marks',
+        )
+        .reply(200, json.encode({'status': 'success', 'data': []}));
+    nock(apiUrl)
+        .post(
+          '/marks',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+    nock(apiUrl)
+        .put(
+          '/marks',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+    nock(apiUrl)
+        .delete(
+          '/marks',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+  }
+  if (classes) {
+    nock(apiUrl)
+        .get(
+          '/classes',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+              'data': [
+                {
+                  'class_id': 0,
+                  'teacher_id': 0,
+                  'class_name': 'test class',
+                  'homework': [
+                    {
+                      'homework_id': 10,
+                      'name': 'test class homework',
+                      'class_id': 0,
+                      'completed_by': 0,
+                      'user_id': 0,
+                      'due_date': clock
+                          .now()
+                          .add(const Duration(days: 1))
+                          .millisecondsSinceEpoch,
+                      'description': 'test description',
+                      'completed': false
+                    },
+                  ],
+                  'students': [
+                    {
+                      'uid': 1,
+                      'username': 'test_student',
+                      'created_at': 0,
+                      'permissions': 0,
+                    },
+                  ],
+                },
+              ],
+            },
+          ),
+        );
+    nock(apiUrl)
+        .get(
+          '/users/search/test',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+              'data': [
+                {
+                  'uid': 1,
+                  'username': 'test_student',
+                  'created_at': 0,
+                  'permissions': 0,
+                },
+                {
+                  'uid': 2,
+                  'username': 'test_student2',
+                  'created_at': 0,
+                  'permissions': 0,
+                },
+              ]
+            },
+          ),
+        );
+    nock(apiUrl)
+        .get(
+          '/users/search/test_student2',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+              'data': [
+                {
+                  'uid': 2,
+                  'username': 'test_student2',
+                  'created_at': 0,
+                  'permissions': 0,
+                },
+              ]
+            },
+          ),
+        );
+    nock(apiUrl)
+        .patch(
+          '/classes/0',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+    nock(apiUrl)
+        .post(
+          '/classes',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+    nock(apiUrl)
+        .post(
+          '/classes/0/homework',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+            },
+          ),
+        );
+
+    nock(apiUrl)
+        .get(
+          '/classes/0/homework/10',
+        )
+        .reply(
+          200,
+          json.encode(
+            {
+              'status': 'success',
+              'data': {
+                'incomplete': ['test_student'],
+                'completed': [],
+              },
+            },
+          ),
+        );
+  }
 }
 
-void mockSharedPrefs({bool homework = true}) {
+void mockSharedPrefs({bool homework = true, bool marks = true}) {
   String hw = '';
   if (homework) {
     hw = json.encode(
@@ -391,9 +805,8 @@ void mockSharedPrefs({bool homework = true}) {
           'class_id': null,
           'completed_by': null,
           'user_id': 0,
-          'due_date': DateTime.now()
-              .add(const Duration(days: 1))
-              .millisecondsSinceEpoch,
+          'due_date':
+              clock.now().add(const Duration(days: 1)).millisecondsSinceEpoch,
           'description': 'test description',
           'completed': false
         },
@@ -403,9 +816,8 @@ void mockSharedPrefs({bool homework = true}) {
           'class_id': null,
           'completed_by': null,
           'user_id': 0,
-          'due_date': DateTime.now()
-              .add(const Duration(days: 1))
-              .millisecondsSinceEpoch,
+          'due_date':
+              clock.now().add(const Duration(days: 1)).millisecondsSinceEpoch,
           'description': 'test description',
           'completed': true
         },
@@ -415,9 +827,8 @@ void mockSharedPrefs({bool homework = true}) {
           'class_id': null,
           'completed_by': null,
           'user_id': 0,
-          'due_date': DateTime.now()
-              .add(const Duration(days: 90))
-              .millisecondsSinceEpoch,
+          'due_date':
+              clock.now().add(const Duration(days: 90)).millisecondsSinceEpoch,
           'description': 'test description',
           'completed': false
         },
@@ -427,9 +838,8 @@ void mockSharedPrefs({bool homework = true}) {
           'class_id': null,
           'completed_by': null,
           'user_id': 0,
-          'due_date': DateTime.now()
-              .add(const Duration(days: 4))
-              .millisecondsSinceEpoch,
+          'due_date':
+              clock.now().add(const Duration(days: 4)).millisecondsSinceEpoch,
           'description': 'test description',
           'completed': false
         },
@@ -439,9 +849,8 @@ void mockSharedPrefs({bool homework = true}) {
           'class_id': null,
           'completed_by': null,
           'user_id': 0,
-          'due_date': DateTime.now()
-              .add(const Duration(hours: 1))
-              .millisecondsSinceEpoch,
+          'due_date':
+              clock.now().add(const Duration(hours: 1)).millisecondsSinceEpoch,
           'description': 'test description',
           'completed': false
         }
@@ -450,8 +859,23 @@ void mockSharedPrefs({bool homework = true}) {
   } else {
     hw = json.encode([]);
   }
+  String mks = '';
+  if (marks) {
+    mks = json.encode([
+      {
+        'mark_id': 0,
+        'user_id': 0,
+        'test_name': 'test mark',
+        'mark': 100,
+        'grade': 'A*',
+      },
+    ]);
+  } else {
+    mks = json.encode([]);
+  }
   SharedPreferences.setMockInitialValues({
     'homework': hw,
+    'marks': mks,
   });
 }
 
@@ -459,7 +883,7 @@ void mockSharedPrefs({bool homework = true}) {
 /// Tester must already have PlannerApp() pumped.
 Future<void> login(WidgetTester tester) async {
   expect(find.byType(LoginPage), findsOneWidget);
-  // Enter fake details to "create" fake account
+  // Enter fake details to login to account
   await tester.enterText(
       find.widgetWithText(TextFormField, 'Username'), 'test_account');
   await tester.pumpAndSettle();

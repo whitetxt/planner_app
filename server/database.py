@@ -56,7 +56,9 @@ class DB:
 	def _create_raw(self, ddl: str) -> None:
 		db = sqlite3.connect(self.path)
 		cursor = db.cursor()
-		cursor.execute(ddl + ";")
+		if ddl[-1] != ";":
+			ddl += ";"
+		cursor.execute(ddl)
 		db.commit()
 
 class UsersDB(DB):
@@ -506,7 +508,12 @@ class MarkDB(DB):
 		return True
 
 	def update_mark(self, mark: Mark) -> None:
-		self._update("marks", "user_id, test_name, mark, grade", "mark_id = ?", (mark.user_id, mark.test_name, mark.mark, mark.grade, mark.mark_id))
+		self._update(
+			"marks",
+			"user_id = ?, test_name = ?, mark = ?, grade = ?",
+			"mark_id = ?",
+			(mark.user_id, mark.test_name, mark.mark, mark.grade, mark.mark_id)
+		)
 
 class RegistrationCodeDB(DB):
 	def __init__(self, path):

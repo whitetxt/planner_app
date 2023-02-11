@@ -30,14 +30,7 @@ class Registry {
   void add(Interceptor interceptor) => _interceptors.add(interceptor);
 
   void remove(Interceptor interceptor) {
-    /*interceptor._onReply?.close();
-    bool res = _interceptors.remove(interceptor);
-    if (!res) {
-      print("FAILED TO REMOVE INTERCEPTOR!!");
-    } else {
-      print(
-          "REMOVED INTERCEPTOR ${interceptor._matcher.method} ${interceptor._matcher.uri._path}");
-    }*/
+    return;
   }
 
   Interceptor? match(HttpClientRequest request) {
