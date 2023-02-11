@@ -1,0 +1,29 @@
+package_rename_config:
+  android:
+    app_name: PlanAway
+    package_name: org.duckdns.evieuwu.planAway
+
+  ios:
+    app_name: PlanAway
+    bundle_name: planaway
+    package_name: org.duckdns.evieuwu.planAway
+
+  linux:
+    app_name: PlanAway
+    package_name: org.duckdns.evieuwu.planAway
+    exe_name: planaway
+
+  macos:
+    app_name: PlanAway
+    package_name: org.duckdns.evieuwu.planAway
+    copyright_notice: Copyright ©️ 2023 FoxCore. All rights reserved.
+
+  web:
+    app_name: PlanAway
+    description: A Cross-Platform Organisation App
+
+  windows:
+    app_name: PlanAway
+    organization: FoxCore
+    copyright_notice: Copyright ©️ 2023 FoxCore. All rights reserved.
+    exe_name: planaway

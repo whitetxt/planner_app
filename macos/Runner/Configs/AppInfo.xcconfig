@@ -5,10 +5,10 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = PlanAway;
+PRODUCT_NAME = PlanAway
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = org.duckdns.evieuwu.planAway;
+PRODUCT_BUNDLE_IDENTIFIER = org.duckdns.evieuwu.planAway
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2022 org.duckdns.evieuwu. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright ©️ 2023 FoxCore. All rights reserved.
