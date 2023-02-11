@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "org.duckdns.evieuwu" "\0"
-            VALUE "FileDescription", "planner_app" "\0"
+            VALUE "FileDescription", "PlanAway" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "planner_app" "\0"
+            VALUE "InternalName", "PlanAway" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2022 org.duckdns.evieuwu. All rights reserved." "\0"
             VALUE "OriginalFilename", "planner_app.exe" "\0"
-            VALUE "ProductName", "planner_app" "\0"
+            VALUE "ProductName", "PlanAway" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
