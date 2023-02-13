@@ -132,8 +132,8 @@ class _LoginPageState extends State<LoginPage> {
     var responseData = json.decode(response.body);
 
     // Combines the token and type together into a single string we can send with following requests.
-    var token = responseData['data']['access_token'];
-    var tokenType = responseData['data']['token_type'];
+    var token = responseData['access_token'];
+    var tokenType = responseData['token_type'];
     return '$tokenType $token';
   }
 
@@ -165,8 +165,8 @@ class _LoginPageState extends State<LoginPage> {
     var responseData = json.decode(response.body);
 
     // Combines the token and type together into a single string we can send with following requests.
-    var token = responseData['data']['access_token'];
-    var tokenType = responseData['data']['token_type'];
+    var token = responseData['access_token'];
+    var tokenType = responseData['token_type'];
     return '$tokenType $token';
   }
 

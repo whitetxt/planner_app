@@ -107,7 +107,7 @@ async def register(username: str = Form(...), password: str = Form(...), registr
 	if user is not None:
 		# If the username is taken, a user will be returned.
 		# Therefore we cannot let them have that username.
-		raise HTTPException(status_code=400, detail="Username is unavaliable.")
+		raise HTTPException(status_code=400, detail="Username is unavailable.")
 
 	token = "".join(random.choices("abcdefghijklmnopqrstuvwxyz0123456789", k=32))
 	uid = Users_DB.get_next_uid()
@@ -138,7 +138,7 @@ async def register(username: str = Form(...), password: str = Form(...), registr
 
 	# Gives the user their token.
 	# This means they are now logged in as this user.
-	return {"status": "success", "data": {"access_token": token, "token_type": "Bearer"}}
+	return {"access_token": token, "token_type": "Bearer"}
 
 @app.post("/api/v1/auth/login", tags=["Authentication"])
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -164,7 +164,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 	Users_DB.update_user(user)
 
-	return {"status": "success", "data": {"access_token": token, "token_type": "Bearer"}}
+	return {"access_token": token, "token_type": "Bearer"}
 
 @app.get("/api/v1/auth/logout", tags=["Authentication"])
 async def logout(current_user: User = Depends(get_current_user)):
@@ -374,7 +374,7 @@ async def get_subject_by_id(subject_id: int, user: User = Depends(get_current_us
 	sjs = Subjects_DB.get_subject_by_id(subject_id)
 	return {"status": "success", "data": sjs}
 
-@app.patch("/api/v1/subjects/{subject_id}")
+@app.patch("/api/v1/subjects/{subject_id}", tags=["Subjects"])
 async def update_subject(subject_id: int, colour: str = Form(...), user: User = Depends(get_current_user)):
 	"""
 	Changes the colour of a specific subject.

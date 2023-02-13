@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -60,8 +63,8 @@ void main() {
 
     testWidgets('Homework page hides completed homework',
         (WidgetTester tester) async {
-      mockApis(apiUrl, homework: false);
-      mockSharedPrefs(homework: false);
+      mockApis(apiUrl);
+      mockSharedPrefs();
       await tester.pumpWidget(const PlannerApp());
 
       // Logs into the app.
@@ -241,6 +244,74 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Add homework'), findsNothing);
+    });
+
+    testWidgets('Adding homework without a description',
+        (WidgetTester tester) async {
+      mockApis(apiUrl);
+      mockSharedPrefs();
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      await tester.tap(find.byIcon(Icons.book));
+      await tester.pumpAndSettle();
+      expect(find.text('New'), findsOneWidget);
+
+      await tester.tap(find.text('New'));
+      await tester.pumpAndSettle();
+      expect(find.text('Add homework'), findsOneWidget);
+
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Homework Name'),
+        'Test Homework',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Submit'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add homework'), findsNothing);
+    });
+
+    testWidgets('Homework without description shows message',
+        (WidgetTester tester) async {
+      mockApis(apiUrl, homework: false);
+      mockSharedPrefs(homework: false);
+      nock(apiUrl)
+          .get(
+            '/api/v1/homework',
+          )
+          .reply(
+            200,
+            json.encode({
+              'status': 'success',
+              'data': [
+                {
+                  'homework_id': 1,
+                  'name': 'no description homework',
+                  'class_id': null,
+                  'completed_by': null,
+                  'user_id': 0,
+                  'due_date': clock
+                      .now()
+                      .add(const Duration(days: 1))
+                      .millisecondsSinceEpoch,
+                  'description': null,
+                  'completed': false
+                },
+              ],
+            }),
+          );
+      await tester.pumpWidget(const PlannerApp());
+
+      // Logs into the app.
+      await login(tester);
+      await tester.tap(find.byIcon(Icons.book));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('no description homework'));
+      await tester.pumpAndSettle();
+      expect(find.text('No Description'), findsOneWidget);
     });
   });
 }

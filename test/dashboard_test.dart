@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:clock/clock.dart';
 
@@ -58,6 +60,17 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl, homework: false);
       mockSharedPrefs(homework: false);
+      nock(apiUrl)
+          .get(
+            '/api/v1/homework',
+          )
+          .reply(
+            200,
+            json.encode({
+              'status': 'success',
+              'data': [],
+            }),
+          );
       await tester.pumpWidget(const PlannerApp());
       // Logs into the app.
       await login(tester);

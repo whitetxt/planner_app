@@ -456,18 +456,15 @@ void mockApis(
         );
   } else {
     nock(apiUrl)
-        .get(
+        .patch(
           '/homework',
         )
         .reply(
           200,
-          json.encode({
-            'status': 'success',
-            'data': [],
-          }),
+          json.encode({'status': 'success'}),
         );
     nock(apiUrl)
-        .patch(
+        .post(
           '/homework',
         )
         .reply(
@@ -522,14 +519,18 @@ void mockApis(
           ),
         );
   } else {
-    nock(apiUrl).get('/subjects/@me').reply(
-        200,
-        json.encode(
-          {
-            'status': 'success',
-            'data': [],
-          },
-        ));
+    nock(apiUrl)
+        .get(
+          '/subjects/@me',
+        )
+        .reply(
+            200,
+            json.encode(
+              {
+                'status': 'success',
+                'data': [],
+              },
+            ));
     nock(apiUrl)
         .post(
           '/subjects',
