@@ -56,9 +56,9 @@ tags_metadata = [
 	}
 ]
 
-app = FastAPI(title="Planner App API",
-			description="API used for the backend of the planner app.",
-			version="0.4.2_beta",
+app = FastAPI(title="PlanAway API",
+			description="PlanAway's API for interacting with the back-end.",
+			version="1.0.0",
 			tags_metadata=tags_metadata,
 			routes=[Mount("/web", app=StaticFiles(directory="web"), name="Web")]
 		)
@@ -334,13 +334,20 @@ async def create_subject(name: str = Form(...), teacher: str = Form("None"), roo
 	"""
 	name = name.title()
 	if len(name) > 32:
-		return {"status": "fail", "message": "Subject name is longer than 32 characters"}
+		return {"status": "error", "message": "Subject name is longer than 32 characters"}
 	teacher = teacher.title()
 	if len(teacher) > 32:
-		return {"status": "fail", "message": "Teacher's name is longer than 32 characters"}
+		return {"status": "error", "message": "Teacher's name is longer than 32 characters"}
 	room = room.upper()
 	if len(room) > 16:
-		return {"status": "fail", "message": "Room name is longer than 16 characters"}
+		return {"status": "error", "message": "Room name is longer than 16 characters"}
+	if not colour.startswith("#") or not colour[1:].isnumeric() or len(colour) != 7:
+		return {"status": "error", "message": "Invalid colour"}
+	total_chars = 0
+	for char in "0123456789ABCDEF":
+		total_chars += colour.count(char)
+	if total_chars != 6:
+		return {"status": "error", "message": "Invalid colour"}
 	exists = Subjects_DB.get_subjects_by_name(name, user.uid)
 	if not exists:
 		for subject in exists:
@@ -386,6 +393,13 @@ async def update_subject(subject_id: int, colour: str = Form(...), user: User = 
 		return {"status": "error", "message": "Subject doesn't exist."}
 	if sj.user_id != user.uid:
 		return {"status": "error", "message": "Subject doesn't belong to the current user."}
+	if not colour.startswith("#") or not colour[1:].isnumeric() or len(colour) != 7:
+		return {"status": "error", "message": "Invalid colour"}
+	total_chars = 0
+	for char in "0123456789ABCDEF":
+		total_chars += colour.count(char)
+	if total_chars != 6:
+		return {"status": "error", "message": "Invalid colour"}
 	sj.colour = colour
 	Subjects_DB.update_subject(sj)
 	return {"status": "success"}
