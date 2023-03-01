@@ -46,7 +46,7 @@ class PlannerApp extends StatelessWidget {
           .copyWith(background: const Color.fromRGBO(200, 200, 200, 1)),
     );
     return MaterialApp(
-      title: 'MobilePlanner',
+      title: 'PlanAway',
       theme: theme,
       navigatorKey: navigatorKey,
       // I create routes here, which allows me to change the page by pushing the route's name

@@ -414,20 +414,6 @@ async def get_timetable(user: User = Depends(get_current_user)):
 	"""
 	Gets the current user's timetable.
 	"""
-	"""
-	For testing purposes
-	timetable = []
-	for day in range(5):
-		timetable.append([])
-		for period in range(9):
-			timetable[day].append(Subject(
-				subject_id=0,
-				user_id=0,
-				name="test subject",
-				teacher="Mrs Sian",
-				room="B5"
-			))
-	return {"status": "success", "data": timetable}"""
 	result = User_Subjects_DB.get_timetable(user.uid)
 	timetable = result.get_client_format()
 
@@ -448,6 +434,10 @@ async def add_timetable_subject(subject_id: int = Form(...), day: int = Form(...
 		return {"status": "error", "message": "Subject does not exist."}
 	if subject.user_id != user.uid:
 		return {"status": "error", "message": "Not your subject."}
+	if day < 0:
+		return {"status": "error", "message": "Invalid day."}
+	if period < 0:
+		return {"status": "error", "message": "Invalid period."}
 	result = User_Subjects_DB.create_connection(user.uid, subject_id, day, period)
 	if result:
 		return {"status": "success"}
@@ -759,6 +749,8 @@ async def get_completed_homework(class_id: int, homework_id: int, user: User = D
 		return {"status": "error", "message": "You may only get stats for homework for your own class."}
 	studentsInClass = User_Class_DB.get_students_in_class(class_id)
 	homework = Homework_DB.get_homework(homework_id)
+	if homework is None:
+		return {"status": "error", "message": "Homework doesn't exist."}
 	students = {"completed": [], "incomplete": []}
 	for student in studentsInClass:
 		user = Users_DB.get_user_from_uid(student)
