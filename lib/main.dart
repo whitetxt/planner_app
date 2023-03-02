@@ -12,9 +12,11 @@ import 'dashboard.dart';
 import 'calendar.dart';
 import 'exams.dart';
 import 'classes.dart';
+import 'notifs.dart';
 
-void main() {
+Future<void> main() async {
   // This tells Flutter to start the app and render stuff.
+  await setup_notifications();
   runApp(const PlannerApp());
 }
 

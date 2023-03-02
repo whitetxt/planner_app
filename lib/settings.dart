@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:planner_app/network.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'globals.dart';
 
@@ -12,11 +13,13 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-void onLogoutResponse(http.Response _) {
+Future<void> onLogoutResponse(http.Response _) async {
   // When we logout, we don't care if it failed or succeeded,
   // just throw away our token and go back to the login screen.
   token = '';
   me = null;
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('token');
   addNotif('Successfully logged out!', error: false);
   navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
 }
