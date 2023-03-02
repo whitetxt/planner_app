@@ -8,6 +8,11 @@ final GlobalKey<ScaffoldState> loginScaffoldKey = GlobalKey<ScaffoldState>();
 final GlobalKey<ScaffoldState> mainScaffoldKey = GlobalKey<ScaffoldState>();
 GlobalKey<ScaffoldState> currentScaffoldKey = loginScaffoldKey;
 
+// These variables allow me to control things with the notification system.
+int initialTabIndex = 2;
+bool notificationsEnabled = false;
+int lastNotificationID = 0;
+
 enum Permissions {
   // We create an enum here to hold user's permissions.
   // These variables can be accessed with Permissions.user or Permissions.teacher.

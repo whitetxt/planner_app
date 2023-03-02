@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:collection/collection.dart';
-import 'package:test/test.dart';
+import 'package:flutter_test/flutter_test.dart';
 
 import 'overrides.dart' show MockHttpClientRequest;
 import 'exceptions.dart';
@@ -66,7 +66,7 @@ class Interceptor {
   Function? exception;
 
   bool _isPersist = false;
-  bool _isDone = false;
+  final bool _isDone = false;
   bool _isRegistered = false;
   bool _isCanceled = false;
 

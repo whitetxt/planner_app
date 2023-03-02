@@ -4,8 +4,11 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:planner_app/network.dart';
 import 'package:http/http.dart' as http;
+import 'package:planner_app/notifs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:clock/clock.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 import 'pl_appbar.dart'; // Provides PLAppBar for the bar at the top of the screen.
 
@@ -382,6 +385,21 @@ class _HomeworkPageState extends State<HomeworkPage> {
       Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
       setState(() {});
     }
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    createTimedNotification(
+      'Homework Due Today',
+      'The piece of homework "$name" is due today!',
+      'TABIDX1',
+      // Schedule the notification for midnight.
+      tz.TZDateTime(tz.local, date.year, date.month, date.day),
+    );
+    createTimedNotification(
+      'Homework Due Today',
+      'The piece of homework "$name" is due today!',
+      'TABIDX1',
+      // Schedule the notification for midnight.
+      now.add(const Duration(seconds: 10)),
+    );
     // Then, add it to the server and refresh.
     addRequest(
       NetworkOperation(

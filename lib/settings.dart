@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:planner_app/network.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:planner_app/notifs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'globals.dart';
@@ -18,6 +19,11 @@ Future<void> onLogoutResponse(http.Response _) async {
   // just throw away our token and go back to the login screen.
   token = '';
   me = null;
+  createNotificationNow(
+    'Logout Successful',
+    'Successfully logged out of PlanAway',
+    'logout',
+  );
   final prefs = await SharedPreferences.getInstance();
   await prefs.remove('token');
   addNotif('Successfully logged out!', error: false);
