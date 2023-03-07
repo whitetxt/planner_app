@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:planner_app/network.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:planner_app/notifs.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'globals.dart';
 
@@ -12,11 +14,13 @@ class SettingsPage extends StatefulWidget {
   State<SettingsPage> createState() => _SettingsPageState();
 }
 
-void onLogoutResponse(http.Response _) {
+Future<void> onLogoutResponse(http.Response _) async {
   // When we logout, we don't care if it failed or succeeded,
   // just throw away our token and go back to the login screen.
   token = '';
   me = null;
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('token');
   addNotif('Successfully logged out!', error: false);
   navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
 }
@@ -36,7 +40,7 @@ void onDeleteResponse(http.Response response) {
   token = '';
   me = null;
   // Remove all of the previous navigation menus, so that a back arrow doesn't appear.
-  navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
+  navigatorKey.currentState!.pushReplacementNamed('/');
 }
 
 class _SettingsPageState extends State<SettingsPage> {
@@ -232,6 +236,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                     "Yes, I know what I'm doing.",
                                   ),
                                   onPressed: () {
+                                    Navigator.of(context).pop();
                                     addRequest(
                                       NetworkOperation(
                                         '/api/v1/users/@me',
@@ -239,7 +244,6 @@ class _SettingsPageState extends State<SettingsPage> {
                                         onDeleteResponse,
                                       ),
                                     );
-                                    Navigator.of(context).pop();
                                     addNotif(
                                       'This may take a while. Please be patient',
                                       error: false,

@@ -12,14 +12,16 @@ import 'dashboard.dart';
 import 'calendar.dart';
 import 'exams.dart';
 import 'classes.dart';
+import 'notifs.dart';
 
-void main() {
+Future<void> main() async {
   // This tells Flutter to start the app and render stuff.
-  runApp(const PlannerApp());
+  await setupNotifications();
+  runApp(const PlanAway());
 }
 
-class PlannerApp extends StatelessWidget {
-  const PlannerApp({Key? key}) : super(key: key);
+class PlanAway extends StatelessWidget {
+  const PlanAway({Key? key}) : super(key: key);
 
   // This overrides the build function, and returns a MaterialApp.
   // The MaterialApp is responsible for all rendering and event handling.
@@ -60,6 +62,7 @@ class PlannerApp extends StatelessWidget {
   }
 }
 
+/// The main page (Dashboard) for PlanAway
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
 
@@ -72,19 +75,22 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage>
     with SingleTickerProviderStateMixin {
-  TabController? _tabController;
-
+  TabController? tabController;
   // This simply creates the TabController on startup.
   @override
   void initState() {
-    _tabController = TabController(vsync: this, length: 5, initialIndex: 2);
+    tabController = TabController(
+      vsync: this,
+      length: 5,
+      initialIndex: initialTabIndex,
+    );
     super.initState();
   }
 
   // And this disposes of the TabController on close.
   @override
   void dispose() {
-    _tabController!.dispose();
+    tabController!.dispose();
     super.dispose();
   }
 
@@ -94,7 +100,7 @@ class _MainPageState extends State<MainPage>
     return Scaffold(
       key: mainScaffoldKey,
       body: TabBarView(
-        controller: _tabController,
+        controller: tabController,
         physics: const BouncingScrollPhysics(),
         dragStartBehavior: DragStartBehavior.down,
         children: [
@@ -110,7 +116,7 @@ class _MainPageState extends State<MainPage>
       ),
       bottomNavigationBar: BottomAppBar(
         child: TabBar(
-          controller: _tabController,
+          controller: tabController,
           unselectedLabelColor: const Color(0xFFBBBBBB),
           unselectedLabelStyle: const TextStyle(
             // Since some browsers don't like a font size of 0, I have used
