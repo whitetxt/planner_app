@@ -644,18 +644,18 @@ class MockHttpHeaders implements HttpHeaders {
 }
 
 class _HeaderValue implements HeaderValue {
-  String _value;
+  String? _value;
   Map<String, String?>? _parameters;
   Map<String, String?>? _unmodifiableParameters;
 
-  _HeaderValue([this._value = '', Map<String, String>? parameters]) {
+  _HeaderValue([Map<String, String>? parameters]) {
     if (parameters != null) {
       _parameters = Map<String, String>.from(parameters);
     }
   }
 
   @override
-  String get value => _value;
+  String get value => _value!;
 
   void _ensureParameters() {
     _parameters ??= <String, String>{};
@@ -694,7 +694,7 @@ class _ContentType extends _HeaderValue implements ContentType {
       Map<String, String> parameters)
       : _primaryType = primaryType,
         _subType = subType,
-        super('') {
+        super() {
     _value = '$_primaryType/$_subType';
     _ensureParameters();
     parameters.forEach((String key, String value) {

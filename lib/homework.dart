@@ -1,4 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
@@ -385,21 +388,23 @@ class _HomeworkPageState extends State<HomeworkPage> {
       Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
       setState(() {});
     }
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    createTimedNotification(
-      'Homework Due Today',
-      'The piece of homework "$name" is due today!',
-      'TABIDX1',
-      // Schedule the notification for midnight.
-      tz.TZDateTime(tz.local, date.year, date.month, date.day),
-    );
-    createTimedNotification(
-      'Homework Due Today',
-      'The piece of homework "$name" is due today!',
-      'TABIDX1',
-      // Schedule the notification for midnight.
-      now.add(const Duration(seconds: 10)),
-    );
+    if (!(kIsWeb || Platform.isLinux)) {
+      final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+      createTimedNotification(
+        'Homework Due Today',
+        'The piece of homework "$name" is due today!',
+        'TABIDX1',
+        // Schedule the notification for midnight.
+        tz.TZDateTime(tz.local, date.year, date.month, date.day),
+      );
+      createTimedNotification(
+        'Homework Due Today',
+        'The piece of homework "$name" is due today!',
+        'TABIDX1',
+        // Schedule the notification for midnight.
+        now.add(const Duration(seconds: 10)),
+      );
+    }
     // Then, add it to the server and refresh.
     addRequest(
       NetworkOperation(

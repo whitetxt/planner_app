@@ -57,7 +57,6 @@ class _LoginPageState extends State<LoginPage> {
     }
     if (!valid) {
       if (!mounted) return;
-      final prefs = await SharedPreferences.getInstance();
       await prefs.remove('token');
       addNotif('Login has expired. Please re-login');
       setState(() {
@@ -379,13 +378,13 @@ class _LoginPageState extends State<LoginPage> {
                             children: [
                               ElevatedButton(
                                 onPressed: () async {
-                                  validateRegistration();
+                                  await validateRegistration();
                                 },
                                 child: const Text('Register'),
                               ),
                               ElevatedButton(
                                 onPressed: () async {
-                                  validateLogin();
+                                  await validateLogin();
                                 },
                                 child: const Text('Login'),
                               ),

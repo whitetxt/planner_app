@@ -47,19 +47,6 @@ const String homeworkCompletion = 'id_1';
 /// A notification action which triggers a App navigation event
 const String navigationActionId = 'id_3';
 
-@pragma('vm:entry-point')
-void notificationTapBackground(NotificationResponse notificationResponse) {
-  // ignore: avoid_print
-  print('notification(${notificationResponse.id}) action tapped: '
-      '${notificationResponse.actionId} with'
-      ' payload: ${notificationResponse.payload}');
-  if (notificationResponse.input?.isNotEmpty ?? false) {
-    // ignore: avoid_print
-    print(
-        'notification action tapped with input: ${notificationResponse.input}');
-  }
-}
-
 Future<void> setupNotifications() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -81,13 +68,12 @@ Future<void> setupNotifications() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('app_icon');
 
-  final LinuxInitializationSettings initializationSettingsLinux =
+  const LinuxInitializationSettings initializationSettingsLinux =
       LinuxInitializationSettings(
     defaultActionName: 'Open notification',
-    defaultIcon: AssetsLinuxIcon('icons/app_icon.png'),
   );
 
-  final InitializationSettings initializationSettings = InitializationSettings(
+  const InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
     linux: initializationSettingsLinux,
   );
@@ -104,7 +90,6 @@ Future<void> setupNotifications() async {
         initialTabIndex = tabIndex;
       }
     },
-    onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
   );
 
   if (Platform.isAndroid) {

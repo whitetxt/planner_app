@@ -62,6 +62,7 @@ class PlannerApp extends StatelessWidget {
   }
 }
 
+/// The main page (Dashboard) for PlanAway
 class MainPage extends StatefulWidget {
   const MainPage({Key? key}) : super(key: key);
 

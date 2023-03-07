@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 // These keys are used to keep a hold of the current navigator and scaffold.
 // The navigator key is used to close dialogs without needing the BuildContext.
 // The scaffold key is used to get the current context without needing the BuildContext.
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<ScaffoldState> loginScaffoldKey = GlobalKey<ScaffoldState>();
-final GlobalKey<ScaffoldState> mainScaffoldKey = GlobalKey<ScaffoldState>();
+GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+GlobalKey<ScaffoldState> loginScaffoldKey = GlobalKey<ScaffoldState>();
+GlobalKey<ScaffoldState> mainScaffoldKey = GlobalKey<ScaffoldState>();
 GlobalKey<ScaffoldState> currentScaffoldKey = loginScaffoldKey;
 
 // These variables allow me to control things with the notification system.
