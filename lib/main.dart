@@ -17,11 +17,11 @@ import 'notifs.dart';
 Future<void> main() async {
   // This tells Flutter to start the app and render stuff.
   await setupNotifications();
-  runApp(const PlannerApp());
+  runApp(const PlanAway());
 }
 
-class PlannerApp extends StatelessWidget {
-  const PlannerApp({Key? key}) : super(key: key);
+class PlanAway extends StatelessWidget {
+  const PlanAway({Key? key}) : super(key: key);
 
   // This overrides the build function, and returns a MaterialApp.
   // The MaterialApp is responsible for all rendering and event handling.

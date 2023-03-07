@@ -20,7 +20,7 @@ void main() {
   group('Normal Data', () {
     testWidgets('Registration Cancel', (WidgetTester tester) async {
       mockApis(apiUrl);
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -45,7 +45,7 @@ void main() {
 
     testWidgets('Registration', (WidgetTester tester) async {
       mockApis(apiUrl);
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -72,7 +72,7 @@ void main() {
     testWidgets('Registration with registration code',
         (WidgetTester tester) async {
       mockApis(apiUrl);
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -101,7 +101,7 @@ void main() {
 
     testWidgets('Login', (WidgetTester tester) async {
       mockApis(apiUrl);
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter in fake details
@@ -122,7 +122,7 @@ void main() {
     testWidgets('Login using enter key on username field',
         (WidgetTester tester) async {
       mockApis(apiUrl);
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -146,7 +146,7 @@ void main() {
     testWidgets('Login using enter key on password field',
         (WidgetTester tester) async {
       mockApis(apiUrl);
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -169,7 +169,7 @@ void main() {
   group('Erroneous Data', () {
     testWidgets('Username Validation', (WidgetTester tester) async {
       mockApis(apiUrl);
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Test if it checks for
@@ -185,7 +185,7 @@ void main() {
 
     testWidgets('Password Length Validation', (WidgetTester tester) async {
       mockApis(apiUrl);
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -206,7 +206,7 @@ void main() {
 
     testWidgets('Password Number Validation', (WidgetTester tester) async {
       mockApis(apiUrl);
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -232,7 +232,7 @@ void main() {
             '/api/v1/auth/register',
           )
           .reply(500, 'Whoops! Something went wrong.');
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -259,7 +259,7 @@ void main() {
             '/api/v1/auth/register',
           )
           .reply(999, "Couldn't connect");
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -291,7 +291,7 @@ void main() {
               'detail': 'Not Found.',
             }),
           );
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -318,7 +318,7 @@ void main() {
             '/api/v1/auth/login',
           )
           .reply(500, 'Whoops! Something went wrong.');
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -342,7 +342,7 @@ void main() {
             '/api/v1/auth/login',
           )
           .reply(999, "Couldn't connect");
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -371,7 +371,7 @@ void main() {
               'detail': 'Not Found.',
             }),
           );
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account
@@ -391,7 +391,7 @@ void main() {
   group('Boundary Data', () {
     testWidgets('Password Length', (WidgetTester tester) async {
       mockApis(apiUrl);
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       await tester.pumpAndSettle();
 
       // Enter fake details to "create" fake account

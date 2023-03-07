@@ -22,7 +22,7 @@ void main() {
       mockSharedPrefs();
       // Set fixed time, so that it is constant whenever it is run.
       await withClock(Clock.fixed(DateTime(2022, 11, 28)), () async {
-        await tester.pumpWidget(const PlannerApp());
+        await tester.pumpWidget(const PlanAway());
 
         // Logs into the app.
         await login(tester);
@@ -37,7 +37,7 @@ void main() {
       mockSharedPrefs();
       // Set fixed time, so that it is constant whenever it is run.
       await withClock(Clock.fixed(DateTime(2022, 11, 26)), () async {
-        await tester.pumpWidget(const PlannerApp());
+        await tester.pumpWidget(const PlanAway());
 
         // Logs into the app.
         await login(tester);
@@ -49,7 +49,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       // Logs into the app.
       await login(tester);
       expect(find.text('test homework'), findsOneWidget);
@@ -71,7 +71,7 @@ void main() {
               'data': [],
             }),
           );
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
       // Logs into the app.
       await login(tester);
       expect(find.text('test homework'), findsNothing);
@@ -82,7 +82,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       await login(tester);
       expect(find.text('Upcoming Events'), findsOneWidget);
@@ -92,7 +92,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl, events: false);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       await login(tester);
       expect(find.text('No upcoming events!'), findsOneWidget);

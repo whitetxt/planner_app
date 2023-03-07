@@ -21,7 +21,7 @@ void main() {
     testWidgets('Settings page opens', (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -35,7 +35,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -52,7 +52,7 @@ void main() {
     testWidgets('Resetting data then cancelling', (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -73,7 +73,7 @@ void main() {
     testWidgets('Resetting account', (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -96,7 +96,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -117,7 +117,7 @@ void main() {
     testWidgets('Deleting account', (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -146,7 +146,7 @@ void main() {
             'message': 'This is a test failure.',
           }));
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -182,7 +182,7 @@ void main() {
             ),
           );
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
