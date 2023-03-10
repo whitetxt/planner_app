@@ -43,12 +43,7 @@ void mockApis(
         )
         .reply(
           200,
-          json.encode(
-            {
-              'status': 'success',
-              'data': {'access_token': 'fake_token', 'token_type': 'Bearer'}
-            },
-          ),
+          json.encode({'access_token': 'fake_token', 'token_type': 'Bearer'}),
         );
   }
   if (login) {
@@ -58,12 +53,7 @@ void mockApis(
         )
         .reply(
           200,
-          json.encode(
-            {
-              'status': 'success',
-              'data': {'access_token': 'fake_token', 'token_type': 'Bearer'}
-            },
-          ),
+          json.encode({'access_token': 'fake_token', 'token_type': 'Bearer'}),
         );
   }
   if (usersme) {
@@ -883,12 +873,11 @@ void mockSharedPrefs({bool homework = true, bool marks = true}) {
 /// Logs into the PlannerApp for a test
 /// Tester must already have PlannerApp() pumped.
 Future<void> login(WidgetTester tester) async {
+  await tester.pumpAndSettle();
   expect(find.byType(LoginPage), findsOneWidget);
   // Enter fake details to login to account
   await tester.enterText(
       find.widgetWithText(TextFormField, 'Username'), 'test_account');
-  await tester.pumpAndSettle();
-
   await tester.enterText(
       find.widgetWithText(TextFormField, 'Password'), 'testpassword123');
   await tester.pumpAndSettle();

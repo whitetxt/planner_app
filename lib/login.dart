@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'globals.dart';
 import 'network.dart';
@@ -23,6 +24,56 @@ class _LoginPageState extends State<LoginPage> {
   String user = '';
   String pass = '';
   String regCode = '';
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    checkUserLogin();
+  }
+
+  Future<void> checkUserLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? storedToken = prefs.getString('token');
+    if (storedToken == null) {
+      if (!mounted) return;
+      setState(() {
+        loading = false;
+      });
+      return;
+    }
+    http.Response resp = await http.get(
+      Uri.parse('$apiUrl/api/v1/users/@me'),
+      headers: {'Authorization': storedToken},
+    );
+    bool valid = false;
+    if (resp.statusCode == 200) {
+      Map<String, dynamic> data = json.decode(resp.body);
+      if (data['status'] != 'success') {
+        valid = false;
+      } else {
+        valid = true;
+      }
+    }
+    if (!valid) {
+      if (!mounted) return;
+      await prefs.remove('token');
+      addNotif('Login has expired. Please re-login');
+      setState(() {
+        loading = false;
+      });
+      return;
+    }
+    Map<String, dynamic> data = json.decode(resp.body)['data'];
+    me = User.fromJson(data);
+    token = storedToken;
+    addNotif('Successfully logged in!', error: false);
+    Navigator.pushNamedAndRemoveUntil(
+      context,
+      '/dash',
+      (_) => false,
+    );
+  }
 
   String calculatePasswordHash(String password) {
     // Hashes the password client-side to prevent sending it as plaintext over the wire.
@@ -134,6 +185,8 @@ class _LoginPageState extends State<LoginPage> {
     // Combines the token and type together into a single string we can send with following requests.
     var token = responseData['access_token'];
     var tokenType = responseData['token_type'];
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', '$tokenType $token');
     return '$tokenType $token';
   }
 
@@ -167,6 +220,8 @@ class _LoginPageState extends State<LoginPage> {
     // Combines the token and type together into a single string we can send with following requests.
     var token = responseData['access_token'];
     var tokenType = responseData['token_type'];
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('token', '$tokenType $token');
     return '$tokenType $token';
   }
 
@@ -259,74 +314,83 @@ class _LoginPageState extends State<LoginPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.person),
-                        hintText: 'Username',
-                        labelText: 'Username',
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Enter a username';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        user = value;
-                      },
-                      onFieldSubmitted: (String _) async {
-                        await validateLogin();
-                      },
-                    ),
-                    TextFormField(
-                      decoration: const InputDecoration(
-                        icon: Icon(Icons.key),
-                        hintText: 'Password',
-                        labelText: 'Password',
-                      ),
-                      obscureText: true,
-                      enableSuggestions: false,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Enter a password';
-                        }
-                        if (value.length < 8) {
-                          return 'Password must be at least 8 characters long.';
-                        }
-                        if (value.characters
-                            .where((String character) =>
-                                '1234567890'.contains(character))
-                            .isEmpty) {
-                          return 'Password must contain a number.';
-                        }
-                        return null;
-                      },
-                      onChanged: (value) {
-                        pass = value;
-                      },
-                      onFieldSubmitted: (String _) async {
-                        await validateLogin();
-                      },
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () async {
-                            validateRegistration();
-                          },
-                          child: const Text('Register'),
-                        ),
-                        ElevatedButton(
-                          onPressed: () async {
-                            validateLogin();
-                          },
-                          child: const Text('Login'),
-                        ),
-                      ],
-                    ),
-                  ],
+                  children: loading
+                      ? const [
+                          // If we are checking if we are currently logged in.
+                          Text('Verifying stored login'),
+                          CircularProgressIndicator(
+                            value: null,
+                          ),
+                        ]
+                      : [
+                          // If we need the user to login again
+                          TextFormField(
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.person),
+                              hintText: 'Username',
+                              labelText: 'Username',
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Enter a username';
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              user = value;
+                            },
+                            onFieldSubmitted: (String _) async {
+                              await validateLogin();
+                            },
+                          ),
+                          TextFormField(
+                            decoration: const InputDecoration(
+                              icon: Icon(Icons.key),
+                              hintText: 'Password',
+                              labelText: 'Password',
+                            ),
+                            obscureText: true,
+                            enableSuggestions: false,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Enter a password';
+                              }
+                              if (value.length < 8) {
+                                return 'Password must be at least 8 characters long.';
+                              }
+                              if (value.characters
+                                  .where((String character) =>
+                                      '1234567890'.contains(character))
+                                  .isEmpty) {
+                                return 'Password must contain a number.';
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              pass = value;
+                            },
+                            onFieldSubmitted: (String _) async {
+                              await validateLogin();
+                            },
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () async {
+                                  await validateRegistration();
+                                },
+                                child: const Text('Register'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  await validateLogin();
+                                },
+                                child: const Text('Login'),
+                              ),
+                            ],
+                          ),
+                        ],
                 ),
               ),
             ),

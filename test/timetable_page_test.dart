@@ -19,7 +19,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -33,7 +33,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -49,7 +49,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -72,7 +72,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -98,7 +98,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -124,7 +124,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -146,7 +146,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -173,7 +173,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -201,7 +201,7 @@ void main() {
     testWidgets('Creating a new subject', (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -237,7 +237,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -273,7 +273,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -309,7 +309,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -347,7 +347,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);

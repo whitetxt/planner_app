@@ -110,6 +110,9 @@ class MarkWidget extends StatelessWidget {
                     PopupMenuItem(
                       onTap: () {
                         Future.delayed(
+                          // I'm not entirely sure why I use a Future.delayed here,
+                          // I've not touched this code in months but it probably
+                          // fixes some sort of bug hopefully? :/
                           const Duration(microseconds: 1),
                           () => showDialog(
                             context: context,
@@ -188,7 +191,7 @@ class MarkWidget extends StatelessWidget {
                                         },
                                         validator: (value) {
                                           if (value == null || value.isEmpty) {
-                                            return 'Enter a name';
+                                            return 'Enter a grade';
                                           }
                                           return null;
                                         },

@@ -271,6 +271,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
         ),
       );
     }
+    // Adjust the day so that Monday is 0 instead of 1.
     today--;
     return SizedBox(
       width: 15 * MediaQuery.of(context).size.width / 16,
@@ -301,6 +302,8 @@ class _TodayTimetableState extends State<TodayTimetable> {
                         children: <Widget>[
                           Text('Period ${idx + 1}'),
                           Text(timetable[today][idx].name),
+                          Text(timetable[today][idx].teacher),
+                          Text(timetable[today][idx].room),
                         ],
                       ),
                     ),

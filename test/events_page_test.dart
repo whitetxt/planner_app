@@ -23,7 +23,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -36,7 +36,7 @@ void main() {
     testWidgets('Creating a private event', (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -66,7 +66,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -97,7 +97,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -127,7 +127,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -163,7 +163,7 @@ void main() {
             );
         mockApis(apiUrl, usersme: false);
         mockSharedPrefs();
-        await tester.pumpWidget(const PlannerApp());
+        await tester.pumpWidget(const PlanAway());
 
         // Logs into the app.
         await login(tester);
@@ -195,7 +195,7 @@ void main() {
         (WidgetTester tester) async {
       mockApis(apiUrl);
       mockSharedPrefs();
-      await tester.pumpWidget(const PlannerApp());
+      await tester.pumpWidget(const PlanAway());
 
       // Logs into the app.
       await login(tester);
@@ -217,7 +217,7 @@ void main() {
       await withClock(Clock.fixed(DateTime(2022, 11, 26, 12, 12)), () async {
         mockApis(apiUrl);
         mockSharedPrefs();
-        await tester.pumpWidget(const PlannerApp());
+        await tester.pumpWidget(const PlanAway());
 
         // Logs into the app.
         await login(tester);
@@ -256,7 +256,7 @@ void main() {
       await withClock(Clock.fixed(DateTime(2022, 11, 26, 12, 12)), () async {
         mockApis(apiUrl);
         mockSharedPrefs();
-        await tester.pumpWidget(const PlannerApp());
+        await tester.pumpWidget(const PlanAway());
 
         // Logs into the app.
         await login(tester);
