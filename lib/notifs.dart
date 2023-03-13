@@ -92,7 +92,7 @@ Future<void> setupNotifications() async {
     },
   );
 
-  if (Platform.isAndroid) {
+  if (!kIsWeb && Platform.isAndroid) {
     final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
         flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
