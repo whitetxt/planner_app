@@ -734,12 +734,9 @@ class _TimetablePageState extends State<TimetablePage> {
                 child: TextButton.icon(
                   style: TextButton.styleFrom(
                     backgroundColor: Theme.of(context).highlightColor,
-                    side: const BorderSide(color: Colors.black),
                   ),
-                  icon: Icon(
-                    settingTimetable ? Icons.stop : Icons.add,
-                    color: Colors.black,
-                  ),
+                  icon: Icon(settingTimetable ? Icons.stop : Icons.add),
+                  label: Text(settingTimetable ? 'Stop Setting' : 'New'),
                   onPressed: () {
                     if (settingTimetable) {
                       if (!mounted) return;
@@ -860,12 +857,6 @@ class _TimetablePageState extends State<TimetablePage> {
                       );
                     }
                   },
-                  label: Text(
-                    settingTimetable ? 'Stop Setting' : 'New',
-                    style: const TextStyle(
-                      color: Colors.black,
-                    ),
-                  ),
                 ),
               ),
               Expanded(

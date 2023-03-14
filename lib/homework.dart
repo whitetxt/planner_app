@@ -441,13 +441,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
                 child: TextButton.icon(
                   style: TextButton.styleFrom(
                     backgroundColor: Theme.of(context).highlightColor,
-                    side: const BorderSide(color: Colors.black),
                   ),
-                  icon: const Icon(
-                    Icons.add,
-                    color: Colors.black,
-                    size: 24,
-                  ),
+                  icon: const Icon(Icons.add),
+                  label: const Text('New'),
                   onPressed: () {
                     name = '';
                     date = clock.now();
@@ -559,12 +555,6 @@ class _HomeworkPageState extends State<HomeworkPage> {
                       },
                     );
                   },
-                  label: const Text(
-                    'New',
-                    style: TextStyle(
-                      color: Colors.black,
-                    ),
-                  ),
                 ),
               ),
               Column(

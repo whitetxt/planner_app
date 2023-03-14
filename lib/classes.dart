@@ -554,10 +554,11 @@ class _ClassPageState extends State<ClassPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 4),
                 child: TextButton.icon(
-                  label: const Text(
-                    'Create Class',
-                    style: TextStyle(color: Colors.black),
+                  label: const Text('Create Class'),
+                  style: TextButton.styleFrom(
+                    backgroundColor: Theme.of(context).highlightColor,
                   ),
+                  icon: const Icon(Icons.add),
                   onPressed: () {
                     showDialog(
                       context: context,
@@ -618,11 +619,6 @@ class _ClassPageState extends State<ClassPage> {
                       },
                     );
                   },
-                  style: TextButton.styleFrom(
-                    backgroundColor: Theme.of(context).highlightColor,
-                    side: const BorderSide(color: Colors.black),
-                  ),
-                  icon: const Icon(Icons.add, color: Colors.black),
                 ),
               ),
             ],

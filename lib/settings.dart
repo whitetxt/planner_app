@@ -67,6 +67,9 @@ class _SettingsPageState extends State<SettingsPage> {
                   // Use an icon with text next to it for the button.
                   icon: const Icon(Icons.logout),
                   label: const Text('Logout'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).highlightColor,
+                  ),
                   onPressed: () {
                     addRequest(
                       NetworkOperation(

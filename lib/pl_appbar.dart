@@ -10,6 +10,8 @@ class PLAppBar extends PreferredSize {
           preferredSize: const Size.fromHeight(48),
           child: AppBar(
             automaticallyImplyLeading: false,
+            backgroundColor: Theme.of(context).colorScheme.background,
+            surfaceTintColor: Theme.of(context).colorScheme.background,
             title: Flex(
               // Since we want to have both the button and text on the appbar,
               // I use a Flex to include space between them.
@@ -18,17 +20,14 @@ class PLAppBar extends PreferredSize {
               children: <Widget>[
                 Text(text),
                 ElevatedButton(
-                  clipBehavior: Clip.antiAlias,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        Theme.of(context).buttonTheme.colorScheme!.background,
+                    backgroundColor: Theme.of(context).highlightColor,
+                    side: const BorderSide(width: 0),
                     shape: const CircleBorder(
                       side: BorderSide(width: 2),
                     ),
                   ),
-                  child: const Icon(
-                    Icons.settings,
-                  ),
+                  child: const Icon(Icons.settings),
                   onPressed: () => Navigator.push(
                     // While normally I would user Navigator.pushNamed, here I
                     // wanted to have an animation, which pushNamed does not allow.

@@ -410,9 +410,11 @@ class _CalendarPageState extends State<CalendarPage> {
               TextButton.icon(
                 style: TextButton.styleFrom(
                   backgroundColor: Theme.of(context).highlightColor,
-                  side: const BorderSide(color: Colors.black),
                 ),
-                icon: const Icon(Icons.add, color: Colors.black),
+                icon: const Icon(Icons.add),
+                label: const Text(
+                  'New',
+                ),
                 onPressed: () {
                   showDialog(
                     context: context,
@@ -554,12 +556,6 @@ class _CalendarPageState extends State<CalendarPage> {
                     },
                   );
                 },
-                label: const Text(
-                  'New',
-                  style: TextStyle(
-                    color: Colors.black,
-                  ),
-                ),
               ),
             ],
           ),
