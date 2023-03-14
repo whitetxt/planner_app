@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:clock/clock.dart';
 
 import 'package:http/http.dart' as http;
-import 'package:planner_app/globals.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 
+import 'globals.dart';
 import 'pl_appbar.dart'; // Provides PLAppBar for the bar at the top of the screen.
 import 'network.dart'; // Allows network requests on this page.
 
@@ -20,7 +20,7 @@ class TimetableData {
   final String name;
   final String teacher;
   final String room;
-  final String colour;
+  final String? colour;
 }
 
 List<List<TimetableData>> timetable = [[], [], [], [], []];
@@ -67,10 +67,15 @@ class _TimetableSlotState extends State<TimetableSlot> {
   @override
   Widget build(BuildContext context) {
     data ??= widget.data;
-    Color bg = Color(
-      // Convert a hex code back into a color object.
-      int.parse(data!.colour.substring(1, 7), radix: 16) + 0xFF000000,
-    );
+    Color bg;
+    if (data!.colour == null) {
+      bg = Theme.of(context).highlightColor;
+    } else {
+      bg = Color(
+        // Convert a hex code back into a color object.
+        int.parse(data!.colour!.substring(1, 7), radix: 16) + 0xFF000000,
+      );
+    }
     return GestureDetector(
       onTap: () {
         if (!widget.clickable) return;
@@ -167,7 +172,6 @@ class _TimetableSlotState extends State<TimetableSlot> {
             decoration: BoxDecoration(
               color: bg,
               border: Border.all(
-                color: Theme.of(context).bottomAppBarTheme.color!,
                 width: widget.borderWidth,
               ),
               borderRadius: BorderRadius.circular(widget.borderWidth / 2),
@@ -330,7 +334,7 @@ Future<void> gotTimetable(http.Response response) async {
           'None',
           'None',
           'None',
-          '#FFFFFF',
+          null,
         );
       } else {
         timetable[i][j] = TimetableData(
@@ -403,9 +407,14 @@ class SubjectWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color backgroundColour = Color(
-      int.parse(subject.colour.substring(1, 7), radix: 16) + 0xFF000000,
-    );
+    Color backgroundColour;
+    if (subject.colour == null) {
+      backgroundColour = Theme.of(context).highlightColor;
+    } else {
+      backgroundColour = Color(
+        int.parse(subject.colour!.substring(1, 7), radix: 16) + 0xFF000000,
+      );
+    }
 
     // Automatically change the text colour based on what will be easiest to see.
     Color textColour =

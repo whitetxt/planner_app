@@ -68,10 +68,10 @@ class _EventsMiniState extends State<EventsMini> {
               'GET',
               (http.Response response) {
                 gotEvents(response, add: true);
+                if (!mounted) return;
                 Navigator.of(context).popUntil(
                   ModalRoute.withName('/dash'),
                 ); // This removes any modals or popup dialogs that are active at the current time.
-                if (!mounted) return;
                 setState(
                   () {},
                 ); // This then just forces the page to rebuild and redraw itself.
@@ -278,9 +278,9 @@ class _CalendarPageState extends State<CalendarPage> {
               'GET',
               (http.Response response) {
                 gotEvents(response, add: true);
+                if (!mounted) return;
                 Navigator.of(context).popUntil(ModalRoute.withName(
                     '/dash')); // This removes any modals or popup dialogs that are active at the current time.
-                if (!mounted) return;
                 for (DateTime kDay in events.keys) {
                   if (isSameDay(kDay, time)) {
                     setState(() {

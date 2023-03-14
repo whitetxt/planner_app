@@ -1,8 +1,8 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
+import 'colour_scheme.dart';
 import 'globals.dart';
 
 import 'login.dart';
@@ -27,29 +27,16 @@ class PlanAway extends StatelessWidget {
   // The MaterialApp is responsible for all rendering and event handling.
   @override
   Widget build(BuildContext context) {
-    ThemeData theme = ThemeData(
-      primaryColor: Colors.grey.shade600,
-      highlightColor: Colors.blue.shade100,
-      appBarTheme: AppBarTheme(
-        color: Colors.blueGrey.shade700,
-        iconTheme: const IconThemeData(
-          size: 16,
-          color: Color(0xFFFFFFFF),
-        ),
-      ),
-      bottomAppBarTheme: BottomAppBarTheme(
-        color: Colors.blueGrey.shade700,
-        elevation: 8,
-      ),
-      // This gets the montserrat font from Google, and uses it as the main font for the app.
-      textTheme: GoogleFonts.montserratTextTheme(),
-      dividerColor: Colors.black,
-      colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue)
-          .copyWith(background: const Color.fromRGBO(200, 200, 200, 1)),
-    );
     return MaterialApp(
       title: 'PlanAway',
-      theme: theme,
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: lightColorScheme,
+      ),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: darkColorScheme,
+      ),
       navigatorKey: navigatorKey,
       // I create routes here, which allows me to change the page by pushing the route's name
       // instead of using the class.
@@ -68,7 +55,7 @@ class MainPage extends StatefulWidget {
 
   // As this widget is stateful (it has a state),
   // The createState function is needed so that it can be called
-  // Every time the widget (app) needs to be re-rendered.
+  // Every time the widget (whole app in this case) needs to be re-rendered.
   @override
   State<MainPage> createState() => _MainPageState();
 }
@@ -115,16 +102,17 @@ class _MainPageState extends State<MainPage>
         ],
       ),
       bottomNavigationBar: BottomAppBar(
+        elevation: 8,
         child: TabBar(
           controller: tabController,
-          unselectedLabelColor: const Color(0xFFBBBBBB),
+          unselectedLabelColor: Theme.of(context).colorScheme.outline,
           unselectedLabelStyle: const TextStyle(
             // Since some browsers don't like a font size of 0, I have used
             // 0.01 to hide the text when it's not selected.
             fontSize: 0.01,
           ),
-          labelColor: const Color(0xFFFFFFFF),
-          indicatorColor: Colors.purple.shade300,
+          labelColor: Theme.of(context).colorScheme.primary,
+          indicatorColor: Theme.of(context).colorScheme.primary,
           indicatorSize: TabBarIndicatorSize.label,
           // These tabs correspond to the pages in the TabBarView
           tabs: <Widget>[

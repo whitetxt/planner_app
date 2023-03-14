@@ -20,14 +20,14 @@ class PLAppBar extends PreferredSize {
                 ElevatedButton(
                   clipBehavior: Clip.antiAlias,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).highlightColor,
+                    backgroundColor:
+                        Theme.of(context).buttonTheme.colorScheme!.background,
                     shape: const CircleBorder(
                       side: BorderSide(width: 2),
                     ),
                   ),
                   child: const Icon(
                     Icons.settings,
-                    color: Color(0xFF000000),
                   ),
                   onPressed: () => Navigator.push(
                     // While normally I would user Navigator.pushNamed, here I

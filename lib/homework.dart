@@ -1,19 +1,17 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:intl/intl.dart';
 
 import 'package:flutter/material.dart';
-import 'package:planner_app/network.dart';
 import 'package:http/http.dart' as http;
-import 'package:planner_app/notifs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:clock/clock.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 import 'pl_appbar.dart'; // Provides PLAppBar for the bar at the top of the screen.
+import 'network.dart';
+import 'notifs.dart';
 
 List<HomeworkData> homework = [];
 

@@ -68,12 +68,13 @@ Future<void> setupNotifications() async {
   const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('app_icon');
 
-  const LinuxInitializationSettings initializationSettingsLinux =
+  LinuxInitializationSettings initializationSettingsLinux =
       LinuxInitializationSettings(
     defaultActionName: 'Open notification',
+    defaultIcon: AssetsLinuxIcon('icons/app_icon.png'),
   );
 
-  const InitializationSettings initializationSettings = InitializationSettings(
+  InitializationSettings initializationSettings = InitializationSettings(
     android: initializationSettingsAndroid,
     linux: initializationSettingsLinux,
   );
