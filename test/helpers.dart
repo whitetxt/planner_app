@@ -1,8 +1,8 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:planaway/login.dart';
-import 'package:planaway/main.dart';
+import 'package:planner_app/login.dart';
+import 'package:planner_app/main.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'nock.dart';

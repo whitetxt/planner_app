@@ -1,1 +1,6 @@
-{"app_name":"planner_app","version":"1.0.0","build_number":"11","package_name":"planner_app"}
+{
+    "app_name": "PlanAway",
+    "version": "1.0.0",
+    "build_number": "11",
+    "package_name": "planner_app"
+}

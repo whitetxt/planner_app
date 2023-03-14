@@ -94,7 +94,7 @@ BEGIN
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "PlanAway" "\0"
             VALUE "LegalCopyright", "Copyright ©️ 2023 FoxCore. All rights reserved." "\0"
-            VALUE "OriginalFilename", "planaway.exe" "\0"
+            VALUE "OriginalFilename", "planner_app.exe" "\0"
             VALUE "ProductName", "PlanAway" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
