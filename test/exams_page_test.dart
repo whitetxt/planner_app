@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:planner_app/main.dart';
-import 'package:planner_app/globals.dart';
+import 'package:planaway/main.dart';
+import 'package:planaway/globals.dart';
 
 import 'helpers.dart';
 import 'nock.dart';
