@@ -1,5 +1,7 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -10,7 +12,9 @@ import 'globals.dart';
 bool onlineMode = true;
 Timer? onlineTest;
 
-List<NetworkOperation> pending = [];
+// A queue is used here to ensure that all of the pending requests are processed
+// in the order that they were made.
+Queue<NetworkOperation> pendingRequests = Queue();
 
 class NetworkOperation {
   NetworkOperation(this.url, this.method, this.callback, {this.data});
@@ -35,7 +39,7 @@ void addRequest(NetworkOperation request) {
           // Status code 999 is not used by HTTP, and so I use it to show a connection error.
           // If this occurs, then stop sending requests and start checking for whenever we
           // come back online.
-          pending.add(request);
+          pendingRequests.add(request);
           onlineMode = false;
           createOnlineTest();
         } else {
@@ -46,7 +50,7 @@ void addRequest(NetworkOperation request) {
   } else {
     // If we are offline, then add it to the requests to be processed and start checking
     // for when we come back online.
-    pending.add(request);
+    pendingRequests.add(request);
     createOnlineTest();
   }
 }
@@ -66,48 +70,51 @@ void createOnlineTest() {
         ),
       ).then(
         (http.Response resp) {
-          if (validateResponse(resp)) {
-            // If the server responds, then we are online and everything is good.
-            onlineMode = true;
-            for (var request in pending) {
-              // We must rate-limit ourselves since the server has just started back up,
-              // it will be under quite a lot of load from other users and we don't want
-              // to overload it.
-              // This queues up all of the requests for once every 250ms (4 per second).
+          if (!validateResponse(resp)) return;
+          // If the server responds, then we are online and everything is good.
+          onlineMode = true;
+          int delay = 0;
+          while (pendingRequests.isNotEmpty) {
+            NetworkOperation request = pendingRequests.removeFirst();
+            // We must rate-limit ourselves since the server has just started back up,
+            // it will be under quite a lot of load from other users and we don't want
+            // to overload it.
+            // This queues up all of the requests for once every 250ms (4 per second).
 
-              // This also ensures that all of the requests are processed in the correct order.
-              // While using the callbacks will sometimes produce errors, such as if setState
-              // is called in the callback (due to the widget changing since
-              // the callback was registered), these are not fatal and must all still be
-              // executed as there will be important processes going on in the callbacks
-              // that should not be missed.
+            // This also ensures that all of the requests are processed in the correct order.
+            // While using the callbacks will sometimes produce errors, such as if setState
+            // is called in the callback (due to the widget changing since
+            // the callback was registered), these are not fatal and must all still be
+            // executed as there will be important processes going on in the callbacks
+            // that should not be missed.
 
-              // Essentially, we are calling all callbacks, even at risk of causing some
-              // errors (which we can ignore due to them not being fatal), as the
-              // callbacks could contain important stuff and we don't know until we try.
-              Future.delayed(
-                Duration(milliseconds: pending.indexOf(request) * 250),
-                () => processNetworkRequest(request).then(
-                  (value) => request.callback(value),
-                ),
-              );
-            }
-            pending = [];
-            addNotif('Back online!', error: false);
-            // Cancel this timer so that it doesnt keep checking for online status.
-            timer.cancel();
-            // Also reset onlineTest back so that any new requests will go through normally.
-            onlineTest = null;
-            Timer(
-              // Since we just sent many requests, the callbacks will most likely create many
-              // snackbars at the bottom of the screen and therefore we should clear all
-              // of them so they don't spam the user for ages.
-              const Duration(seconds: 1),
-              () => ScaffoldMessenger.of(
-                currentScaffoldKey.currentContext!,
-              ).clearSnackBars(),
+            // Essentially, we are calling all callbacks, even at risk of causing some
+            // errors (which we can ignore due to them not being fatal), as the
+            // callbacks could contain important stuff and we don't know until we try.
+            Future.delayed(
+              Duration(milliseconds: delay),
+              () => processNetworkRequest(request).then(
+                (value) => request.callback(value),
+              ),
             );
+            delay += 250;
           }
+          addNotif('Back online!', error: false);
+          // Cancel this timer so that it doesnt keep checking for online status.
+          timer.cancel();
+          // Also reset onlineTest back so that any new requests will go through normally.
+          onlineTest = null;
+          // Since we just sent many requests, the callbacks will most likely create many
+          // popups at the bottom of the screen and therefore we should clear all
+          // of them so they don't spam the user for ages.
+          Future.delayed(
+            // Do this 1 second after the last request was sent, hopefully all
+            // of them have been completed by that point.
+            Duration(milliseconds: delay + 1000),
+            () => ScaffoldMessenger.of(
+              currentScaffoldKey.currentContext!,
+            ).clearSnackBars(),
+          );
         },
       );
     },
@@ -202,8 +209,8 @@ Future<http.Response> performRequest(
       headers: {'Authorization': token},
     ).catchError(
       (error, stackTrace) {
-        print('StackTrace: $stackTrace');
-        print('Body: $body');
+        log('Network Request Failed.\nRequest Body: $body',
+            stackTrace: stackTrace, error: error);
         return handleNetworkError(error, url);
       },
     );
@@ -213,7 +220,8 @@ Future<http.Response> performRequest(
     headers: {'Authorization': token},
   ).catchError(
     (error, stackTrace) {
-      print('StackTrace: $stackTrace');
+      log('Network Request Failed.\nRequest Body: null',
+          stackTrace: stackTrace, error: error);
       return handleNetworkError(error, url);
     },
   );
@@ -235,6 +243,5 @@ http.Response handleNetworkError(dynamic error, String url) {
     onlineMode = false;
   }
   // Status code 999 is used to show that there was an error connecting to the server.
-  print('Network Error: $error');
   return http.Response(error.toString(), 999);
 }

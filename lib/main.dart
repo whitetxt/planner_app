@@ -71,6 +71,11 @@ class _MainPageState extends State<MainPage>
       length: 5,
       initialIndex: initialTabIndex,
     );
+    if (token.isEmpty) {
+      addNotif('Invalid token. Please re-login.');
+      Navigator.of(navigatorKey.currentContext!)
+          .pushNamedAndRemoveUntil('/', (_) => false);
+    }
     super.initState();
   }
 
