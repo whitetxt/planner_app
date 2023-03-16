@@ -367,7 +367,7 @@ async def create_subject(name: str = Form(...), teacher: str = Form("None"), roo
     room = room.upper()
     if len(room) > 16:
         return {"status": "error", "message": "Room name is longer than 16 characters"}
-    if not colour.startswith("#") or not colour[1:].isnumeric() or len(colour) != 7:
+    if not colour.startswith("#") or len(colour) != 7:
         return {"status": "error", "message": "Invalid colour"}
     total_chars = 0
     for char in "0123456789ABCDEF":
@@ -422,7 +422,7 @@ async def update_subject(subject_id: int, colour: str = Form(...), user: User = 
         return {"status": "error", "message": "Subject doesn't exist."}
     if sj.user_id != user.uid:
         return {"status": "error", "message": "Subject doesn't belong to the current user."}
-    if not colour.startswith("#") or not colour[1:].isnumeric() or len(colour) != 7:
+    if not colour.startswith("#") or len(colour) != 7:
         return {"status": "error", "message": "Invalid colour"}
     total_chars = 0
     for char in "0123456789ABCDEF":
