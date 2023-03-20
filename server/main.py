@@ -370,7 +370,7 @@ async def create_subject(name: str = Form(...), teacher: str = Form("None"), roo
     if not colour.startswith("#") or len(colour) != 7:
         return {"status": "error", "message": "Invalid colour"}
     total_chars = 0
-    for char in "0123456789ABCDEF":
+    for char in "0123456789ABCDEFabcdef":
         total_chars += colour.count(char)
     if total_chars != 6:
         return {"status": "error", "message": "Invalid colour"}
@@ -425,7 +425,7 @@ async def update_subject(subject_id: int, colour: str = Form(...), user: User = 
     if not colour.startswith("#") or len(colour) != 7:
         return {"status": "error", "message": "Invalid colour"}
     total_chars = 0
-    for char in "0123456789ABCDEF":
+    for char in "0123456789ABCDEFabcdef":
         total_chars += colour.count(char)
     if total_chars != 6:
         return {"status": "error", "message": "Invalid colour"}

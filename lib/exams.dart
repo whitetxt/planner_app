@@ -260,7 +260,7 @@ class MarkWidget extends StatelessWidget {
 }
 
 Future<void> gotMarks(http.Response response) async {
-  // This just handles the server's response for returning homework.
+  // This just handles the server's response for returning marks.
   // We must check for an error, then notify the user of it.
   if (!validateResponse(response)) return;
   dynamic data = json.decode(response.body);
@@ -359,7 +359,7 @@ class _ExamPageState extends State<ExamPage> {
         Navigator.of(context).popUntil(ModalRoute.withName('/dash'));
       });
     }
-    // This adds a piece of homework to the server, and then refreshes the page.
+    // This adds a mark to the server, and then refreshes the page.
     addRequest(
       NetworkOperation(
         '/api/v1/marks',
@@ -384,7 +384,8 @@ class _ExamPageState extends State<ExamPage> {
 
   @override
   Widget build(BuildContext context) {
-    // This code is very similar to the homework page.
+    // This code is very similar to the homework page, as functionally they look
+    // extremely similar.
     return Scaffold(
       appBar: PLAppBar('Exam Marks', context),
       backgroundColor: Theme.of(context).colorScheme.background,
@@ -518,7 +519,7 @@ class _ExamPageState extends State<ExamPage> {
                       fontSize: 32,
                     ),
                   ),
-                for (var hw in marks) ...[MarkWidget(hw, load)],
+                for (var mark in marks) ...[MarkWidget(mark, load)],
               ],
             ),
           ),
