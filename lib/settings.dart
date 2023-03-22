@@ -31,15 +31,17 @@ void onResetResponse(http.Response response) {
   navigatorKey.currentState!.popUntil(ModalRoute.withName('/dash'));
 }
 
-void onDeleteResponse(http.Response response) {
+void onDeleteResponse(http.Response response) async {
   if (!validateResponse(response)) return;
   // If everything was OK, then tell the user and go back to the login screen.
   ScaffoldMessenger.of(currentScaffoldKey.currentContext!).clearSnackBars();
   addNotif('Successfully deleted account!', error: false);
   token = '';
   me = null;
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('token');
   // Remove all of the previous navigation menus, so that a back arrow doesn't appear.
-  navigatorKey.currentState!.pushReplacementNamed('/');
+  navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
 }
 
 class _SettingsPageState extends State<SettingsPage> {

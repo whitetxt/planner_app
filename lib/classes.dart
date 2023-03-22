@@ -597,7 +597,9 @@ class _ClassPageState extends State<ClassPage> {
                                     name = value;
                                   },
                                   onFieldSubmitted: (String _) {
-                                    createClass();
+                                    if (_formKey.currentState!.validate()) {
+                                      createClass();
+                                    }
                                   },
                                 ),
                                 Padding(

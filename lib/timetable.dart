@@ -726,157 +726,161 @@ class _TimetablePageState extends State<TimetablePage> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: TextButton.icon(
-                  style: TextButton.styleFrom(
-                    backgroundColor: Theme.of(context).highlightColor,
-                  ),
-                  icon: Icon(settingTimetable ? Icons.stop : Icons.add),
-                  label: Text(settingTimetable ? 'Stop Setting' : 'New'),
-                  onPressed: () {
-                    if (settingTimetable) {
-                      if (!mounted) return;
-                      // If we are currently setting the timetable, stop setting it.
-                      setState(() {
-                        settingTimetable = false;
-                        toSetTo = null;
-                      });
-                    } else {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: Container(
-                              decoration: BoxDecoration(
-                                border: Border(
-                                  bottom: BorderSide(
-                                    color: Theme.of(context).dividerColor,
-                                    width: 2,
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: TextButton.icon(
+                    style: TextButton.styleFrom(
+                      backgroundColor: Theme.of(context).highlightColor,
+                    ),
+                    icon: Icon(settingTimetable ? Icons.stop : Icons.add),
+                    label: Text(settingTimetable ? 'Stop Setting' : 'New'),
+                    onPressed: () {
+                      if (settingTimetable) {
+                        if (!mounted) return;
+                        // If we are currently setting the timetable, stop setting it.
+                        setState(() {
+                          settingTimetable = false;
+                          toSetTo = null;
+                        });
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Container(
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: Theme.of(context).dividerColor,
+                                      width: 2,
+                                    ),
                                   ),
                                 ),
+                                child: const Text(
+                                  'Creating Subject',
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              child: const Text(
-                                'Creating Subject',
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                            content: Form(
-                              key: _formKey,
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: 'Subject Name',
+                              content: Form(
+                                key: _formKey,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    TextFormField(
+                                      decoration: const InputDecoration(
+                                        labelText: 'Subject Name',
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Enter a name';
+                                        } else if (value.length > 32) {
+                                          return 'Subject name must be less than 32 characters';
+                                        }
+                                        return null;
+                                      },
+                                      onChanged: (value) {
+                                        name = value;
+                                      },
+                                      onFieldSubmitted: (String _) {
+                                        createSubject();
+                                      },
                                     ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Enter a name';
-                                      } else if (value.length > 32) {
-                                        return 'Subject name must be less than 32 characters';
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      name = value;
-                                    },
-                                    onFieldSubmitted: (String _) {
-                                      createSubject();
-                                    },
-                                  ),
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: 'Teacher',
+                                    TextFormField(
+                                      decoration: const InputDecoration(
+                                        labelText: 'Teacher',
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Enter a teacher';
+                                        } else if (value.length > 32) {
+                                          return "Teacher's name must be less than 32 characters";
+                                        }
+                                        return null;
+                                      },
+                                      onChanged: (value) {
+                                        teacher = value;
+                                      },
+                                      onFieldSubmitted: (String _) {
+                                        createSubject();
+                                      },
                                     ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Enter a teacher';
-                                      } else if (value.length > 32) {
-                                        return "Teacher's name must be less than 32 characters";
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      teacher = value;
-                                    },
-                                    onFieldSubmitted: (String _) {
-                                      createSubject();
-                                    },
-                                  ),
-                                  TextFormField(
-                                    decoration: const InputDecoration(
-                                      labelText: 'Room',
+                                    TextFormField(
+                                      decoration: const InputDecoration(
+                                        labelText: 'Room',
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Enter a room';
+                                        } else if (value.length > 16) {
+                                          return 'Room must be less than 16 characters';
+                                        }
+                                        return null;
+                                      },
+                                      onChanged: (value) {
+                                        room = value;
+                                      },
+                                      onFieldSubmitted: (String _) {
+                                        createSubject();
+                                      },
                                     ),
-                                    validator: (value) {
-                                      if (value == null || value.isEmpty) {
-                                        return 'Enter a room';
-                                      } else if (value.length > 16) {
-                                        return 'Room must be less than 16 characters';
-                                      }
-                                      return null;
-                                    },
-                                    onChanged: (value) {
-                                      room = value;
-                                    },
-                                    onFieldSubmitted: (String _) {
-                                      createSubject();
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8),
-                                      child: ColorPicker(
-                                        enableAlpha: false,
-                                        hexInputBar: true,
-                                        pickerColor: colour,
-                                        onColorChanged: onColourChanged,
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(8),
+                                        child: ColorPicker(
+                                          enableAlpha: false,
+                                          hexInputBar: true,
+                                          pickerColor: colour,
+                                          onColorChanged: onColourChanged,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: ElevatedButton(
-                                      onPressed: () async {
-                                        // Validate the form (returns true if all is ok)
-                                        if (_formKey.currentState!.validate()) {
-                                          createSubject();
-                                        }
-                                      },
-                                      child: const Text('Create'),
+                                    Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          // Validate the form (returns true if all is ok)
+                                          if (_formKey.currentState!
+                                              .validate()) {
+                                            createSubject();
+                                          }
+                                        },
+                                        child: const Text('Create'),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      );
-                    }
-                  },
-                ),
-              ),
-              Expanded(
-                child: SizedBox(
-                  height: 64,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    children: [
-                      for (TimetableData subject in subjects)
-                        SubjectWidget(
-                          subject,
-                          setTimetableSubject,
-                          getTimetable,
-                          subject == toSetTo,
-                        ),
-                    ],
+                            );
+                          },
+                        );
+                      }
+                    },
                   ),
                 ),
-              ),
-            ],
+                Expanded(
+                  child: SizedBox(
+                    height: 80,
+                    child: ListView(
+                      scrollDirection: Axis.horizontal,
+                      children: [
+                        for (TimetableData subject in subjects)
+                          SubjectWidget(
+                            subject,
+                            setTimetableSubject,
+                            getTimetable,
+                            subject == toSetTo,
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
