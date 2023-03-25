@@ -23,29 +23,34 @@ class ExamMark {
   }
 }
 
-// Stop dart linter complaining that some fields aren't final.
-// ignore: must_be_immutable
-class MarkWidget extends StatelessWidget {
-  MarkWidget(this.data, this.reset, {Key? key}) : super(key: key);
-
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+class MarkWidget extends StatefulWidget {
+  const MarkWidget(this.data, this.reset, {Key? key}) : super(key: key);
 
   final ExamMark data;
   final Function reset;
 
+  @override
+  State<MarkWidget> createState() => _MarkWidgetState();
+}
+
+class _MarkWidgetState extends State<MarkWidget> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   String newName = '';
+
   int newMark = -1;
+
   String newGrade = '';
 
   void updateMark() {
     if (newName == '') {
-      newName = data.name;
+      newName = widget.data.name;
     }
     if (newMark == -1) {
-      newMark = data.mark;
+      newMark = widget.data.mark;
     }
     if (newGrade == '') {
-      newGrade = data.grade!;
+      newGrade = widget.data.grade!;
     }
     addRequest(
       NetworkOperation(
@@ -53,10 +58,10 @@ class MarkWidget extends StatelessWidget {
         'PUT',
         (http.Response response) {
           if (!validateResponse(response)) return;
-          reset();
+          widget.reset();
         },
         data: {
-          'mark_id': data.id.toString(),
+          'mark_id': widget.data.id.toString(),
           'name': newName,
           'mark': newMark.toString(),
           'grade': newGrade
@@ -81,11 +86,11 @@ class MarkWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '${data.mark}',
+                      '${widget.data.mark}',
                       textAlign: TextAlign.center,
                     ),
                     Text(
-                      '${data.grade}',
+                      '${widget.data.grade}',
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -95,7 +100,7 @@ class MarkWidget extends StatelessWidget {
               Expanded(
                 flex: 4,
                 child: Text(
-                  data.name,
+                  widget.data.name,
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -106,121 +111,10 @@ class MarkWidget extends StatelessWidget {
                   icon: const Icon(
                     Icons.more_horiz,
                   ),
-                  itemBuilder: (context) => [
+                  itemBuilder: (BuildContext context) => [
                     PopupMenuItem(
-                      onTap: () {
-                        Future.delayed(
-                          // I'm not entirely sure why I use a Future.delayed here,
-                          // I've not touched this code in months but it probably
-                          // fixes some sort of bug hopefully? :/
-                          const Duration(microseconds: 1),
-                          () => showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Container(
-                                  decoration: BoxDecoration(
-                                    border: Border(
-                                      bottom: BorderSide(
-                                        color: Theme.of(context).dividerColor,
-                                        width: 2,
-                                      ),
-                                    ),
-                                  ),
-                                  child: const Text(
-                                    'Changing Mark',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                                content: Form(
-                                  // Adding the key here, allows me to check if this form is
-                                  // valid later on in the code.
-                                  key: _formKey,
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: <Widget>[
-                                      TextFormField(
-                                        decoration: const InputDecoration(
-                                          labelText: 'Name',
-                                        ),
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Enter a name';
-                                          }
-                                          return null;
-                                        },
-                                        initialValue: data.name,
-                                        onChanged: (value) {
-                                          newName = value;
-                                        },
-                                        onFieldSubmitted: (String _) {
-                                          updateMark();
-                                        },
-                                      ),
-                                      TextFormField(
-                                        decoration: const InputDecoration(
-                                          labelText: 'Mark',
-                                        ),
-                                        keyboardType: TextInputType.number,
-                                        initialValue: data.mark.toString(),
-                                        onChanged: (value) {
-                                          if (int.tryParse(value) != null) {
-                                            newMark = int.parse(value);
-                                          }
-                                        },
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Enter a mark';
-                                          }
-                                          if (int.tryParse(value) == null) {
-                                            return 'Mark must be a number';
-                                          }
-                                          return null;
-                                        },
-                                        onFieldSubmitted: (String _) {
-                                          updateMark();
-                                        },
-                                      ),
-                                      TextFormField(
-                                        decoration: const InputDecoration(
-                                          labelText: 'Grade',
-                                        ),
-                                        initialValue: data.grade,
-                                        onChanged: (value) {
-                                          newGrade = value;
-                                        },
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Enter a grade';
-                                          }
-                                          return null;
-                                        },
-                                        onFieldSubmitted: (String _) {
-                                          updateMark();
-                                        },
-                                      ),
-                                      // Create a button which updates the mark.
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 8),
-                                        child: ElevatedButton(
-                                          onPressed: () {
-                                            // Validate the form (returns true if all is ok)
-                                            if (_formKey.currentState!
-                                                .validate()) {
-                                              updateMark();
-                                            }
-                                          },
-                                          child: const Text('Update Mark'),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        );
-                      },
+                      value: 1,
+                      onTap: () {},
                       child: const Text(
                         'Modify Mark',
                         style: TextStyle(
@@ -229,26 +123,147 @@ class MarkWidget extends StatelessWidget {
                       ),
                     ),
                     PopupMenuItem(
-                      onTap: () {
-                        addRequest(
-                          NetworkOperation(
-                            '/api/v1/marks',
-                            'DELETE',
-                            (http.Response response) {
-                              reset();
-                            },
-                            data: {'mark_id': data.id.toString()},
-                          ),
-                        );
-                      },
+                      value: 2,
+                      onTap: () {},
                       child: const Text(
                         'Delete',
                         style: TextStyle(
                           fontSize: 14,
                         ),
                       ),
-                    ),
+                    )
                   ],
+                  onSelected: (int value) {
+                    switch (value) {
+                      case 1:
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Container(
+                                decoration: BoxDecoration(
+                                  border: Border(
+                                    bottom: BorderSide(
+                                      color: Theme.of(context).dividerColor,
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Changing Mark',
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                              content: Form(
+                                // Adding the key here, allows me to check if this form is
+                                // valid later on in the code.
+                                key: _formKey,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    TextFormField(
+                                      decoration: const InputDecoration(
+                                        labelText: 'Name',
+                                      ),
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Enter a name';
+                                        }
+                                        return null;
+                                      },
+                                      initialValue: widget.data.name,
+                                      onChanged: (value) {
+                                        newName = value;
+                                      },
+                                      onFieldSubmitted: (String _) {
+                                        if (_formKey.currentState!.validate()) {
+                                          updateMark();
+                                        }
+                                      },
+                                    ),
+                                    TextFormField(
+                                      decoration: const InputDecoration(
+                                        labelText: 'Mark',
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      initialValue: widget.data.mark.toString(),
+                                      onChanged: (value) {
+                                        if (int.tryParse(value) != null) {
+                                          newMark = int.parse(value);
+                                        }
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Enter a mark';
+                                        }
+                                        if (int.tryParse(value) == null) {
+                                          return 'Mark must be a number';
+                                        }
+                                        return null;
+                                      },
+                                      onFieldSubmitted: (String _) {
+                                        if (_formKey.currentState!.validate()) {
+                                          updateMark();
+                                        }
+                                      },
+                                    ),
+                                    TextFormField(
+                                      decoration: const InputDecoration(
+                                        labelText: 'Grade',
+                                      ),
+                                      initialValue: widget.data.grade,
+                                      onChanged: (value) {
+                                        newGrade = value;
+                                      },
+                                      validator: (value) {
+                                        if (value == null || value.isEmpty) {
+                                          return 'Enter a grade';
+                                        }
+                                        return null;
+                                      },
+                                      onFieldSubmitted: (String _) {
+                                        if (_formKey.currentState!.validate()) {
+                                          updateMark();
+                                        }
+                                      },
+                                    ),
+                                    // Create a button which updates the mark.
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          // Validate the form (returns true if all is ok)
+                                          if (_formKey.currentState!
+                                              .validate()) {
+                                            updateMark();
+                                          }
+                                        },
+                                        child: const Text('Update Mark'),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                        break;
+                      case 2:
+                        addRequest(
+                          NetworkOperation(
+                            '/api/v1/marks',
+                            'DELETE',
+                            (http.Response response) {
+                              widget.reset();
+                            },
+                            data: {'mark_id': widget.data.id.toString()},
+                          ),
+                        );
+                        break;
+                      default:
+                        break;
+                    }
+                  },
                 ),
               ),
             ],
@@ -440,7 +455,9 @@ class _ExamPageState extends State<ExamPage> {
                                     name = value;
                                   },
                                   onFieldSubmitted: (String _) {
-                                    addMark();
+                                    if (_formKey.currentState!.validate()) {
+                                      addMark();
+                                    }
                                   },
                                 ),
                                 TextFormField(
@@ -464,7 +481,9 @@ class _ExamPageState extends State<ExamPage> {
                                     }
                                   },
                                   onFieldSubmitted: (String _) {
-                                    addMark();
+                                    if (_formKey.currentState!.validate()) {
+                                      addMark();
+                                    }
                                   },
                                 ),
                                 TextFormField(
@@ -481,7 +500,9 @@ class _ExamPageState extends State<ExamPage> {
                                     grade = value;
                                   },
                                   onFieldSubmitted: (String _) {
-                                    addMark();
+                                    if (_formKey.currentState!.validate()) {
+                                      addMark();
+                                    }
                                   },
                                 ),
                                 Padding(

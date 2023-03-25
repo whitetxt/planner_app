@@ -27,14 +27,14 @@ class HomeworkData {
   );
 
   final int id;
+  final DateTime timeDue;
   final String name;
   final int? classId;
-  final int? completedBy;
-  bool completed;
-  final DateTime timeDue;
   final String? description;
+  bool completed;
+  final int? completedBy;
 
-  factory HomeworkData.fromJson(dynamic jsonData) {
+  factory HomeworkData.fromJson(Map<String, dynamic> jsonData) {
     // Converts the server's response into a HomeworkData object.
     return HomeworkData(
       jsonData['homework_id'],
@@ -275,6 +275,7 @@ class _HomeworkMiniState extends State<HomeworkMini> {
             Expanded(
               child: ListView(
                 children: [
+                  // Create a piece of text for each piece of homework which is not completed.
                   for (HomeworkData hw
                       in homework.where((element) => !element.completed))
                     Padding(
@@ -387,20 +388,12 @@ class _HomeworkPageState extends State<HomeworkPage> {
       setState(() {});
     }
     if (!(kIsWeb || Platform.isLinux)) {
-      final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
       createTimedNotification(
         'Homework Due Today',
         'The piece of homework "$name" is due today!',
         'TABIDX1',
         // Schedule the notification for midnight.
         tz.TZDateTime(tz.local, date.year, date.month, date.day),
-      );
-      createTimedNotification(
-        'Homework Due Today',
-        'The piece of homework "$name" is due today!',
-        'TABIDX1',
-        // Schedule the notification for midnight.
-        now.add(const Duration(seconds: 10)),
       );
     }
     // Then, add it to the server and refresh.
@@ -485,7 +478,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                     name = value;
                                   },
                                   onFieldSubmitted: (String _) {
-                                    addHomework();
+                                    if (_formKey.currentState!.validate()) {
+                                      addHomework();
+                                    }
                                   },
                                 ),
                                 InkWell(
@@ -533,7 +528,9 @@ class _HomeworkPageState extends State<HomeworkPage> {
                                     description = value;
                                   },
                                   onFieldSubmitted: (String _) {
-                                    addHomework();
+                                    if (_formKey.currentState!.validate()) {
+                                      addHomework();
+                                    }
                                   },
                                 ),
                                 Padding(
@@ -565,11 +562,11 @@ class _HomeworkPageState extends State<HomeworkPage> {
                     children: [
                       Checkbox(
                         value: showCompleted,
-                        onChanged: (value) {
+                        onChanged: (_) {
                           if (!mounted) return;
                           setState(() {
                             // Just flip the bool.
-                            showCompleted = value!;
+                            showCompleted = !showCompleted;
                           });
                         },
                       ),

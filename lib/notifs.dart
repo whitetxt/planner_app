@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -11,19 +10,11 @@ import 'package:timezone/timezone.dart' as tz;
 
 import 'globals.dart';
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+final FlutterLocalNotificationsPlugin notifPlugin =
     FlutterLocalNotificationsPlugin();
 
-final StreamController<ReceivedNotification> didReceiveLocalNotificationStream =
+final StreamController<ReceivedNotification> notifStream =
     StreamController<ReceivedNotification>.broadcast();
-
-final StreamController<String?> selectNotificationStream =
-    StreamController<String?>.broadcast();
-
-const MethodChannel platform =
-    MethodChannel('dexterx.dev/flutter_local_notifications_example');
-
-const String portName = 'notification_send_port';
 
 class ReceivedNotification {
   ReceivedNotification({
@@ -39,16 +30,12 @@ class ReceivedNotification {
   final String? payload;
 }
 
-String? selectedNotificationPayload;
-
-/// A notification action which triggers a homework to be completed
-const String homeworkCompletion = 'id_1';
-
-/// A notification action which triggers a App navigation event
-const String navigationActionId = 'id_3';
+String? selectedNotifPayload;
 
 Future<void> setupNotifications() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  if (Platform.isWindows) return;
 
   if (!(kIsWeb || Platform.isLinux)) {
     tz.initializeTimeZones();
@@ -56,37 +43,35 @@ Future<void> setupNotifications() async {
     tz.setLocalLocation(tz.getLocation(timeZoneName));
   }
 
-  final NotificationAppLaunchDetails? notificationAppLaunchDetails = !kIsWeb &&
-          Platform.isLinux
-      ? null
-      : await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
-  if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
-    selectedNotificationPayload =
-        notificationAppLaunchDetails!.notificationResponse?.payload;
+  final NotificationAppLaunchDetails? notifLaunchDetails =
+      !kIsWeb && Platform.isLinux
+          ? null
+          : await notifPlugin.getNotificationAppLaunchDetails();
+  if (notifLaunchDetails?.didNotificationLaunchApp ?? false) {
+    selectedNotifPayload = notifLaunchDetails!.notificationResponse?.payload;
   }
 
-  const AndroidInitializationSettings initializationSettingsAndroid =
+  const AndroidInitializationSettings androidInit =
       AndroidInitializationSettings('app_icon');
 
-  LinuxInitializationSettings initializationSettingsLinux =
-      LinuxInitializationSettings(
+  LinuxInitializationSettings linuxInit = LinuxInitializationSettings(
     defaultActionName: 'Open notification',
     defaultIcon: AssetsLinuxIcon('icons/app_icon.png'),
   );
 
-  InitializationSettings initializationSettings = InitializationSettings(
-    android: initializationSettingsAndroid,
-    linux: initializationSettingsLinux,
+  InitializationSettings initSettings = InitializationSettings(
+    android: androidInit,
+    linux: linuxInit,
   );
 
-  await flutterLocalNotificationsPlugin.initialize(
-    initializationSettings,
-    onDidReceiveNotificationResponse:
-        (NotificationResponse notificationResponse) {
-      if (notificationResponse.payload == null) return;
-      if (notificationResponse.payload!.startsWith('TABIDX')) {
+  await notifPlugin.initialize(
+    // Initialise the notification package
+    initSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse response) {
+      if (response.payload == null) return;
+      if (response.payload!.startsWith('TABIDX')) {
         int tabIndex = int.parse(
-          notificationResponse.payload!.replaceAll('TABIDX', ''),
+          response.payload!.replaceAll('TABIDX', ''),
         );
         initialTabIndex = tabIndex;
       }
@@ -95,21 +80,21 @@ Future<void> setupNotifications() async {
 
   if (!kIsWeb && Platform.isAndroid) {
     final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-        flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+        notifPlugin.resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>();
 
+    // Request permission to send notifications from the user.
     final bool? granted = await androidImplementation?.requestPermission();
     notificationsEnabled = granted ?? false;
   }
 
-  didReceiveLocalNotificationStream.stream
-      .listen((ReceivedNotification receivedNotification) async {
+  notifStream.stream.listen((ReceivedNotification receivedNotification) async {
     String? payload = receivedNotification.payload;
     if (payload == null) {
       return;
     }
     if (int.tryParse(payload) == null) {
-      addNotif('Invalid notification payload recieved: $payload');
+      addToast('Invalid notification payload recieved: $payload');
       return;
     }
     initialTabIndex = int.parse(payload);
@@ -122,8 +107,7 @@ Future<void> createNotificationNow(String title, String body, String payload,
   importance ??= Importance.defaultImportance;
   priority ??= Priority.defaultPriority;
 
-  AndroidNotificationDetails androidNotificationDetails =
-      AndroidNotificationDetails(
+  AndroidNotificationDetails androidNotifDetails = AndroidNotificationDetails(
     'org.duckdns.evieuwo.planAway',
     'PlanAway',
     channelDescription: 'Notifications for PlanAway',
@@ -132,9 +116,11 @@ Future<void> createNotificationNow(String title, String body, String payload,
     ticker: 'PlanAway Notification',
   );
   NotificationDetails notificationDetails =
-      NotificationDetails(android: androidNotificationDetails);
+      NotificationDetails(android: androidNotifDetails);
 
-  await flutterLocalNotificationsPlugin.show(
+  await notifPlugin.show(
+    // Show the notification now
+    // Increment the last notification id AFTER we use it.
     lastNotificationID++,
     title,
     body,
@@ -150,7 +136,8 @@ Future<void> createTimedNotification(
   importance ??= Importance.defaultImportance;
   priority ??= Priority.defaultPriority;
 
-  await flutterLocalNotificationsPlugin.zonedSchedule(
+  // Schedule the notification for the future
+  await notifPlugin.zonedSchedule(
     lastNotificationID++,
     title,
     body,
@@ -167,8 +154,4 @@ Future<void> createTimedNotification(
     androidAllowWhileIdle: true,
     matchDateTimeComponents: DateTimeComponents.time,
   );
-}
-
-Future<void> getPendingNotifications() async {
-  await flutterLocalNotificationsPlugin.pendingNotificationRequests();
 }

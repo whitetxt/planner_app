@@ -455,7 +455,10 @@ class _CalendarPageState extends State<CalendarPage> {
                                   name = value;
                                 },
                                 onFieldSubmitted: (String _) {
-                                  createEvent();
+                                  if (_formKey.currentState!.validate()) {
+                                    private = true;
+                                    createEvent();
+                                  }
                                 },
                               ),
                               InkWell(
@@ -514,7 +517,10 @@ class _CalendarPageState extends State<CalendarPage> {
                                   description = value;
                                 },
                                 onFieldSubmitted: (String _) {
-                                  createEvent();
+                                  if (_formKey.currentState!.validate()) {
+                                    private = true;
+                                    createEvent();
+                                  }
                                 },
                               ),
                               // We have 2 different buttons for private and public

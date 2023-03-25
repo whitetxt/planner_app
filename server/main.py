@@ -1,7 +1,6 @@
 import random
 import uvicorn
 import os
-import fastapi
 from time import time
 from fastapi import FastAPI, Form, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -826,4 +825,6 @@ async def get_completed_homework(class_id: int, homework_id: int, user: User = D
     return {"status": "success", "data": students}
 
 if __name__ == "__main__":
+    # If we run this file by itself, start a development server which watches for file changes
+    # so that it can reload if its modified.
     uvicorn.run("main:app", port=8000, reload=True, workers=4)

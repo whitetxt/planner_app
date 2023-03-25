@@ -29,13 +29,15 @@ class PlanAway extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'PlanAway',
+      // These two fields tell the app to use the new Material 3 design,
+      // and to use the appropriate colour schemes for dark and light modes.
       theme: ThemeData(
         useMaterial3: true,
-        colorScheme: lightColorScheme,
+        colorScheme: lightColourScheme,
       ),
       darkTheme: ThemeData(
         useMaterial3: true,
-        colorScheme: darkColorScheme,
+        colorScheme: darkColourScheme,
       ),
       navigatorKey: navigatorKey,
       // I create routes here, which allows me to change the page by pushing the route's name
@@ -72,7 +74,7 @@ class _MainPageState extends State<MainPage>
       initialIndex: initialTabIndex,
     );
     if (token.isEmpty) {
-      addNotif('Invalid token. Please re-login.');
+      addToast('Invalid token. Please re-login.');
       Navigator.of(navigatorKey.currentContext!)
           .pushNamedAndRemoveUntil('/', (_) => false);
     }
@@ -100,10 +102,11 @@ class _MainPageState extends State<MainPage>
           const HomeworkPage(),
           const Dashboard(),
           const CalendarPage(),
+          // We switch out the marks page with a page
+          // For managing classes for teacher accounts.
           me!.permissions == Permissions.user
               ? const ExamPage()
-              : const ClassPage(), // We switch out the marks page with a page
-          // For managing classes for teacher accounts.
+              : const ClassPage(),
         ],
       ),
       bottomNavigationBar: BottomAppBar(

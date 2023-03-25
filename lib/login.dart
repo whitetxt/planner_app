@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -33,15 +31,18 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> checkUserLogin() async {
+    // Check if we have a token stored
     final prefs = await SharedPreferences.getInstance();
     String? storedToken = prefs.getString('token');
     if (storedToken == null) {
+      // If we don't have a token, just let the user login
       if (!mounted) return;
       setState(() {
         loading = false;
       });
       return;
     }
+    // If we do, we need to check if its valid.
     http.Response resp = await http.get(
       Uri.parse('$apiUrl/api/v1/users/@me'),
       headers: {'Authorization': storedToken},
@@ -56,9 +57,10 @@ class _LoginPageState extends State<LoginPage> {
       }
     }
     if (!valid) {
+      // If it's not valid, we need to tell the user their login has expired.
       if (!mounted) return;
       await prefs.remove('token');
-      addNotif('Login has expired. Please re-login');
+      addToast('Login has expired. Please re-login');
       setState(() {
         loading = false;
       });
@@ -67,7 +69,8 @@ class _LoginPageState extends State<LoginPage> {
     Map<String, dynamic> data = json.decode(resp.body)['data'];
     me = User.fromJson(data);
     token = storedToken;
-    addNotif('Successfully logged in!', error: false);
+    // If it's valid, then we go straight to the dashboard
+    addToast('Successfully logged in!', error: false);
     Navigator.pushNamedAndRemoveUntil(
       context,
       '/dash',
@@ -227,34 +230,37 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> validateRegistration() async {
     // Only register if the form is valid.
-    if (_formKey.currentState!.validate()) {
-      addNotif('Registering as $user', error: false);
-      String reason = await register(user, pass);
-      ScaffoldMessenger.of(context).clearSnackBars();
-      if (reason.startsWith('Bearer')) {
-        token = reason;
-        // This waits for the server to provide information on the user we logged in as.
-        // This is done to get important information on the user such as their permissions.
-        http.Response resp = await processNetworkRequest(
-            NetworkOperation('$apiUrl/api/v1/users/@me', 'GET', (_) {}));
-        if (!validateResponse(resp)) return;
-        dynamic data = json.decode(resp.body)['data'];
-        me = User.fromJson(data);
-        Navigator.pushNamedAndRemoveUntil(
-          context,
-          '/dash',
-          (_) => false,
-        );
-      } else {
-        // If it fails, show this to the user.
-        addNotif('Registration failed: $reason');
-      }
+    if (!_formKey.currentState!.validate()) return;
+
+    addToast('Registering as $user', error: false);
+    String reason = await register(user, pass);
+    ScaffoldMessenger.of(context).clearSnackBars();
+    // All tokens start with "Bearer", anything else is an error message
+    if (reason.startsWith('Bearer')) {
+      token = reason;
+      // This waits for the server to provide information on the user we logged in as.
+      // This is done to get important information on the user such as their permissions.
+      http.Response resp = await processNetworkRequest(
+          NetworkOperation('$apiUrl/api/v1/users/@me', 'GET', (_) {}));
+      if (!validateResponse(resp)) return;
+      dynamic data = json.decode(resp.body)['data'];
+      me = User.fromJson(data);
+      Navigator.pushNamedAndRemoveUntil(
+        context,
+        '/dash',
+        (_) => false,
+      );
+    } else {
+      // If it fails, show this to the user.
+      addToast('Registration failed: $reason');
     }
   }
 
   Future<void> validateLogin() async {
-    // Login doesn't need to be validated.
-    addNotif('Logging in as $user', error: false);
+    // Only login if the form is valid.
+    if (!_formKey.currentState!.validate()) return;
+
+    addToast('Logging in as $user', error: false);
     String reason = await login(user, pass);
     ScaffoldMessenger.of(context).clearSnackBars();
     if (reason.startsWith('Bearer')) {
@@ -267,7 +273,7 @@ class _LoginPageState extends State<LoginPage> {
       me = User.fromJson(data);
       Navigator.pushNamedAndRemoveUntil(context, '/dash', (_) => false);
     } else {
-      addNotif('Login failed: $reason');
+      addToast('Login failed: $reason');
     }
   }
 
@@ -349,6 +355,7 @@ class _LoginPageState extends State<LoginPage> {
                               hintText: 'Password',
                               labelText: 'Password',
                             ),
+                            // Ensure that the password is hidden
                             obscureText: true,
                             enableSuggestions: false,
                             validator: (value) {

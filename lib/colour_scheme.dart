@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-const lightColorScheme = ColorScheme(
+// This file contains the colours to use in a dark theme and a light theme.
+const lightColourScheme = ColorScheme(
   brightness: Brightness.light,
   primary: Color(0xFF2257C6),
   onPrimary: Color(0xFFFFFFFF),
@@ -34,7 +35,7 @@ const lightColorScheme = ColorScheme(
   scrim: Color(0xFF000000),
 );
 
-const darkColorScheme = ColorScheme(
+const darkColourScheme = ColorScheme(
   brightness: Brightness.dark,
   primary: Color(0xFFB3C5FF),
   onPrimary: Color(0xFF002B75),

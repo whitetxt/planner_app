@@ -74,6 +74,7 @@ void createOnlineTest() {
           // If the server responds, then we are online and everything is good.
           onlineMode = true;
           int delay = 0;
+          // We need to process the entire queue of requests.
           while (pendingRequests.isNotEmpty) {
             NetworkOperation request = pendingRequests.removeFirst();
             // We must rate-limit ourselves since the server has just started back up,
@@ -99,7 +100,7 @@ void createOnlineTest() {
             );
             delay += 250;
           }
-          addNotif('Back online!', error: false);
+          addToast('Back online!', error: false);
           // Cancel this timer so that it doesnt keep checking for online status.
           timer.cancel();
           // Also reset onlineTest back so that any new requests will go through normally.
@@ -126,7 +127,7 @@ bool validateResponse(http.Response response) {
   if (response.statusCode != 200) {
     if (response.statusCode == 500) {
       // If it's 500, the server didn't get a chance to return a proper error message.
-      addNotif('Internal Server Error');
+      addToast('Internal Server Error');
       return false;
     }
     if (response.statusCode > 900) {
@@ -134,14 +135,14 @@ bool validateResponse(http.Response response) {
       // communicate custom errors.
       return false;
     }
-    addNotif('An unknown network error has occurred: ${response.body}');
+    addToast('An unknown network error has occurred: ${response.body}');
     return false;
   }
   Map<String, dynamic> data = json.decode(response.body);
   if (data['status'] != 'success') {
     // If it wasn't successful then the server will have returned the reason why
     // in the JSON so we display that to the user.
-    addNotif('A network error has occurred: ${data['message']}');
+    addToast('A network error has occurred: ${data['message']}');
     return false;
   }
   return true;
@@ -234,10 +235,10 @@ http.Response handleNetworkError(dynamic error, String url) {
     ).clearSnackBars();
     // This message is too long to show in one notification, so just display it
     // in two.
-    addNotif(
+    addToast(
       'Connection Error. Running in offline mode.',
     );
-    addNotif(
+    addToast(
       'If you close the app before we are back online, data will be lost.',
     );
     onlineMode = false;

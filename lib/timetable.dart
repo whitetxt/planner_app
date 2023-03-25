@@ -221,6 +221,7 @@ class TodayTimetable extends StatefulWidget {
 class _TodayTimetableState extends State<TodayTimetable> {
   @override
   void initState() {
+    super.initState();
     if (timetable[0].length != 9) {
       for (var i = 0; i < 5; i++) {
         for (var j = 0; j < 9; j++) {
@@ -247,7 +248,6 @@ class _TodayTimetableState extends State<TodayTimetable> {
         },
       ),
     );
-    super.initState();
   }
 
   @override
@@ -323,6 +323,7 @@ class _TodayTimetableState extends State<TodayTimetable> {
 
 Future<void> gotTimetable(http.Response response) async {
   if (response.statusCode != 200) return;
+  // Parse the response and put it into the timetable array.
   Map<String, dynamic> data = json.decode(response.body);
   for (var i = 0; i < data['data'].length; i++) {
     var today = data['data'][i];
@@ -347,6 +348,7 @@ Future<void> gotTimetable(http.Response response) async {
       }
     }
   }
+  // Store a local copy to use while offline
   final prefs = await SharedPreferences.getInstance();
   await prefs.setString('timetable', json.encode(data['data']));
 }
@@ -355,6 +357,7 @@ Future<void> gotSubjects(http.Response response) async {
   if (response.statusCode != 200) return;
   Map<String, dynamic> data = json.decode(response.body);
   subjects = [];
+  // We add the recieved subjects into the subject list.
   for (var i = 0; i < data['data'].length; i++) {
     var subject = data['data'][i];
     subjects.add(
@@ -386,6 +389,7 @@ class SubjectWidget extends StatelessWidget {
   final bool beingSet;
 
   void modifySubject(Color colour) {
+    // Make sure that each of them have 2 characters
     var red = colour.red.toRadixString(16).padLeft(2, '0');
     var green = colour.green.toRadixString(16).padLeft(2, '0');
     var blue = colour.blue.toRadixString(16).padLeft(2, '0');
@@ -504,6 +508,7 @@ class SubjectWidget extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Display all the information in a column, with all the text in the center
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: 8,
@@ -610,8 +615,8 @@ class _TimetablePageState extends State<TimetablePage> {
     );
   }
 
-  void onColourChanged(Color color) {
-    colour = color.withAlpha(255);
+  void onColourChanged(Color colour) {
+    colour = colour.withAlpha(255);
   }
 
   void createSubject() {
@@ -787,7 +792,9 @@ class _TimetablePageState extends State<TimetablePage> {
                                         name = value;
                                       },
                                       onFieldSubmitted: (String _) {
-                                        createSubject();
+                                        if (_formKey.currentState!.validate()) {
+                                          createSubject();
+                                        }
                                       },
                                     ),
                                     TextFormField(
@@ -806,7 +813,9 @@ class _TimetablePageState extends State<TimetablePage> {
                                         teacher = value;
                                       },
                                       onFieldSubmitted: (String _) {
-                                        createSubject();
+                                        if (_formKey.currentState!.validate()) {
+                                          createSubject();
+                                        }
                                       },
                                     ),
                                     TextFormField(
@@ -825,7 +834,9 @@ class _TimetablePageState extends State<TimetablePage> {
                                         room = value;
                                       },
                                       onFieldSubmitted: (String _) {
-                                        createSubject();
+                                        if (_formKey.currentState!.validate()) {
+                                          createSubject();
+                                        }
                                       },
                                     ),
                                     Expanded(
@@ -1004,6 +1015,7 @@ class _TimetablePageState extends State<TimetablePage> {
                                 ),
                             ],
                           ),
+                        // Put a divider where Break and Lunch is for the students.
                         Divider(
                           indent: indent,
                           endIndent: indent,

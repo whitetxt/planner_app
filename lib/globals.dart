@@ -26,6 +26,8 @@ enum Permissions {
 }
 
 class User {
+  // This doesn't have all the same fields as the server,
+  // as the server does not return some fields like password or salt.
   User(this.uid, this.name, this.createdAt, this.permissions);
 
   final int? uid;
@@ -44,12 +46,12 @@ class User {
   }
 }
 
-String token =
-    ''; // We keep the token as a global variable, as this lets me use it across multiple files easily.
+// We keep the token as a global variable, as this lets me use it across multiple files easily.
+String token = '';
 
 User? me; // Keep a version of us on hand, for whenever we might need it.
 
-void addNotif(String text, {bool error = true}) {
+void addToast(String text, {bool error = true}) {
   // This function is used to display something to the user.
   if (currentScaffoldKey.currentContext == null) {
     // This shouldn't ever be null but it could be.
@@ -65,14 +67,16 @@ void addNotif(String text, {bool error = true}) {
             .apply(
               // Change the text colour based on if the background is red or blue.
               // This is to increase contrast and make the text easier to read.
-              color: error ? Colors.white : Colors.black,
+              color: Colors.white,
             ),
         textAlign: TextAlign.center,
       ),
       backgroundColor: error
           // We change the background colour if this message is an error.
           ? Theme.of(currentScaffoldKey.currentContext!).colorScheme.error
-          : Theme.of(currentScaffoldKey.currentContext!).highlightColor,
+          : Theme.of(currentScaffoldKey.currentContext!)
+              .colorScheme
+              .onTertiaryContainer,
       duration: const Duration(seconds: 3),
     ),
   );

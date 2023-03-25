@@ -6,13 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'globals.dart';
 import 'network.dart';
 
-class SettingsPage extends StatefulWidget {
-  const SettingsPage({Key? key}) : super(key: key);
-
-  @override
-  State<SettingsPage> createState() => _SettingsPageState();
-}
-
 Future<void> onLogoutResponse(http.Response _) async {
   // When we logout, we don't care if it failed or succeeded,
   // just throw away our token and go back to the login screen.
@@ -20,14 +13,14 @@ Future<void> onLogoutResponse(http.Response _) async {
   me = null;
   final prefs = await SharedPreferences.getInstance();
   await prefs.remove('token');
-  addNotif('Successfully logged out!', error: false);
+  addToast('Successfully logged out!', error: false);
   navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
 }
 
 void onResetResponse(http.Response response) {
   if (!validateResponse(response)) return;
   // If the reset was successful, alert the user.
-  addNotif('Successfully reset user data!', error: false);
+  addToast('Successfully reset user data!', error: false);
   navigatorKey.currentState!.popUntil(ModalRoute.withName('/dash'));
 }
 
@@ -35,7 +28,7 @@ void onDeleteResponse(http.Response response) async {
   if (!validateResponse(response)) return;
   // If everything was OK, then tell the user and go back to the login screen.
   ScaffoldMessenger.of(currentScaffoldKey.currentContext!).clearSnackBars();
-  addNotif('Successfully deleted account!', error: false);
+  addToast('Successfully deleted account!', error: false);
   token = '';
   me = null;
   final prefs = await SharedPreferences.getInstance();
@@ -44,11 +37,14 @@ void onDeleteResponse(http.Response response) async {
   navigatorKey.currentState!.pushNamedAndRemoveUntil('/', (_) => false);
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({Key? key}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
+        // Don't use the PL_Appbar here since we don't want another settings button to show.
         preferredSize: const Size.fromHeight(32),
         child: AppBar(
           title: const Center(
@@ -135,7 +131,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                   ),
                                   onPressed: () {
                                     // Remove the popup and don't do anything.
-                                    addNotif('Cancelled resetting data',
+                                    addToast('Cancelled resetting data',
                                         error: false);
                                     Navigator.of(context).pop();
                                   },
@@ -161,7 +157,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                       ),
                                     );
                                     Navigator.of(context).pop();
-                                    addNotif(
+                                    addToast(
                                       'This may take a while. Please be patient',
                                       error: false,
                                     );
@@ -225,7 +221,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                     "Don't do it! Take me back!",
                                   ),
                                   onPressed: () {
-                                    addNotif('Cancelled deleting account',
+                                    addToast('Cancelled deleting account',
                                         error: false);
                                     Navigator.of(context).pop();
                                   },
@@ -248,7 +244,7 @@ class _SettingsPageState extends State<SettingsPage> {
                                         onDeleteResponse,
                                       ),
                                     );
-                                    addNotif(
+                                    addToast(
                                       'This may take a while. Please be patient',
                                       error: false,
                                     );

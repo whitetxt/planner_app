@@ -1,16 +1,17 @@
 import sqlite3
-import json
 from typing import List, Optional
 from classes import *
 
 
 class DB:
-    """This is the base class for a database.
+    """
+    This is the base class for a database.
 
     It provides wrappers for SQL functions, making them easier to implement and use.
 
     This class should not be used by itself.
-    A child of this class should be implemented to wrap around these functions."""
+    A child of this class should be implemented to wrap around these functions.
+    """
 
     def __init__(self, path):
         self.path = path
@@ -87,7 +88,7 @@ class UsersDB(DB):
 )"""
         self._create_raw(DDL)
 
-    def convert_result_to_user(self, user_data: dict) -> User:
+    def convert_result_to_user(self, user_data: list) -> User:
         return User(
             uid=user_data[0],
             username=user_data[1],
@@ -175,7 +176,7 @@ class SubjectsDB(DB):
 )"""
         self._create_raw(DDL)
 
-    def convert_result_to_subject(self, subject):
+    def convert_result_to_subject(self, subject: list):
         return Subject(
             subject_id=subject[0],
             user_id=subject[1],
@@ -460,30 +461,6 @@ class EventDB(DB):
         public_results = self._get(
             "*", "events", where="private = ?", args=(0, ))
         return [self.convert_result_to_event(result) for result in public_results]
-
-    def get_event(self, event_id: int, user_id: int) -> Event:
-        result = self._get(
-            "*", "events", where="event_id = ?", args=(event_id, ))
-        if result and (result[0][5] is None or result[0][5] == 0 or result[0][1] == user_id):
-            return self.convert_result_to_event(result[0])
-        else:
-            return None
-
-    def get_events_by_user(self, user_id: int) -> List[Event]:
-        results = self._get(
-            "*", "events", where="user_id = ?", args=(user_id, ))
-        return [self.convert_result_to_event(result) for result in results]
-
-    def create_event(self, user_id: int, name: str, time: int, description: str, private: bool) -> None:
-        self._insert("events", "user_id, name, time, description, private",
-                     (user_id, name, time, description, 1 if private else 0))
-
-    def delete_event(self, event_id: int, user_id: int) -> bool:
-        exists = self.get_event(event_id, user_id)
-        if exists is None:
-            return False
-        self._delete("events", "event_id = ?", (event_id, ))
-        return True
 
     def get_event(self, event_id: int, user_id: int) -> Event:
         result = self._get(
