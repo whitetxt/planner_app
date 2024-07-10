@@ -2,3 +2,4 @@ fastapi
 pydantic
 uvicorn
 python-multipart
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
