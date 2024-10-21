@@ -3,3 +3,4 @@ pydantic
 uvicorn
 python-multipart
 anyio>=4.4.0 # not directly required, pinned by Snyk to avoid a vulnerability
+starlette>=0.40.0 # not directly required, pinned by Snyk to avoid a vulnerability
